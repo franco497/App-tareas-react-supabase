@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import TaskForm from "../components/TaskForm";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -8,11 +9,13 @@ function Dashboard() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
     };
-    
+
     getUser();
   }, []);
 
@@ -23,12 +26,14 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        height: "100vh" 
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <h2>Cargando...</h2>
       </div>
     );
@@ -38,7 +43,7 @@ function Dashboard() {
     <div style={{ padding: "20px" }}>
       <h1>Dashboard</h1>
       <p>Bienvenido, {user?.email}</p>
-      <button 
+      <button
         onClick={handleLogout}
         style={{
           padding: "10px 20px",
@@ -46,11 +51,12 @@ function Dashboard() {
           color: "white",
           border: "none",
           borderRadius: "4px",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
       >
         Cerrar Sesión
       </button>
+      <TaskForm />
     </div>
   );
 }
