@@ -2,14 +2,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import TaskForm from "../components/TaskForm";
-import { useContext } from "react";
-import { TaskContext } from "../context/TaskContex";
+import TaskList from "../components/TaskList";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const obj = useContext(TaskContext);
-  console.log(obj);
 
   useEffect(() => {
     const getUser = async () => {
@@ -61,6 +58,7 @@ function Dashboard() {
         Cerrar Sesión
       </button>
       <TaskForm />
+      <TaskList />
     </div>
   );
 }
