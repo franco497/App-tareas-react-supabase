@@ -11,14 +11,43 @@ export const useTasks = () => {
 
 export const TaskContextProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
+  const [adding, setAdding] = useState(false);
 
-  const getTasks = async () => {
-    const result = await supabase.from("tasks").select();
-    console.log(result);
+  const getTasks = async (done = false) => {
+    const user = await supabase.auth.getUser();
+
+    const { error, data } = await supabase
+      .from("tasks")
+      .select()
+      .eq("userId", user.data.user.id)
+      .order("id", { ascending: true })
+      .eq("done", done);
+    if (error) throw Error;
+    setTasks(data);
+  };
+
+  const createTask = async (taskName) => {
+    setAdding(true);
+    try {
+      const user = await supabase.auth.getUser();
+      const result = await supabase
+        .from("tasks")
+        .insert({ name: taskName, userId: user.data.user.id })
+        .select();
+
+      if (result.error) throw result.error;
+
+      // Actualiza el estado local con la nueva tarea
+      setTasks((prevTasks) => [...prevTasks, result.data[0]]);
+    } catch (error) {
+      console.error("Error inserting task:", error);
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, getTasks }}>
+    <TaskContext.Provider value={{ tasks, getTasks, createTask, adding }}>
       {children}
     </TaskContext.Provider>
   );
