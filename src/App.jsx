@@ -9,14 +9,14 @@ import NotFound from "./pages/NotFound";
 import { TaskContextProvider } from "./context/TaskContex";
 
 function App() {
+  const [authLoading, setAuthLoading] = useState(true);
   const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Verificar si hay una sesión activa
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     // Escuchar cambios en la autenticación
@@ -29,7 +29,7 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div
         style={{
