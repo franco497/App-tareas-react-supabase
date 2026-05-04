@@ -12,7 +12,7 @@ function TaskList() {
   function renderTasks() {
     if (loading) {
       return <p>loading...</p>;
-    } else if (tasks.lenght == 0) {
+    } else if (tasks.length === 0) {
       return <p>No tasks found</p>;
     } else {
       return (
@@ -25,7 +25,7 @@ function TaskList() {
     }
   }
 
-  return <div>{renderTasks}</div>;
+  return <div>{renderTasks()}</div>;
 }
 
 export default TaskList;
