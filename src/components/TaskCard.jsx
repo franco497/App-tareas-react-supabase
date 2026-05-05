@@ -1,14 +1,14 @@
 import { useTasks } from "../context/TaskContex";
 
 function TaskCard({ task }) {
-  const { deleteTask } = useTasks();
+  const { deleteTask, updateTask } = useTasks();
 
   const handleDelete = () => {
     deleteTask(task.id);
   };
 
   const handleToggleDone = () => {
-    alert("toggling");
+    updateTask(task.id, { done: !task.done });
   };
 
   return (
