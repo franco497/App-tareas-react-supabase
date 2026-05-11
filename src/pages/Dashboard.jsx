@@ -5,9 +5,9 @@ import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 
 function Dashboard() {
+  const [showTaskDone, setShowTaskDone] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showTaskDone, setShowTaskDone] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -62,11 +62,7 @@ function Dashboard() {
 
       <header>
         <span>Tasks pending</span>
-        <button
-          onClick={() => {
-            setShowTaskDone(!showTaskDone);
-          }}
-        >
+        <button onClick={() => setShowTaskDone(!showTaskDone)}>
           Show Tasks done
         </button>
       </header>

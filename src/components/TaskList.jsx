@@ -7,25 +7,31 @@ function TaskList({ done = false }) {
 
   useEffect(() => {
     getTasks(done);
-  }, [done, getTasks]);
+  }, [done, getTasks]); // Agregar getTasks como dependencia
 
-  function renderTasks() {
-    if (loading) {
-      return <p>loading...</p>;
-    } else if (tasks.length === 0) {
-      return <p>No tasks found</p>;
-    } else {
-      return (
-        <div>
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </div>
-      );
-    }
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        <p>Cargando tareas...</p>
+      </div>
+    );
   }
 
-  return <div>{renderTasks()}</div>;
+  if (tasks.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+        <p>No hay tareas {done ? "completadas" : "pendientes"}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {tasks.map((task) => (
+        <TaskCard key={task.id} task={task} />
+      ))}
+    </div>
+  );
 }
 
 export default TaskList;
