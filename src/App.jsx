@@ -7,6 +7,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { TaskContextProvider } from "./context/TaskContex";
+import Navbar from "./components/Navbar";
 
 function App() {
   const [authLoading, setAuthLoading] = useState(true);
@@ -47,6 +48,7 @@ function App() {
   return (
     <BrowserRouter>
       <TaskContextProvider>
+        <Navbar />
         <Routes>
           {/* Ruta de login - si ya está logueado, redirige al dashboard */}
           <Route
