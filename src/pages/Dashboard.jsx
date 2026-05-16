@@ -1,9 +1,8 @@
-// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
-import Navbar from "../components/Navbar"; // Importar el Navbar
+import Navbar from "../components/Navbar";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
@@ -29,14 +28,7 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+      <div className="loading-container">
         <h2>Cargando...</h2>
       </div>
     );
@@ -44,31 +36,24 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar /> {/* Navbar solo aquí */}
-      <div style={{ padding: "20px" }}>
-        <h1>Dashboard</h1>
-        <p>Bienvenido, {user?.email}</p>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#dc3545",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+      <Navbar />
+      <div className="dashboard-container">
+        <h1 className="dashboard-title">Dashboard</h1>
+        <p className="dashboard-welcome">Bienvenido, {user?.email}</p>
+        <button onClick={handleLogout} className="logout-button">
           Cerrar Sesión
         </button>
         <TaskForm />
 
-        <header>
+        <div className="dashboard-header">
           <span>Tasks pending</span>
-          <button onClick={() => setShowTaskDone(!showTaskDone)}>
+          <button
+            onClick={() => setShowTaskDone(!showTaskDone)}
+            className="toggle-button"
+          >
             Show Tasks done
           </button>
-        </header>
+        </div>
 
         <TaskList done={showTaskDone} />
       </div>

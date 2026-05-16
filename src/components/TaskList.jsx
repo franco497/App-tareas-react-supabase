@@ -7,11 +7,11 @@ function TaskList({ done = false }) {
 
   useEffect(() => {
     getTasks(done);
-  }, [done, getTasks]); // Agregar getTasks como dependencia
+  }, [done, getTasks]);
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: "20px" }}>
+      <div className="task-list-loading">
         <p>Cargando tareas...</p>
       </div>
     );
@@ -19,14 +19,14 @@ function TaskList({ done = false }) {
 
   if (tasks.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+      <div className="task-list-empty">
         <p>No hay tareas {done ? "completadas" : "pendientes"}</p>
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+    <div className="task-list">
       {tasks.map((task) => (
         <TaskCard key={task.id} task={task} />
       ))}

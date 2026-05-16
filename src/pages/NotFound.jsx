@@ -1,5 +1,5 @@
 function NotFound() {
-  return <div>Page Not Found</div>;
+  return <div className="not-found">Page Not Found</div>;
 }
 
 export default NotFound;

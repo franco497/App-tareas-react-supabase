@@ -1,4 +1,3 @@
-// src/pages/AuthCallback.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -8,8 +7,11 @@ function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         if (session) {
           setStatus("✅ Login exitoso! Redirigiendo...");
           setTimeout(() => {
@@ -36,14 +38,9 @@ function AuthCallback() {
   }, []);
 
   return (
-    <div style={{ 
-      display: "flex", 
-      justifyContent: "center", 
-      alignItems: "center", 
-      height: "100vh" 
-    }}>
-      <div style={{ textAlign: "center" }}>
-        <h2>{status}</h2>
+    <div className="auth-callback-container">
+      <div className="auth-callback-content">
+        <h2 className="auth-callback-status">{status}</h2>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// src/components/Login.jsx
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -15,10 +14,9 @@ function Login() {
     setError("");
 
     try {
-      // Obtén la URL actual para el redirect
       const currentUrl = window.location.origin;
-      
-      const { data, error } = await supabase.auth.signInWithOtp({
+
+      const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
           emailRedirectTo: `${currentUrl}/auth/callback`,
@@ -38,9 +36,9 @@ function Login() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
-      <h2>Login con Magic Link</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="login-container">
+      <h2 className="login-title">Login con Magic Link</h2>
+      <form onSubmit={handleSubmit} className="login-form">
         <div>
           <input
             type="email"
@@ -49,57 +47,17 @@ function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              fontSize: "16px"
-            }}
+            className="login-input"
           />
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#0070f3",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontSize: "16px"
-          }}
-        >
+        <button type="submit" disabled={loading} className="login-button">
           {loading ? "Enviando..." : "Enviar Magic Link"}
         </button>
 
-        {message && (
-          <div style={{ 
-            marginTop: "15px", 
-            padding: "10px", 
-            backgroundColor: "#d4edda", 
-            color: "#155724", 
-            borderRadius: "4px" 
-          }}>
-            {message}
-          </div>
-        )}
-        
-        {error && (
-          <div style={{ 
-            marginTop: "15px", 
-            padding: "10px", 
-            backgroundColor: "#f8d7da", 
-            color: "#721c24", 
-            borderRadius: "4px" 
-          }}>
-            ❌ {error}
-          </div>
-        )}
+        {message && <div className="login-message success">{message}</div>}
+
+        {error && <div className="login-message error">❌ {error}</div>}
       </form>
     </div>
   );

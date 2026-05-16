@@ -30,23 +30,12 @@ function TaskCard({ task }) {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        padding: "10px",
-        backgroundColor: "#f5f5f5",
-        borderRadius: "8px",
-        transition: "all 0.3s",
-        opacity: task.done ? 0.7 : 1,
-      }}
-    >
+    <div className={`task-card ${task.done ? "completed" : ""}`}>
       <input
         type="checkbox"
         checked={task.done}
         onChange={handleToggle}
-        style={{ width: "20px", height: "20px", cursor: "pointer" }}
+        className="task-checkbox"
       />
 
       {isEditing ? (
@@ -56,50 +45,24 @@ function TaskCard({ task }) {
           onChange={(e) => setEditName(e.target.value)}
           onKeyPress={handleKeyPress}
           autoFocus
-          style={{
-            flex: 1,
-            padding: "5px",
-            fontSize: "16px",
-            border: "1px solid #007bff",
-            borderRadius: "4px",
-          }}
+          className="task-edit-input"
         />
       ) : (
-        <span
-          style={{
-            flex: 1,
-            textDecoration: task.done ? "line-through" : "none",
-            fontSize: "16px",
-          }}
-        >
+        <span className={`task-text ${task.done ? "completed" : ""}`}>
           {task.name}
         </span>
       )}
 
       <button
         onClick={handleEdit}
-        style={{
-          padding: "5px 10px",
-          backgroundColor: isEditing ? "#28a745" : "#ffc107",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
+        className={`edit-button ${isEditing ? "save" : ""}`}
       >
         {isEditing ? "💾" : "✏️"}
       </button>
 
       <button
         onClick={handleDelete}
-        style={{
-          padding: "5px 10px",
-          backgroundColor: "#dc3545",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
+        className="delete-button"
       >
         🗑️
       </button>
