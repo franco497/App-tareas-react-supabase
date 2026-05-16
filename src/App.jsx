@@ -48,7 +48,6 @@ function App() {
   return (
     <BrowserRouter>
       <TaskContextProvider>
-        <Navbar />
         <Routes>
           {/* Ruta de login - si ya está logueado, redirige al dashboard */}
           <Route
