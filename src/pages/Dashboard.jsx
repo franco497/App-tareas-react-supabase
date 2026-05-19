@@ -38,7 +38,7 @@ function Dashboard() {
     <>
       <Navbar />
       <div className="dashboard-container">
-        <h1 className="dashboard-title">Dashboard</h1>
+        <h1 className="dashboard-title">Panel</h1>
         <p className="dashboard-welcome">Bienvenido, {user?.email}</p>
         <button onClick={handleLogout} className="logout-button">
           Cerrar Sesión
@@ -46,12 +46,12 @@ function Dashboard() {
         <TaskForm />
 
         <div className="dashboard-header">
-          <span>Tasks pending</span>
+          <span>Tareas pendientes</span>
           <button
             onClick={() => setShowTaskDone(!showTaskDone)}
             className="toggle-button"
           >
-            Show Tasks done
+            Mostrar tarea realizada
           </button>
         </div>
 

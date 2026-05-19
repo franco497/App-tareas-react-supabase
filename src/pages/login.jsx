@@ -37,7 +37,7 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2 className="login-title">Login con Magic Link</h2>
+      <h2 className="login-title">Inicia Sesion con Magic Link, solo ingresa tu E-mail:</h2>
       <form onSubmit={handleSubmit} className="login-form">
         <div>
           <input
