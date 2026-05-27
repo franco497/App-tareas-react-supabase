@@ -21,9 +21,8 @@ function Dashboard() {
     getUser();
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
+  const handleToggleView = () => {
+    setShowTaskDone(!showTaskDone);
   };
 
   if (loading) {
@@ -40,18 +39,15 @@ function Dashboard() {
       <div className="dashboard-container">
         <h1 className="dashboard-title">Panel</h1>
         <p className="dashboard-welcome">Bienvenido, {user?.email}</p>
-        <button onClick={handleLogout} className="logout-button">
-          Cerrar Sesión
-        </button>
         <TaskForm />
 
         <div className="dashboard-header">
-          <span>Tareas pendientes</span>
+          <span>{showTaskDone ? "Tareas realizadas" : "Tareas pendientes"}</span>
           <button
-            onClick={() => setShowTaskDone(!showTaskDone)}
-            className="toggle-button"
+            onClick={handleToggleView}
+            className={`toggle-button ${showTaskDone ? "success" : "danger"}`}
           >
-            Mostrar tarea realizada
+            {showTaskDone ? "Mostrar tareas sin realizar" : "Mostrar tareas realizadas"}
           </button>
         </div>
 

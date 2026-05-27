@@ -1,12 +1,19 @@
-// Navbar.jsx con funcionalidad responsive
+// Navbar.jsx con funcionalidad responsive y botón de cerrar sesión
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
   };
 
   return (
@@ -17,37 +24,25 @@ function Navbar() {
         </div>
 
         <ul className={`nav-menu ${isOpen ? "active" : ""}`}>
-          <li className="nav-item">
-            <a href="/" className="nav-link" onClick={() => setIsOpen(false)}>
+{/*           <li className="nav-item">
+            <Link to="/" className="nav-link" onClick={() => setIsOpen(false)}>
               Inicio
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a
-              href="/about"
-              className="nav-link"
-              onClick={() => setIsOpen(false)}
-            >
+            <Link to="/about" className="nav-link" onClick={() => setIsOpen(false)}>
               Acerca de
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a
-              href="/services"
-              className="nav-link"
-              onClick={() => setIsOpen(false)}
-            >
+            <Link to="/services" className="nav-link" onClick={() => setIsOpen(false)}>
               Servicios
-            </a>
-          </li>
+            </Link>
+          </li> */}
           <li className="nav-item">
-            <a
-              href="/contact"
-              className="nav-link"
-              onClick={() => setIsOpen(false)}
-            >
-              Contacto
-            </a>
+            <button onClick={handleLogout} className="nav-link logout-nav-btn">
+              Cerrar Sesión
+            </button>
           </li>
         </ul>
 
