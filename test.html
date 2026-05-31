@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Probar función de email</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 600px; margin: 0 auto; }
+        button { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; margin-top: 20px; }
+        .loading { color: blue; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>📧 Probar función de recordatorio</h2>
+    <button onclick="probarFuncion()">📧 Enviar email de prueba</button>
+    <pre id="resultado">Esperando...</pre>
+
+    <script>
+    async function probarFuncion() {
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.className = 'loading';
+        resultadoDiv.textContent = '⏳ Enviando solicitud...';
+        
+        try {
+            const response = await fetch('https://vjywpkrncmsijpggdfwf.supabase.co/functions/v1/send-email-gmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    taskName: "Tarea de prueba desde el navegador",
+                    taskId: "test-" + Date.now(),
+                    scheduledDate: "2025-05-30",
+                    scheduledTime: "18:00",
+                    userEmail: "devincentisf35@gmail.com",
+                    toEmail: "devincentisf35@gmail.com"
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                resultadoDiv.className = 'success';
+                resultadoDiv.textContent = '✅ ¡Éxito!\n' + JSON.stringify(data, null, 2);
+                console.log('Email enviado:', data);
+            } else {
+                resultadoDiv.className = 'error';
+                resultadoDiv.textContent = '❌ Error:\n' + JSON.stringify(data, null, 2);
+            }
+        } catch (error) {
+            resultadoDiv.className = 'error';
+            resultadoDiv.textContent = '❌ Error de conexión: ' + error.message;
+        }
+    }
+    </script>
+    
+    <p><small>Revisa tu correo en devincentisf35@gmail.com (incluye Spam)</small></p>
+</body>
+</html>

@@ -14,3 +14,41 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+
+estructura de carpetas del sistema
+
+APP-TAREAS-REACT-SUPABASE-22-I/
+│
+├── node_modules/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── Navbar.jsx
+│   │   ├── NotificationForm.jsx
+│   │   ├── TaskCard.jsx
+│   │   ├── TaskForm.jsx
+│   │   └── TaskList.jsx
+│   │
+│   ├── context/
+│   │   └── TaskContext.jsx
+│   │
+│   ├── lib/
+│   │   └── supabase.js
+│   │
+│   ├── pages/
+│   │   ├── AuthCallback.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── login.jsx
+│   │   └── NotFound.jsx
+│   │
+│   ├── supabase/
+│   │   └── auth/
+│   │       └── callback.js
+│   │
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+│
+├── .env
+└── .gitignore
