@@ -1,16 +1,30 @@
 // src/components/NotificationForm.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 
 function NotificationForm({ task, onClose }) {
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [toEmail, setToEmail] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [sendType, setSendType] = useState("now"); // "now" o "later"
+  const [userEmail, setUserEmail] = useState(""); // Estado para el email del usuario
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Obtener el email del usuario al cargar el componente
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUserEmail();
+  }, []);
+
+  // Enviar ahora
+  const handleSendNow = async () => {
     setLoading(true);
     setMessage({ text: "", type: "" });
 
@@ -23,6 +37,11 @@ function NotificationForm({ task, onClose }) {
         throw new Error("No se encontró el email del usuario");
       }
 
+      // Fecha y hora actual
+      const now = new Date();
+      const currentDate = now.toISOString().split("T")[0];
+      const currentTime = now.toTimeString().slice(0, 5);
+
       // Invocar la Edge Function
       const { data, error } = await supabase.functions.invoke(
         "send-email-gmail",
@@ -30,24 +49,20 @@ function NotificationForm({ task, onClose }) {
           body: {
             taskName: task.name,
             taskId: task.id,
-            scheduledDate: date,
-            scheduledTime: time,
+            scheduledDate: currentDate,
+            scheduledTime: currentTime,
             userEmail: user.email,
-            toEmail: toEmail || user.email,
+            toEmail: user.email, // Siempre al email registrado
           },
-        },
+        }
       );
 
       if (error) throw error;
 
       setMessage({
-        text: `✅ ¡Notificación enviada exitosamente a ${toEmail || user.email}!`,
+        text: `✅ ¡Notificación enviada exitosamente a ${user.email}!`,
         type: "success",
       });
-
-      setDate("");
-      setTime("");
-      setToEmail("");
 
       setTimeout(() => {
         onClose();
@@ -63,6 +78,66 @@ function NotificationForm({ task, onClose }) {
     }
   };
 
+  // Programar para más tarde (por ahora solo guarda en consola)
+  const handleScheduleLater = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ text: "", type: "" });
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user || !user.email) {
+        throw new Error("No se encontró el email del usuario");
+      }
+
+      if (!scheduledDate || !scheduledTime) {
+        throw new Error("Debes seleccionar fecha y hora");
+      }
+
+      // Por ahora solo muestra en consola (no envía email)
+      console.log("📅 Tarea programada (demo):", {
+        taskName: task.name,
+        taskId: task.id,
+        scheduledDate,
+        scheduledTime,
+        userEmail: user.email,
+        toEmail: user.email,
+      });
+
+      setMessage({
+        text: `⏰ Recordatorio programado para ${scheduledDate} a las ${scheduledTime}. (Demo - no se envió email)`,
+        type: "success",
+      });
+
+      // Limpiar campos
+      setScheduledDate("");
+      setScheduledTime("");
+
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Error al programar:", error);
+      setMessage({
+        text: `❌ Error: ${error.message || "No se pudo programar el recordatorio"}`,
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resetear formulario cuando se cambia el tipo de envío
+  const handleTypeChange = (type) => {
+    setSendType(type);
+    setMessage({ text: "", type: "" });
+    setScheduledDate("");
+    setScheduledTime("");
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -73,57 +148,85 @@ function NotificationForm({ task, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="toEmail">📧 Enviar a (email):</label>
-            <input
-              type="email"
-              id="toEmail"
-              value={toEmail}
-              onChange={(e) => setToEmail(e.target.value)}
-              placeholder="ejemplo@correo.com (opcional)"
-              className="form-input"
-            />
-            <small style={{ color: "var(--text)", fontSize: "12px" }}>
-              Si lo dejas vacío, se enviará a tu email registrado
-            </small>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="date">📅 Fecha:</label>
-            <input
-              type="date"
-              id="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              min={new Date().toISOString().split("T")[0]}
-              className="form-input"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="time">⏰ Hora:</label>
-            <input
-              type="time"
-              id="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              required
-              className="form-input"
-            />
-          </div>
-
-          {message.text && (
-            <div className={`notification-message ${message.type}`}>
-              {message.text}
-            </div>
-          )}
-
-          <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? "⏳ Enviando..." : "📧 Enviar recordatorio"}
+        {/* Selector de tipo de envío */}
+        <div className="send-type-selector">
+          <button
+            type="button"
+            className={`send-type-btn ${sendType === "now" ? "active" : ""}`}
+            onClick={() => handleTypeChange("now")}
+          >
+            🚀 Enviar ahora
           </button>
-        </form>
+          <button
+            type="button"
+            className={`send-type-btn ${sendType === "later" ? "active" : ""}`}
+            onClick={() => handleTypeChange("later")}
+          >
+            📅 Programar para más tarde
+          </button>
+        </div>
+
+        {/* Formulario para envío programado */}
+        {sendType === "later" && (
+          <form onSubmit={handleScheduleLater}>
+            <div className="form-group">
+              <label htmlFor="date">📅 Fecha:</label>
+              <input
+                type="date"
+                id="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                required
+                min={new Date().toISOString().split("T")[0]}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="time">⏰ Hora:</label>
+              <input
+                type="time"
+                id="time"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                required
+                className="form-input"
+              />
+            </div>
+
+            {message.text && (
+              <div className={`notification-message ${message.type}`}>
+                {message.text}
+              </div>
+            )}
+
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? "⏳ Programando..." : "📅 Programar recordatorio"}
+            </button>
+          </form>
+        )}
+
+        {/* Botón para envío inmediato */}
+        {sendType === "now" && (
+          <div className="send-now-container">
+            <p className="send-now-info">
+              📧 El recordatorio se enviará a tu email: <strong>{userEmail || "Cargando..."}</strong>
+            </p>
+            {message.text && (
+              <div className={`notification-message ${message.type}`}>
+                {message.text}
+              </div>
+            )}
+            <button
+              type="button"
+              className="send-now-button"
+              onClick={handleSendNow}
+              disabled={loading}
+            >
+              {loading ? "⏳ Enviando..." : "🚀 Enviar ahora"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

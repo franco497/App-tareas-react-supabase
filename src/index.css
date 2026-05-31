@@ -1047,3 +1047,78 @@ code {
     opacity: 1;
   }
 }
+
+/* Selector de tipo de envío */
+.send-type-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+
+.send-type-btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  color: var(--text);
+}
+
+.send-type-btn.active {
+  background: var(--info);
+  border-color: var(--info);
+  color: white;
+}
+
+.send-type-btn:hover:not(.active) {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* Contenedor para envío ahora */
+.send-now-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.send-now-info {
+  padding: 12px;
+  background: var(--accent-bg);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.send-now-info strong {
+  color: var(--accent);
+}
+
+.send-now-button {
+  padding: 12px;
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.send-now-button:hover:not(:disabled) {
+  background: #1e7e34;
+  transform: scale(1.02);
+}
+
+.send-now-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
