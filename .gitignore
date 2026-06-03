@@ -22,4 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env.local
+.env.localbackend-worker/.env
+.env
+*.env
+
+# Environment variables
+.env
+.env.*
+*.env
+backend-worker/.env
