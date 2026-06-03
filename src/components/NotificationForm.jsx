@@ -54,7 +54,7 @@ function NotificationForm({ task, onClose }) {
             userEmail: user.email,
             toEmail: user.email, // Siempre al email registrado
           },
-        }
+        },
       );
 
       if (error) throw error;
@@ -77,8 +77,7 @@ function NotificationForm({ task, onClose }) {
       setLoading(false);
     }
   };
-
-  // Programar para más tarde (por ahora solo guarda en consola)
+  // Programar para más tarde - Versión CORREGIDA
   const handleScheduleLater = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -97,22 +96,53 @@ function NotificationForm({ task, onClose }) {
         throw new Error("Debes seleccionar fecha y hora");
       }
 
-      // Por ahora solo muestra en consola (no envía email)
-      console.log("📅 Tarea programada (demo):", {
-        taskName: task.name,
-        taskId: task.id,
-        scheduledDate,
-        scheduledTime,
-        userEmail: user.email,
-        toEmail: user.email,
-      });
+      // Crear fecha en formato local (sin conversión UTC)
+      const dateTimeString = `${scheduledDate}T${scheduledTime}:00`;
+      const selectedDate = new Date(dateTimeString);
+
+      // Obtener fecha actual
+      const now = new Date();
+
+      // Validar que la fecha no sea en el pasado
+      if (selectedDate < now) {
+        throw new Error("No puedes programar una notificación en el pasado");
+      }
+
+      // 🔧 IMPORTANTE: Guardar la fecha en formato ISO local sin convertir
+      // Obtenemos el offset local y lo aplicamos
+      const tzOffset = selectedDate.getTimezoneOffset() * 60000; // offset en ms
+      const localISODate = new Date(selectedDate - tzOffset)
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+
+      console.log("📅 Fecha seleccionada:", selectedDate.toString());
+      console.log(
+        "📅 Offset zona horaria:",
+        selectedDate.getTimezoneOffset(),
+        "minutos",
+      );
+      console.log("📅 Fecha a guardar (local):", localISODate);
+
+      // Guardar en la base de datos (como string local)
+      const { data, error } = await supabase
+        .from("scheduled_notifications")
+        .insert({
+          task_id: task.id,
+          task_name: task.name,
+          user_email: user.email,
+          scheduled_for: localISODate, // Guardar como string local
+          status: "pending",
+        })
+        .select();
+
+      if (error) throw error;
 
       setMessage({
-        text: `⏰ Recordatorio programado para ${scheduledDate} a las ${scheduledTime}. (Demo - no se envió email)`,
+        text: `✅ ¡Recordatorio programado para ${scheduledDate} a las ${scheduledTime}!`,
         type: "success",
       });
 
-      // Limpiar campos
       setScheduledDate("");
       setScheduledTime("");
 
@@ -122,14 +152,13 @@ function NotificationForm({ task, onClose }) {
     } catch (error) {
       console.error("Error al programar:", error);
       setMessage({
-        text: `❌ Error: ${error.message || "No se pudo programar el recordatorio"}`,
+        text: `❌ Error: ${error.message}`,
         type: "error",
       });
     } finally {
       setLoading(false);
     }
   };
-
   // Resetear formulario cuando se cambia el tipo de envío
   const handleTypeChange = (type) => {
     setSendType(type);
@@ -166,11 +195,10 @@ function NotificationForm({ task, onClose }) {
           </button>
         </div>
 
-        {/* Formulario para envío programado */}
         {sendType === "later" && (
           <form onSubmit={handleScheduleLater}>
             <div className="form-group">
-              <label htmlFor="date">📅 Fecha:</label>
+              <label htmlFor="date">📅 Fecha (hora Argentina UTC-3):</label>
               <input
                 type="date"
                 id="date"
@@ -180,10 +208,20 @@ function NotificationForm({ task, onClose }) {
                 min={new Date().toISOString().split("T")[0]}
                 className="form-input"
               />
+              <small
+                style={{
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  display: "block",
+                  marginTop: "5px",
+                }}
+              >
+                🇦🇷 Zona horaria: Argentina (UTC-3)
+              </small>
             </div>
 
             <div className="form-group">
-              <label htmlFor="time">⏰ Hora:</label>
+              <label htmlFor="time">⏰ Hora (UTC-3):</label>
               <input
                 type="time"
                 id="time"
@@ -192,6 +230,16 @@ function NotificationForm({ task, onClose }) {
                 required
                 className="form-input"
               />
+              <small
+                style={{
+                  color: "var(--text)",
+                  fontSize: "12px",
+                  display: "block",
+                  marginTop: "5px",
+                }}
+              >
+                ⏰ Hora de Argentina (UTC-3)
+              </small>
             </div>
 
             {message.text && (
@@ -210,7 +258,8 @@ function NotificationForm({ task, onClose }) {
         {sendType === "now" && (
           <div className="send-now-container">
             <p className="send-now-info">
-              📧 El recordatorio se enviará a tu email: <strong>{userEmail || "Cargando..."}</strong>
+              📧 El recordatorio se enviará a tu email:{" "}
+              <strong>{userEmail || "Cargando..."}</strong>
             </p>
             {message.text && (
               <div className={`notification-message ${message.type}`}>
