@@ -1,0 +1,12 @@
+[build]
+  # Directorio donde se construye tu React app
+  publish = "dist"
+  # Comando para construir
+  command = "npm run build"
+
+# Configuración para las funciones programadas
+[functions]
+  # Directorio donde están las funciones
+  directory = "netlify/functions"
+  # Tiempo máximo de ejecución (5 minutos es suficiente)
+  timeout = 60
