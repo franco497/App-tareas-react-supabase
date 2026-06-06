@@ -4,12 +4,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/',  // ← Asegurar que las rutas sean absolutas desde la raíz
   build: {
-    rollupOptions: {
-      input: {
-        main: './index.html'
-      }
-    }
-  },
-  publicDir: 'public',  // Esto ya debería copiar _redirects
+    outDir: 'dist',
+    assetsDir: 'assets',
+  }
 })
