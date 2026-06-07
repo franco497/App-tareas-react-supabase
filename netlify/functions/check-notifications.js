@@ -135,8 +135,8 @@ async function processEmails() {
   }
 }
 
-// Programar cada 5 minutos
-export const handler = schedule("*/5 * * * *", async () => {
+// Programar cada 1 minuto
+export const handler = schedule("* * * * *", async () => {
   await processEmails();
   return { statusCode: 200 };
 });
