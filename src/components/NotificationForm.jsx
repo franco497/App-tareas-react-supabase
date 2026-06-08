@@ -92,86 +92,75 @@ function NotificationForm({ task, onClose }) {
     }
   };
 
-  // Programar para más tarde
-  const handleScheduleLater = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage({ text: "", type: "" });
+// Programar para más tarde - VERSIÓN CORRECTA
+const handleScheduleLater = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setMessage({ text: "", type: "" });
 
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user || !user.email) {
-        throw new Error("No se encontró el email del usuario");
-      }
+    if (!user || !user.email) {
+      throw new Error("No se encontró el email del usuario");
+    }
 
-      if (!scheduledDate || !scheduledTime) {
-        throw new Error("Debes seleccionar fecha y hora");
-      }
+    if (!scheduledDate || !scheduledTime) {
+      throw new Error("Debes seleccionar fecha y hora");
+    }
 
-      // Extraer componentes
-      const [year, month, day] = scheduledDate.split("-");
-      const [hour, minute] = scheduledTime.split(":");
+    // Extraer componentes (esto es correcto)
+    const [year, month, day] = scheduledDate.split("-");
+    const [hour, minute] = scheduledTime.split(":");
 
-      // Formato SIN T: "2026-06-08 15:06:00"
-      const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
+    // 🔧 FORMATO CORRECTO: String plano SIN T
+    const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
+    
+    console.log("📅 Guardando fecha en BD:", localDateString);
+    console.log("📅 Tipo:", typeof localDateString);
 
-      console.log("📅 Guardando:", localDateString);
+    // Validación
+    const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
+    const now = new Date();
 
-      // Validación simple
-      const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
-      const now = new Date();
+    if (selectedDate < now) {
+      throw new Error("No puedes programar una notificación en el pasado");
+    }
 
-      if (selectedDate < now) {
-        throw new Error("No puedes programar una notificación en el pasado");
-      }
-
-      // Justo antes del supabase.insert
-      console.log("📤 Enviando a Supabase:", {
-        task_name: task.name,
-        user_email: user.email,
-        scheduled_for: localDateString, // ← Esto debería ser "2026-06-08 17:52:00"
-      });
-
-      // Verificar que NO tiene 'T'
-      if (localDateString.includes("T")) {
-        console.error("❌ ERROR: La fecha tiene T, formato incorrecto!");
-      }
-
-      // Guardar
-      const { error } = await supabase.from("scheduled_notifications").insert({
+    // Guardar en Supabase
+    const { error } = await supabase
+      .from("scheduled_notifications")
+      .insert({
         task_id: task.id,
         task_name: task.name,
         user_email: user.email,
-        scheduled_for: localDateString,
+        scheduled_for: localDateString, // ← Esto debe ser "2026-06-08 18:22:00"
         status: "pending",
       });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      setMessage({
-        text: `✅ ¡Recordatorio programado para ${scheduledDate} a las ${scheduledTime}!`,
-        type: "success",
-      });
+    setMessage({
+      text: `✅ ¡Recordatorio programado para ${scheduledDate} a las ${scheduledTime}!`,
+      type: "success",
+    });
 
-      setScheduledDate("");
-      setScheduledTime("");
+    setScheduledDate("");
+    setScheduledTime("");
 
-      setTimeout(() => {
-        onClose();
-      }, 2000);
-    } catch (error) {
-      console.error("Error al programar:", error);
-      setMessage({
-        text: `❌ Error: ${error.message}`,
-        type: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    setTimeout(() => {
+      onClose();
+    }, 2000);
+  } catch (error) {
+    console.error("Error al programar:", error);
+    setMessage({
+      text: `❌ Error: ${error.message}`,
+      type: "error",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Resetear formulario cuando se cambia el tipo de envío
   const handleTypeChange = (type) => {
