@@ -6,16 +6,35 @@ import nodemailer from "nodemailer";
 
 // Función para parsear fecha local (Argentina UTC-3)
 function parseLocalDate(dateString) {
-  const parts = dateString.match(
-    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/,
-  );
+  console.log(`🔍 Parseando fecha: ${dateString}`);
+  
+  // Si viene en formato ISO "2026-06-07T22:00:00"
+  if (dateString && dateString.includes('T')) {
+    // Es una fecha UTC, debemos convertirla a local (Argentina UTC-3)
+    const utcDate = new Date(dateString);
+    // Restar 3 horas para convertir UTC a Argentina
+    const argentinaDate = new Date(utcDate);
+    argentinaDate.setHours(argentinaDate.getHours() - 3);
+    console.log(`   → Formato UTC: ${utcDate.toLocaleString()}`);
+    console.log(`   → Convertido a Argentina: ${argentinaDate.toLocaleString()}`);
+    return argentinaDate;
+  }
+  
+  // Formato "2026-06-07 22:00:00" (local)
+  const parts = dateString.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
   if (parts) {
     const [_, year, month, day, hour, minute, second] = parts;
-    return new Date(year, month - 1, day, hour, minute, second);
+    // Crear fecha directamente en hora local
+    const date = new Date(year, month - 1, day, hour, minute, second);
+    console.log(`   → Formato local: ${date.toLocaleString()}`);
+    return date;
   }
-  return new Date(dateString);
+  
+  console.log(`   → Formato desconocido, intentando Date() directo`);
+  const fallbackDate = new Date(dateString);
+  console.log(`   → Fallback: ${fallbackDate.toLocaleString()}`);
+  return fallbackDate;
 }
-
 // Configuración de Supabase (desde variables de entorno)
 const supabase = createClient(
   process.env.SUPABASE_URL,

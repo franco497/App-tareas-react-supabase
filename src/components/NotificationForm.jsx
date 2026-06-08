@@ -14,16 +14,16 @@ function NotificationForm({ task, onClose }) {
   const getArgentinaDate = () => {
     const now = new Date();
     const argentinaOffset = -3;
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    return new Date(utc + (argentinaOffset * 3600000));
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    return new Date(utc + argentinaOffset * 3600000);
   };
 
   // 🔧 Función para formatear fecha a YYYY-MM-DD para el input date
   const getArgentinaDateString = () => {
     const argentinaDate = getArgentinaDate();
     const year = argentinaDate.getFullYear();
-    const month = String(argentinaDate.getMonth() + 1).padStart(2, '0');
-    const day = String(argentinaDate.getDate()).padStart(2, '0');
+    const month = String(argentinaDate.getMonth() + 1).padStart(2, "0");
+    const day = String(argentinaDate.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -126,25 +126,27 @@ function NotificationForm({ task, onClose }) {
         throw new Error("No puedes programar una notificación en el pasado");
       }
 
-      // Guardar la fecha en formato ISO local
-      const tzOffset = selectedDate.getTimezoneOffset() * 60000;
-      const localISODate = new Date(selectedDate - tzOffset)
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
+      // 🔧 Guardar en formato local consistente (YYYY-MM-DD HH:MM:SS)
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const day = String(selectedDate.getDate()).padStart(2, "0");
+      const hours = String(selectedDate.getHours()).padStart(2, "0");
+      const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
+      const seconds = String(selectedDate.getSeconds()).padStart(2, "0");
+      const localDateString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
       console.log("📅 Fecha seleccionada:", selectedDate.toString());
       console.log("📅 Fecha Argentina actual:", todayArgentina.toString());
-      console.log("📅 Fecha a guardar (local):", localISODate);
+      console.log("📅 Fecha a guardar (local):", localDateString);
 
-      // Guardar en la base de datos
+      // Guardar en la base de datos con formato local consistente
       const { data, error } = await supabase
         .from("scheduled_notifications")
         .insert({
           task_id: task.id,
           task_name: task.name,
           user_email: user.email,
-          scheduled_for: localISODate,
+          scheduled_for: localDateString,
           status: "pending",
         })
         .select();
@@ -172,7 +174,6 @@ function NotificationForm({ task, onClose }) {
       setLoading(false);
     }
   };
-
   // Resetear formulario cuando se cambia el tipo de envío
   const handleTypeChange = (type) => {
     setSendType(type);
