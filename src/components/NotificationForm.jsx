@@ -11,11 +11,17 @@ function NotificationForm({ task, onClose }) {
   const [userEmail, setUserEmail] = useState(""); // Estado para el email del usuario
 
   // 🔧 Función para obtener la fecha actual en hora Argentina (UTC-3)
-  const getArgentinaDate = () => {
+  /*   const getArgentinaDate = () => {
     const now = new Date();
     const argentinaOffset = -3;
     const utc = now.getTime() + now.getTimezoneOffset() * 60000;
     return new Date(utc + argentinaOffset * 3600000);
+  };
+ */
+
+  const getArgentinaDate = () => {
+    const now = new Date();
+    return now;
   };
 
   // 🔧 Función para formatear fecha a YYYY-MM-DD para el input date
@@ -115,8 +121,11 @@ function NotificationForm({ task, onClose }) {
       }
 
       // Crear fecha en formato local
-      const dateTimeString = `${scheduledDate}T${scheduledTime}:00`;
-      const selectedDate = new Date(dateTimeString);
+      const [year, month, day] = scheduledDate.split("-");
+      const [hour, minute] = scheduledTime.split(":");
+
+      // Crear fecha en hora local (Argentina)
+      const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
 
       // Obtener fecha actual en Argentina para validación
       const todayArgentina = getArgentinaDate();
@@ -126,27 +135,28 @@ function NotificationForm({ task, onClose }) {
         throw new Error("No puedes programar una notificación en el pasado");
       }
 
-      // 🔧 Guardar en formato local consistente (YYYY-MM-DD HH:MM:SS)
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-      const day = String(selectedDate.getDate()).padStart(2, "0");
-      const hours = String(selectedDate.getHours()).padStart(2, "0");
-      const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
-      const seconds = String(selectedDate.getSeconds()).padStart(2, "0");
-      const localDateString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      // 🔧 Guardar en formato local consistente SIN T (YYYY-MM-DD HH:MM:SS)
+      const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
 
-      console.log("📅 Fecha seleccionada:", selectedDate.toString());
-      console.log("📅 Fecha Argentina actual:", todayArgentina.toString());
-      console.log("📅 Fecha a guardar (local):", localDateString);
+      // Para logs, mostrar también la fecha UTC
+      const utcDate = new Date(selectedDate);
+      utcDate.setHours(utcDate.getHours() + 3); // Convertir a UTC
 
-      // Guardar en la base de datos con formato local consistente
+      console.log(
+        "📅 Fecha seleccionada (Argentina):",
+        selectedDate.toLocaleString(),
+      );
+      console.log("📅 Fecha seleccionada (UTC):", utcDate.toISOString());
+      console.log("📅 Fecha a guardar:", localDateString);
+
+      // Guardar en la base de datos
       const { data, error } = await supabase
         .from("scheduled_notifications")
         .insert({
           task_id: task.id,
           task_name: task.name,
           user_email: user.email,
-          scheduled_for: localDateString,
+          scheduled_for: localDateString, // ← Formato sin T
           status: "pending",
         })
         .select();
@@ -174,6 +184,7 @@ function NotificationForm({ task, onClose }) {
       setLoading(false);
     }
   };
+
   // Resetear formulario cuando se cambia el tipo de envío
   const handleTypeChange = (type) => {
     setSendType(type);
