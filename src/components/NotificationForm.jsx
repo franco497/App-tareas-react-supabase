@@ -120,46 +120,31 @@ function NotificationForm({ task, onClose }) {
         throw new Error("Debes seleccionar fecha y hora");
       }
 
-      // Crear fecha en formato local
+      // Extraer componentes
       const [year, month, day] = scheduledDate.split("-");
       const [hour, minute] = scheduledTime.split(":");
 
-      // Crear fecha en hora local (Argentina)
+      // Formato SIN T: "2026-06-08 15:06:00"
+      const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
+
+      console.log("📅 Guardando:", localDateString);
+
+      // Validación simple
       const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
+      const now = new Date();
 
-      // Obtener fecha actual en Argentina para validación
-      const todayArgentina = getArgentinaDate();
-
-      // Validar que la fecha no sea en el pasado
-      if (selectedDate < todayArgentina) {
+      if (selectedDate < now) {
         throw new Error("No puedes programar una notificación en el pasado");
       }
 
-      // 🔧 Guardar en formato local consistente SIN T (YYYY-MM-DD HH:MM:SS)
-      const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
-
-      // Para logs, mostrar también la fecha UTC
-      const utcDate = new Date(selectedDate);
-      utcDate.setHours(utcDate.getHours() + 3); // Convertir a UTC
-
-      console.log(
-        "📅 Fecha seleccionada (Argentina):",
-        selectedDate.toLocaleString(),
-      );
-      console.log("📅 Fecha seleccionada (UTC):", utcDate.toISOString());
-      console.log("📅 Fecha a guardar:", localDateString);
-
-      // Guardar en la base de datos
-      const { data, error } = await supabase
-        .from("scheduled_notifications")
-        .insert({
-          task_id: task.id,
-          task_name: task.name,
-          user_email: user.email,
-          scheduled_for: localDateString, // ← Formato sin T
-          status: "pending",
-        })
-        .select();
+      // Guardar
+      const { error } = await supabase.from("scheduled_notifications").insert({
+        task_id: task.id,
+        task_name: task.name,
+        user_email: user.email,
+        scheduled_for: localDateString,
+        status: "pending",
+      });
 
       if (error) throw error;
 
