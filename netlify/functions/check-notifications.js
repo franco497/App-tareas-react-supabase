@@ -74,13 +74,13 @@ async function getTransporter() {
 }
 
 async function processEmails() {
-  // Obtener hora actual en Argentina
-  const now = new Date();
-  const argentinaNow = new Date(now);
-  // No modificar, solo usar para comparación
+  // 🔧 CORRECCIÓN: Obtener hora actual y convertirla a Argentina (UTC-3)
+  const nowUTC = new Date();
+  const argentinaNow = new Date(nowUTC);
+  argentinaNow.setHours(argentinaNow.getHours() - 3); // Convertir UTC → Argentina
 
+  console.log(`🕒 Hora servidor (UTC): ${nowUTC.toISOString()}`);
   console.log(`⏰ Hora actual Argentina: ${argentinaNow.toLocaleString()}`);
-  console.log(`⏰ Hora actual UTC: ${now.toISOString()}`);
 
   try {
     const { data: pending, error } = await supabase
@@ -109,7 +109,7 @@ async function processEmails() {
       );
     }
 
-    // Filtrar las que ya deben enviarse
+    // Filtrar las que ya deben enviarse (usando hora Argentina)
     const toSend = pending.filter((notif) => {
       const scheduledDate = parseLocalDate(notif.scheduled_for);
       return scheduledDate <= argentinaNow;
