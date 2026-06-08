@@ -8,24 +8,30 @@ import nodemailer from "nodemailer";
 function parseLocalDate(dateString) {
   console.log(`🔍 Parseando fecha: ${dateString}`);
 
-  // Formato esperado: "2026-06-07 22:00:00" (local)
-  const parts = dateString.match(
-    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/,
+  // Formato con microsegundos: "2026-06-08 17:37:23.657208"
+  let parts = dateString.match(
+    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?/,
   );
   if (parts) {
     const [_, year, month, day, hour, minute, second] = parts;
-    // Crear fecha directamente en hora local (no convertir)
-    // Los timestamps en la BD ya están en hora Argentina
     const date = new Date(year, month - 1, day, hour, minute, second);
     console.log(`   → Parseado local: ${date.toLocaleString()}`);
     return date;
   }
 
-  // Si viene en formato ISO (con T), convertir a local
+  // Formato sin microsegundos: "2026-06-07 22:00:00"
+  parts = dateString.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if (parts) {
+    const [_, year, month, day, hour, minute, second] = parts;
+    const date = new Date(year, month - 1, day, hour, minute, second);
+    console.log(`   → Parseado local: ${date.toLocaleString()}`);
+    return date;
+  }
+
+  // Formato ISO (con T)
   if (dateString && dateString.includes("T")) {
     const utcDate = new Date(dateString);
     console.log(`   → Parseado ISO UTC: ${utcDate.toLocaleString()}`);
-    console.log(`   → IMPORTANTE: Este formato no debería existir en la BD`);
     return utcDate;
   }
 
