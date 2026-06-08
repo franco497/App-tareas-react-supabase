@@ -10,6 +10,23 @@ function NotificationForm({ task, onClose }) {
   const [sendType, setSendType] = useState("now"); // "now" o "later"
   const [userEmail, setUserEmail] = useState(""); // Estado para el email del usuario
 
+  // 🔧 Función para obtener la fecha actual en hora Argentina (UTC-3)
+  const getArgentinaDate = () => {
+    const now = new Date();
+    const argentinaOffset = -3;
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    return new Date(utc + (argentinaOffset * 3600000));
+  };
+
+  // 🔧 Función para formatear fecha a YYYY-MM-DD para el input date
+  const getArgentinaDateString = () => {
+    const argentinaDate = getArgentinaDate();
+    const year = argentinaDate.getFullYear();
+    const month = String(argentinaDate.getMonth() + 1).padStart(2, '0');
+    const day = String(argentinaDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Obtener el email del usuario al cargar el componente
   useEffect(() => {
     const getUserEmail = async () => {
@@ -77,7 +94,8 @@ function NotificationForm({ task, onClose }) {
       setLoading(false);
     }
   };
-  // Programar para más tarde - Versión CORREGIDA
+
+  // Programar para más tarde
   const handleScheduleLater = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -96,42 +114,37 @@ function NotificationForm({ task, onClose }) {
         throw new Error("Debes seleccionar fecha y hora");
       }
 
-      // Crear fecha en formato local (sin conversión UTC)
+      // Crear fecha en formato local
       const dateTimeString = `${scheduledDate}T${scheduledTime}:00`;
       const selectedDate = new Date(dateTimeString);
 
-      // Obtener fecha actual
-      const now = new Date();
+      // Obtener fecha actual en Argentina para validación
+      const todayArgentina = getArgentinaDate();
 
       // Validar que la fecha no sea en el pasado
-      if (selectedDate < now) {
+      if (selectedDate < todayArgentina) {
         throw new Error("No puedes programar una notificación en el pasado");
       }
 
-      // 🔧 IMPORTANTE: Guardar la fecha en formato ISO local sin convertir
-      // Obtenemos el offset local y lo aplicamos
-      const tzOffset = selectedDate.getTimezoneOffset() * 60000; // offset en ms
+      // Guardar la fecha en formato ISO local
+      const tzOffset = selectedDate.getTimezoneOffset() * 60000;
       const localISODate = new Date(selectedDate - tzOffset)
         .toISOString()
         .slice(0, 19)
         .replace("T", " ");
 
       console.log("📅 Fecha seleccionada:", selectedDate.toString());
-      console.log(
-        "📅 Offset zona horaria:",
-        selectedDate.getTimezoneOffset(),
-        "minutos",
-      );
+      console.log("📅 Fecha Argentina actual:", todayArgentina.toString());
       console.log("📅 Fecha a guardar (local):", localISODate);
 
-      // Guardar en la base de datos (como string local)
+      // Guardar en la base de datos
       const { data, error } = await supabase
         .from("scheduled_notifications")
         .insert({
           task_id: task.id,
           task_name: task.name,
           user_email: user.email,
-          scheduled_for: localISODate, // Guardar como string local
+          scheduled_for: localISODate,
           status: "pending",
         })
         .select();
@@ -159,6 +172,7 @@ function NotificationForm({ task, onClose }) {
       setLoading(false);
     }
   };
+
   // Resetear formulario cuando se cambia el tipo de envío
   const handleTypeChange = (type) => {
     setSendType(type);
@@ -195,6 +209,7 @@ function NotificationForm({ task, onClose }) {
           </button>
         </div>
 
+        {/* Formulario para envío programado */}
         {sendType === "later" && (
           <form onSubmit={handleScheduleLater}>
             <div className="form-group">
@@ -205,7 +220,7 @@ function NotificationForm({ task, onClose }) {
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
                 required
-                min={new Date().toISOString().split("T")[0]}
+                min={getArgentinaDateString()}
                 className="form-input"
               />
               <small
