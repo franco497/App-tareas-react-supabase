@@ -61,9 +61,9 @@ async function getTransporter() {
 async function processEmails() {
   const now = new Date();
   console.log(`⏰ [${now.toLocaleString()}] Ejecutando worker programado...`);
+  console.log(`🕒 Hora actual ISO: ${now.toISOString()}`);
 
   try {
-    // Obtener notificaciones pendientes
     const { data: pending, error } = await supabase
       .from("scheduled_notifications")
       .select("*")
@@ -75,10 +75,29 @@ async function processEmails() {
       return;
     }
 
-    // Filtrar las que ya deben enviarse (comparación local)
+    console.log(`📋 Total pendientes encontrados: ${pending.length}`);
+
+    // Mostrar detalles de cada tarea pendiente
+    for (const notif of pending) {
+      const scheduledDate = parseLocalDate(notif.scheduled_for);
+      const diffMinutes = (scheduledDate - now) / 60000;
+      console.log(`📅 "${notif.task_name}":`);
+      console.log(`   scheduled_for (original): ${notif.scheduled_for}`);
+      console.log(`   parseado como: ${scheduledDate.toLocaleString()}`);
+      console.log(`   diferencia: ${diffMinutes.toFixed(1)} minutos`);
+      console.log(
+        `   debe enviar ahora?: ${scheduledDate <= now ? "✅ SI" : "⏳ NO"}`,
+      );
+    }
+
+    // Filtrar las que ya deben enviarse
     const toSend = pending.filter((notif) => {
       const scheduledDate = parseLocalDate(notif.scheduled_for);
-      return scheduledDate <= now;
+      const shouldSend = scheduledDate <= now;
+      console.log(
+        `   "${notif.task_name}": ${shouldSend ? "ENVIAR" : "esperar"}`,
+      );
+      return shouldSend;
     });
 
     if (toSend.length === 0) {
@@ -86,7 +105,7 @@ async function processEmails() {
       return;
     }
 
-    console.log(`📧 Enviando ${toSend.length} email(s)...`);
+    console.log(`📧 Preparando envío de ${toSend.length} email(s)...`);
     const mailTransporter = await getTransporter();
 
     for (const notification of toSend) {
