@@ -4,35 +4,27 @@ import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
 
-// Función para parsear fecha local (Argentina UTC-3)
+// Función para parsear fecha (maneja TIMESTAMP de Supabase)
 function parseLocalDate(dateString) {
   console.log(`🔍 Parseando fecha: ${dateString}`);
 
-  // Formato con microsegundos: "2026-06-08 17:37:23.657208"
-  let parts = dateString.match(
-    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?/,
+  // Si es un objeto Date o string ISO (con T)
+  if (dateString && dateString.includes("T")) {
+    // Es un timestamp UTC de Supabase, NO restar nada
+    const date = new Date(dateString);
+    console.log(`   → Parseado ISO: ${date.toLocaleString()}`);
+    return date;
+  }
+
+  // Formato string local: "2026-06-08 17:52:00"
+  const parts = dateString.match(
+    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/,
   );
   if (parts) {
     const [_, year, month, day, hour, minute, second] = parts;
     const date = new Date(year, month - 1, day, hour, minute, second);
     console.log(`   → Parseado local: ${date.toLocaleString()}`);
     return date;
-  }
-
-  // Formato sin microsegundos: "2026-06-07 22:00:00"
-  parts = dateString.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
-  if (parts) {
-    const [_, year, month, day, hour, minute, second] = parts;
-    const date = new Date(year, month - 1, day, hour, minute, second);
-    console.log(`   → Parseado local: ${date.toLocaleString()}`);
-    return date;
-  }
-
-  // Formato ISO (con T)
-  if (dateString && dateString.includes("T")) {
-    const utcDate = new Date(dateString);
-    console.log(`   → Parseado ISO UTC: ${utcDate.toLocaleString()}`);
-    return utcDate;
   }
 
   console.log(`   → Formato desconocido: ${dateString}`);

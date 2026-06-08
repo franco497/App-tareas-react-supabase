@@ -10,15 +10,6 @@ function NotificationForm({ task, onClose }) {
   const [sendType, setSendType] = useState("now"); // "now" o "later"
   const [userEmail, setUserEmail] = useState(""); // Estado para el email del usuario
 
-  // 🔧 Función para obtener la fecha actual en hora Argentina (UTC-3)
-  /*   const getArgentinaDate = () => {
-    const now = new Date();
-    const argentinaOffset = -3;
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    return new Date(utc + argentinaOffset * 3600000);
-  };
- */
-
   const getArgentinaDate = () => {
     const now = new Date();
     return now;
@@ -135,6 +126,18 @@ function NotificationForm({ task, onClose }) {
 
       if (selectedDate < now) {
         throw new Error("No puedes programar una notificación en el pasado");
+      }
+
+      // Justo antes del supabase.insert
+      console.log("📤 Enviando a Supabase:", {
+        task_name: task.name,
+        user_email: user.email,
+        scheduled_for: localDateString, // ← Esto debería ser "2026-06-08 17:52:00"
+      });
+
+      // Verificar que NO tiene 'T'
+      if (localDateString.includes("T")) {
+        console.error("❌ ERROR: La fecha tiene T, formato incorrecto!");
       }
 
       // Guardar
