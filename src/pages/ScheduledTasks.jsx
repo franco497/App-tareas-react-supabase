@@ -1,11 +1,13 @@
 // src/pages/ScheduledTasks.jsx
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
 function ScheduledTasks() {
   const [scheduledTasks, setScheduledTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchScheduledTasks();
@@ -74,7 +76,6 @@ function ScheduledTasks() {
       
       if (error) throw error;
       
-      // Actualizar la lista
       setScheduledTasks(prev => 
         prev.map(task => 
           task.id === id ? { ...task, status: "cancelled" } : task
@@ -88,6 +89,10 @@ function ScheduledTasks() {
     }
   };
 
+  const handleGoBack = () => {
+    navigate("/dashboard");
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -99,7 +104,12 @@ function ScheduledTasks() {
   return (
     <div className="scheduled-tasks-container">
       <div className="scheduled-header">
-        <h1>📅 Tareas Programadas</h1>
+        <div className="scheduled-header-left">
+          <button onClick={handleGoBack} className="back-btn">
+            ← Volver a Inicio
+          </button>
+          <h1>📅 Tareas Programadas</h1>
+        </div>
         <button onClick={fetchScheduledTasks} className="refresh-btn">
           🔄 Actualizar
         </button>
@@ -115,6 +125,9 @@ function ScheduledTasks() {
         <div className="no-tasks-message">
           <p>📭 No hay tareas programadas</p>
           <p>Ve al dashboard y programa un recordatorio para verlo aquí.</p>
+          <button onClick={handleGoBack} className="go-back-btn">
+            🏠 Ir al Dashboard
+          </button>
         </div>
       ) : (
         <div className="scheduled-table-container">

@@ -1357,3 +1357,145 @@ code {
     color: var(--text-h);
   }
 }
+
+/* src/index.css - agregar estos estilos */
+
+/* Contenedor del header con flex */
+.scheduled-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.scheduled-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.scheduled-header-left h1 {
+  margin: 0;
+}
+
+/* Botón volver atrás */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--dark);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.back-btn:hover {
+  background-color: var(--info);
+  transform: scale(1.02);
+}
+
+/* Botón ir al dashboard (cuando no hay tareas) */
+.go-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--info);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: all 0.3s;
+}
+
+.go-back-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.02);
+}
+
+/* Botón actualizar */
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--info);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.02);
+}
+
+/* Botón cancelar */
+.cancel-btn {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+  transform: scale(1.02);
+}
+
+/* Mensaje sin tareas */
+.no-tasks-message {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--light-gray);
+  border-radius: 12px;
+  margin-top: 2rem;
+}
+
+.no-tasks-message p {
+  margin: 0.5rem 0;
+  color: var(--text);
+}
+
+.no-tasks-message p:first-child {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .scheduled-header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .scheduled-header-left h1 {
+    font-size: 1.5rem;
+  }
+  
+  .back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .refresh-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
