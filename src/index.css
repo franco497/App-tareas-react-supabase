@@ -364,6 +364,62 @@ code {
 /* NAVBAR                                       */
 /* ============================================ */
 
+/* Estilos para el botón toggle en el navbar */
+.toggle-nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.toggle-nav-btn.danger {
+  background-color: var(--danger);
+  color: white;
+}
+
+.toggle-nav-btn.danger:hover {
+  background-color: #c82333;
+  transform: scale(1.02);
+}
+
+.toggle-nav-btn.success {
+  background-color: var(--success);
+  color: white;
+}
+
+.toggle-nav-btn.success:hover {
+  background-color: #1e7e34;
+  transform: scale(1.02);
+}
+
+/* Estilo para el email del usuario en el navbar */
+.nav-user-email {
+  color: white;
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .toggle-nav-btn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .nav-user-email {
+    display: block;
+    text-align: center;
+    margin: 0.5rem 0;
+  }
+}
+
 .navbar {
   background-color: var(--dark);
   padding: 1rem 0;

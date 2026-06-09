@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import TaskForm from "../components/TaskForm";
@@ -35,22 +36,14 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar />
+      <Navbar 
+        showTaskDone={showTaskDone} 
+        onToggleView={handleToggleView}
+        userEmail={user?.email}
+      />
       <div className="dashboard-container">
         <h1 className="dashboard-title">Panel</h1>
-        <p className="dashboard-welcome">Bienvenido, {user?.email}</p>
         <TaskForm />
-
-        <div className="dashboard-header">
-          <span>{showTaskDone ? "Tareas realizadas" : "Tareas pendientes"}</span>
-          <button
-            onClick={handleToggleView}
-            className={`toggle-button ${showTaskDone ? "success" : "danger"}`}
-          >
-            {showTaskDone ? "Mostrar tareas sin realizar" : "Mostrar tareas realizadas"}
-          </button>
-        </div>
-
         <TaskList done={showTaskDone} />
       </div>
     </>

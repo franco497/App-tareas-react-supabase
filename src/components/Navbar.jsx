@@ -1,9 +1,9 @@
-// Navbar.jsx con funcionalidad responsive y botón de cerrar sesión
+// src/components/Navbar.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
-function Navbar() {
+function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -20,28 +20,32 @@ function Navbar() {
     <nav className="navbar">
       <div className="nav-container">
         <div className="nav-logo">
-          <Link to="/">MiLogo</Link>
+          <Link to="/dashboard">App Tareas</Link>
         </div>
 
         <ul className={`nav-menu ${isOpen ? "active" : ""}`}>
-{/*           <li className="nav-item">
-            <Link to="/" className="nav-link" onClick={() => setIsOpen(false)}>
+          <li className="nav-item">
+            <Link to="/dashboard" className="nav-link" onClick={() => setIsOpen(false)}>
               Inicio
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/about" className="nav-link" onClick={() => setIsOpen(false)}>
-              Acerca de
-            </Link>
+            <button
+              onClick={() => {
+                onToggleView();
+                setIsOpen(false);
+              }}
+              className={`toggle-nav-btn ${showTaskDone ? "success" : "danger"}`}
+            >
+              {showTaskDone ? "📋 Mostrar pendientes" : "✅ Mostrar realizadas"}
+            </button>
           </li>
           <li className="nav-item">
-            <Link to="/services" className="nav-link" onClick={() => setIsOpen(false)}>
-              Servicios
-            </Link>
-          </li> */}
+            <span className="nav-user-email">{userEmail}</span>
+          </li>
           <li className="nav-item">
-            <button onClick={handleLogout} className="nav-link logout-nav-btn">
-              Cerrar Sesión
+            <button onClick={handleLogout} className="logout-nav-btn">
+              🚪 Cerrar Sesión
             </button>
           </li>
         </ul>
