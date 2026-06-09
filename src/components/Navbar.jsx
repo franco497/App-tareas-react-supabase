@@ -26,7 +26,12 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
         <ul className={`nav-menu ${isOpen ? "active" : ""}`}>
           <li className="nav-item">
             <Link to="/dashboard" className="nav-link" onClick={() => setIsOpen(false)}>
-              Inicio
+              🏠 Inicio
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/scheduled" className="nav-link" onClick={() => setIsOpen(false)}>
+              📅 Programadas
             </Link>
           </li>
           <li className="nav-item">
@@ -41,7 +46,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
             </button>
           </li>
           <li className="nav-item">
-            <span className="nav-user-email">{userEmail}</span>
+            <span className="nav-user-email">👤 {userEmail}</span>
           </li>
           <li className="nav-item">
             <button onClick={handleLogout} className="logout-nav-btn">

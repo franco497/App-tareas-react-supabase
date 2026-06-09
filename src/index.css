@@ -1178,3 +1178,182 @@ code {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ============================================ */
+/* TAREAS PROGRAMADAS                                   */
+/* ============================================ */
+
+/* src/index.css - agregar estos estilos */
+
+/* Contenedor principal */
+.scheduled-tasks-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.scheduled-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.scheduled-header h1 {
+  margin: 0;
+}
+
+.refresh-btn {
+  padding: 0.5rem 1rem;
+  background-color: var(--info);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.02);
+}
+
+/* Tabla */
+.scheduled-table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.scheduled-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg);
+  border-radius: 12px;
+}
+
+.scheduled-table th,
+.scheduled-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.scheduled-table th {
+  background-color: var(--accent-bg);
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.scheduled-table tr:hover {
+  background-color: var(--accent-bg);
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-badge.pending {
+  background-color: #ffc10720;
+  color: #ffc107;
+  border: 1px solid #ffc107;
+}
+
+.status-badge.sent {
+  background-color: #28a74520;
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+
+.status-badge.failed {
+  background-color: #dc354520;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+/* Botón cancelar */
+.cancel-btn {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+  transform: scale(1.02);
+}
+
+/* Mensaje sin tareas */
+.no-tasks-message {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--light-gray);
+  border-radius: 12px;
+  margin-top: 2rem;
+}
+
+.no-tasks-message p {
+  margin: 0.5rem 0;
+  color: var(--text);
+}
+
+.no-tasks-message p:first-child {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Mensaje de error */
+.error-message {
+  background-color: #dc354520;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .scheduled-table thead {
+    display: none;
+  }
+  
+  .scheduled-table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  
+  .scheduled-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .scheduled-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .scheduled-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: var(--text-h);
+  }
+}
