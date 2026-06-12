@@ -1499,3 +1499,50 @@ code {
     justify-content: center;
   }
 }
+
+/* ============================================ */
+/* PAPELERA DE RECICLAJE                   */
+/* ============================================ */
+
+/* src/index.css */
+.trash-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.trash-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.back-btn {
+  padding: 0.5rem 1rem;
+  background-color: var(--dark);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.trash-empty {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--light-gray);
+  border-radius: 12px;
+  margin-top: 2rem;
+}
+
+.trash-empty p {
+  margin: 0.5rem 0;
+  color: var(--text);
+}
+
+.trash-empty p:first-child {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+

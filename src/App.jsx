@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import ScheduledTasks from "./pages/ScheduledTasks";
 import NotFound from "./pages/NotFound";
 import { TaskContextProvider } from "./context/TaskContex";
+import Trash from "./pages/Trash";
 
 function App() {
   const [authLoading, setAuthLoading] = useState(true);
@@ -30,7 +31,14 @@ function App() {
 
   if (authLoading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <h2>Cargando...</h2>
       </div>
     );
@@ -54,6 +62,10 @@ function App() {
             element={session ? <ScheduledTasks /> : <Navigate to="/" />}
           />
           <Route path="*" element={<NotFound />} />
+          <Route
+            path="/trash"
+            element={session ? <Trash /> : <Navigate to="/" />}
+          />
         </Routes>
       </TaskContextProvider>
     </HashRouter>

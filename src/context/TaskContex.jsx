@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+// src/context/TaskContext.jsx
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { supabase } from "../lib/supabase";
 
 export const TaskContext = createContext();
@@ -15,14 +22,16 @@ export const TaskContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [currentDoneFilter, setCurrentDoneFilter] = useState(false);
 
-  // Usar useCallback para evitar que la función cambie en cada render
+  // Obtener tareas NO borradas (activas)
   const getTasks = useCallback(async (done = false) => {
     try {
       setLoading(true);
       setCurrentDoneFilter(done);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         console.error("No user logged in");
         setTasks([]);
@@ -33,11 +42,12 @@ export const TaskContextProvider = ({ children }) => {
         .from("tasks")
         .select()
         .eq("userId", user.id)
+        .eq("deleted", false) // ← SOLO tareas NO borradas
         .eq("done", done)
         .order("id", { ascending: true });
 
       if (error) throw error;
-      
+
       setTasks(data || []);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -45,15 +55,49 @@ export const TaskContextProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []); // Sin dependencias porque solo usa supabase que es estable
+  }, []);
+
+  // Obtener tareas borradas (para la papelera)
+  const getDeletedTasks = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.error("No user logged in");
+        return [];
+      }
+
+      const { error, data } = await supabase
+        .from("tasks")
+        .select()
+        .eq("userId", user.id)
+        .eq("deleted", true) // ← SOLO tareas borradas
+        .order("id", { ascending: true });
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching deleted tasks:", error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const createTask = async (taskName) => {
     if (!taskName.trim()) return;
-    
+
     setAdding(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         console.error("No user logged in");
         return;
@@ -61,22 +105,21 @@ export const TaskContextProvider = ({ children }) => {
 
       const { data, error } = await supabase
         .from("tasks")
-        .insert({ 
-          name: taskName, 
+        .insert({
+          name: taskName,
           userId: user.id,
-          done: false // Asegurar que las nuevas tareas siempre empiezan como pendientes
+          done: false,
+          deleted: false, // ← Nueva tarea NO está borrada
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Solo agregar la tarea si estamos viendo tareas pendientes
       if (!currentDoneFilter) {
         setTasks((prevTasks) => [data, ...prevTasks]);
       }
-      
-      // Si estamos viendo tareas completadas, no mostramos la nueva tarea pendiente
+
       return data;
     } catch (error) {
       console.error("Error creating task:", error);
@@ -86,10 +129,13 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
-  const deleteTask = async (id) => {
+  // ❌ Borrado REAL (eliminar de la base de datos)
+  const permanentDeleteTask = async (id) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) return;
 
       const { error } = await supabase
@@ -99,19 +145,65 @@ export const TaskContextProvider = ({ children }) => {
         .eq("userId", user.id);
 
       if (error) throw error;
+    } catch (error) {
+      console.error("Error deleting task permanently:", error);
+      throw error;
+    }
+  };
 
-      // Eliminar la tarea del estado local
+  // 🗑️ Borrado LÓGICO (mover a papelera)
+  const softDeleteTask = async (id) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("tasks")
+        .update({ deleted: true })
+        .eq("id", id)
+        .eq("userId", user.id);
+
+      if (error) throw error;
+
+      // Eliminar la tarea del estado local (desaparece del dashboard)
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
     } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error("Error soft deleting task:", error);
+      throw error;
+    }
+  };
+
+  // ↩️ Restaurar tarea desde papelera
+  const restoreTask = async (id) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("tasks")
+        .update({ deleted: false })
+        .eq("id", id)
+        .eq("userId", user.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error restoring task:", error);
       throw error;
     }
   };
 
   const updateTask = async (id, updateFields) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) return;
 
       const { data, error } = await supabase
@@ -124,11 +216,10 @@ export const TaskContextProvider = ({ children }) => {
 
       if (error) throw error;
 
-      // Actualizar la tarea en el estado local
-      setTasks((prevTasks) => 
-        prevTasks.map((task) => 
-          task.id === id ? { ...task, ...updateFields } : task
-        )
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === id ? { ...task, ...updateFields } : task,
+        ),
       );
 
       return data;
@@ -138,34 +229,26 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
-  // Función para alternar el estado done de una tarea
   const toggleTaskDone = async (id, currentDone) => {
     const newDoneState = !currentDone;
-    
+
     try {
-      // Optimistic update - actualizar UI inmediatamente
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
-          task.id === id ? { ...task, done: newDoneState } : task
-        )
+          task.id === id ? { ...task, done: newDoneState } : task,
+        ),
       );
 
       await updateTask(id, { done: newDoneState });
-      
-      // Opcional: Recargar las tareas si cambiamos de filtro
-      // Esto puede ser útil si quieres que las tareas desaparezcan/aparezcan
-      // inmediatamente al cambiarlas de estado
+
       if (currentDoneFilter !== newDoneState) {
-        // Si el nuevo estado no coincide con el filtro actual, recargar
         await getTasks(currentDoneFilter);
       }
-      
     } catch (error) {
-      // Revertir el cambio optimista si hay error
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
-          task.id === id ? { ...task, done: currentDone } : task
-        )
+          task.id === id ? { ...task, done: currentDone } : task,
+        ),
       );
       console.error("Error toggling task:", error);
     }
@@ -177,15 +260,15 @@ export const TaskContextProvider = ({ children }) => {
     adding,
     getTasks,
     createTask,
-    deleteTask,
+    deleteTask: softDeleteTask, // ← deleteTask ahora es borrado lógico
+    softDeleteTask, // ← Borrado lógico (mover a papelera)
+    permanentDeleteTask, // ← Borrado real (eliminar)
+    restoreTask, // ← Restaurar tarea
+    getDeletedTasks, // ← Obtener tareas borradas
     updateTask,
-    toggleTaskDone, // Exportar la nueva función
+    toggleTaskDone,
     currentDoneFilter,
   };
 
-  return (
-    <TaskContext.Provider value={value}>
-      {children}
-    </TaskContext.Provider>
-  );
+  return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 };

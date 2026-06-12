@@ -25,13 +25,30 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
 
         <ul className={`nav-menu ${isOpen ? "active" : ""}`}>
           <li className="nav-item">
-            <Link to="/dashboard" className="nav-link" onClick={() => setIsOpen(false)}>
+            <Link
+              to="/dashboard"
+              className="nav-link"
+              onClick={() => setIsOpen(false)}
+            >
               🏠 Inicio
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/scheduled" className="nav-link" onClick={() => setIsOpen(false)}>
+            <Link
+              to="/scheduled"
+              className="nav-link"
+              onClick={() => setIsOpen(false)}
+            >
               📅 Programadas
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link
+              to="/trash"
+              className="nav-link"
+              onClick={() => setIsOpen(false)}
+            >
+              🗑️ Papelera
             </Link>
           </li>
           <li className="nav-item">
