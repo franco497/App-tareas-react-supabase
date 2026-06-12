@@ -1,21 +1,21 @@
 // src/components/NotificationForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import Swal from "sweetalert2";
 
 function NotificationForm({ task, onClose }) {
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
-  const [sendType, setSendType] = useState("now"); // "now" o "later"
-  const [userEmail, setUserEmail] = useState(""); // Estado para el email del usuario
+  const [sendType, setSendType] = useState("now");
+  const [userEmail, setUserEmail] = useState("");
 
   const getArgentinaDate = () => {
     const now = new Date();
     return now;
   };
 
-  // 🔧 Función para formatear fecha a YYYY-MM-DD para el input date
   const getArgentinaDateString = () => {
     const argentinaDate = getArgentinaDate();
     const year = argentinaDate.getFullYear();
@@ -24,12 +24,9 @@ function NotificationForm({ task, onClose }) {
     return `${year}-${month}-${day}`;
   };
 
-  // Obtener el email del usuario al cargar el componente
   useEffect(() => {
     const getUserEmail = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
       }
@@ -40,129 +37,123 @@ function NotificationForm({ task, onClose }) {
   // Enviar ahora
   const handleSendNow = async () => {
     setLoading(true);
-    setMessage({ text: "", type: "" });
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (!user || !user.email) {
         throw new Error("No se encontró el email del usuario");
       }
 
-      // Fecha y hora actual
       const now = new Date();
       const currentDate = now.toISOString().split("T")[0];
       const currentTime = now.toTimeString().slice(0, 5);
 
-      // Invocar la Edge Function
-      const { data, error } = await supabase.functions.invoke(
-        "send-email-gmail",
-        {
-          body: {
-            taskName: task.name,
-            taskId: task.id,
-            scheduledDate: currentDate,
-            scheduledTime: currentTime,
-            userEmail: user.email,
-            toEmail: user.email, // Siempre al email registrado
-          },
+      const { data, error } = await supabase.functions.invoke("send-email-gmail", {
+        body: {
+          taskName: task.name,
+          taskId: task.id,
+          scheduledDate: currentDate,
+          scheduledTime: currentTime,
+          userEmail: user.email,
+          toEmail: user.email,
         },
-      );
+      });
 
       if (error) throw error;
 
-      setMessage({
-        text: `✅ ¡Notificación enviada exitosamente a ${user.email}!`,
-        type: "success",
+      await Swal.fire({
+        title: "✅ Correo enviado",
+        text: `El recordatorio para "${task.name}" ha sido enviado exitosamente a ${user.email}.`,
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
       });
 
-      setTimeout(() => {
-        onClose();
-      }, 2000);
+      onClose();
+
     } catch (error) {
       console.error("Error al enviar:", error);
-      setMessage({
-        text: `❌ Error: ${error.message || "No se pudo enviar la notificación"}`,
-        type: "error",
+
+      await Swal.fire({
+        title: "❌ Error al enviar",
+        text: error.message || "No se pudo enviar la notificación.",
+        icon: "error",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "Entendido",
       });
     } finally {
       setLoading(false);
     }
   };
 
-// Programar para más tarde - VERSIÓN CORRECTA
-const handleScheduleLater = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setMessage({ text: "", type: "" });
+  // Programar para más tarde
+  const handleScheduleLater = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ text: "", type: "" });
 
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || !user.email) {
-      throw new Error("No se encontró el email del usuario");
-    }
+      if (!user || !user.email) {
+        throw new Error("No se encontró el email del usuario");
+      }
 
-    if (!scheduledDate || !scheduledTime) {
-      throw new Error("Debes seleccionar fecha y hora");
-    }
+      if (!scheduledDate || !scheduledTime) {
+        throw new Error("Debes seleccionar fecha y hora");
+      }
 
-    // Extraer componentes (esto es correcto)
-    const [year, month, day] = scheduledDate.split("-");
-    const [hour, minute] = scheduledTime.split(":");
+      const [year, month, day] = scheduledDate.split("-");
+      const [hour, minute] = scheduledTime.split(":");
 
-    // 🔧 FORMATO CORRECTO: String plano SIN T
-    const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
-    
-    console.log("📅 Guardando fecha en BD:", localDateString);
-    console.log("📅 Tipo:", typeof localDateString);
+      const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
 
-    // Validación
-    const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
-    const now = new Date();
+      const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
+      const now = new Date();
 
-    if (selectedDate < now) {
-      throw new Error("No puedes programar una notificación en el pasado");
-    }
+      if (selectedDate < now) {
+        throw new Error("No puedes programar una notificación en el pasado");
+      }
 
-    // Guardar en Supabase
-    const { error } = await supabase
-      .from("scheduled_notifications")
-      .insert({
+      const { error } = await supabase.from("scheduled_notifications").insert({
         task_id: task.id,
         task_name: task.name,
         user_email: user.email,
-        scheduled_for: localDateString, // ← Esto debe ser "2026-06-08 18:22:00"
+        scheduled_for: localDateString,
         status: "pending",
       });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    setMessage({
-      text: `✅ ¡Recordatorio programado para ${scheduledDate} a las ${scheduledTime}!`,
-      type: "success",
-    });
+      setScheduledDate("");
+      setScheduledTime("");
 
-    setScheduledDate("");
-    setScheduledTime("");
+      await Swal.fire({
+        title: "✅ Recordatorio programado",
+        text: `El recordatorio para "${task.name}" ha sido programado para el ${scheduledDate} a las ${scheduledTime}.`,
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+      });
 
-    setTimeout(() => {
       onClose();
-    }, 2000);
-  } catch (error) {
-    console.error("Error al programar:", error);
-    setMessage({
-      text: `❌ Error: ${error.message}`,
-      type: "error",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
 
-  // Resetear formulario cuando se cambia el tipo de envío
+    } catch (error) {
+      console.error("Error al programar:", error);
+
+      await Swal.fire({
+        title: "❌ Error al programar",
+        text: error.message || "No se pudo programar el recordatorio.",
+        icon: "error",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "Entendido",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleTypeChange = (type) => {
     setSendType(type);
     setMessage({ text: "", type: "" });
@@ -180,7 +171,6 @@ const handleScheduleLater = async (e) => {
           </button>
         </div>
 
-        {/* Selector de tipo de envío */}
         <div className="send-type-selector">
           <button
             type="button"
@@ -198,7 +188,6 @@ const handleScheduleLater = async (e) => {
           </button>
         </div>
 
-        {/* Formulario para envío programado */}
         {sendType === "later" && (
           <form onSubmit={handleScheduleLater}>
             <div className="form-group">
@@ -212,14 +201,7 @@ const handleScheduleLater = async (e) => {
                 min={getArgentinaDateString()}
                 className="form-input"
               />
-              <small
-                style={{
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  display: "block",
-                  marginTop: "5px",
-                }}
-              >
+              <small style={{ color: "var(--text)", fontSize: "12px", display: "block", marginTop: "5px" }}>
                 🇦🇷 Zona horaria: Argentina (UTC-3)
               </small>
             </div>
@@ -234,14 +216,7 @@ const handleScheduleLater = async (e) => {
                 required
                 className="form-input"
               />
-              <small
-                style={{
-                  color: "var(--text)",
-                  fontSize: "12px",
-                  display: "block",
-                  marginTop: "5px",
-                }}
-              >
+              <small style={{ color: "var(--text)", fontSize: "12px", display: "block", marginTop: "5px" }}>
                 ⏰ Hora de Argentina (UTC-3)
               </small>
             </div>
@@ -258,7 +233,6 @@ const handleScheduleLater = async (e) => {
           </form>
         )}
 
-        {/* Botón para envío inmediato */}
         {sendType === "now" && (
           <div className="send-now-container">
             <p className="send-now-info">

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTasks } from "../context/TaskContex";
+import Swal from 'sweetalert2';
 
 function Trash() {
   const [deletedTasks, setDeletedTasks] = useState([]);
@@ -20,24 +21,49 @@ function Trash() {
     setLoading(false);
   };
 
-  const handleRestore = async (id) => {
-    if (window.confirm("¿Restaurar esta tarea?")) {
-      await restoreTask(id);
-      await loadDeletedTasks();
-    }
+  const handleRestore = async (id, taskName) => {
+    await restoreTask(id);
+    await loadDeletedTasks();
+    
+    Swal.fire({
+      title: '✅ Tarea restablecida',
+      text: `La tarea "${taskName}" ha sido restablecida correctamente.`,
+      icon: 'success',
+      timer: 2000,
+      showConfirmButton: false
+    });
   };
 
   const handlePermanentDelete = async (id, taskName) => {
-    if (window.confirm(`¿Eliminar permanentemente "${taskName}"?`)) {
+    const result = await Swal.fire({
+      title: '¿Eliminar permanentemente?',
+      text: `¿Estás seguro de que quieres eliminar "${taskName}" permanentemente? Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
       await permanentDeleteTask(id);
       await loadDeletedTasks();
+      
+      Swal.fire({
+        title: '¡Eliminada!',
+        text: 'La tarea ha sido eliminada permanentemente.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
     }
   };
 
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Cargando...</h2>
+        <h2>Cargando tareas borradas...</h2>
       </div>
     );
   }
@@ -57,6 +83,10 @@ function Trash() {
       {deletedTasks.length === 0 ? (
         <div className="trash-empty">
           <p>📭 La papelera está vacía</p>
+          <p>Las tareas que borres aparecerán aquí.</p>
+          <button onClick={() => navigate("/dashboard")} className="go-back-btn">
+            🏠 Ir al Dashboard
+          </button>
         </div>
       ) : (
         <>
@@ -67,12 +97,16 @@ function Trash() {
             {deletedTasks.map((task) => (
               <div key={task.id} className="trash-item">
                 <div className="trash-item-info">
-                  <span>{task.name}</span>
-                  <small>{task.done ? "✅ Completada" : "⏳ Pendiente"}</small>
+                  <span className={task.done ? "completed-task" : ""}>
+                    {task.name}
+                  </span>
+                  <small>
+                    {task.done ? "✅ Completada" : "⏳ Pendiente"}
+                  </small>
                 </div>
                 <div className="trash-item-actions">
                   <button
-                    onClick={() => handleRestore(task.id)}
+                    onClick={() => handleRestore(task.id, task.name)}
                     className="restore-btn"
                   >
                     ↩️ Restaurar
