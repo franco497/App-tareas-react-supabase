@@ -42,12 +42,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     <>
       <nav className="navbar">
         <div className="nav-container">
-          {/* Logo */}
-          <div className="nav-logo">
-            <Link to="/dashboard" onClick={closeMenu}>
-              ✅ App Tareas
-            </Link>
-          </div>
+          {/* Logo ELIMINADO */}
 
           {/* Botón Hamburguesa */}
           <button

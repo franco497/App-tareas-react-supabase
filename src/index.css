@@ -1,5 +1,5 @@
 /* ============================================
-   NAVBAR HAMBURGUESA - MOBILE FIRST
+   NAVBAR - MOBILE FIRST
    PALETA ACUARELA MODO OSCURO
    ============================================ */
 
@@ -7,25 +7,25 @@
 :root {
   /* Gradiente acuarela nocturna */
   --primary-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  
+
   /* Colores de fondo acuarela */
   --primary-dark: #0f0f1a;
-  
+
   /* Colores de acento acuarela */
-  --success-color: #2d6a4f;     /* Verde aguamarina oscuro */
-  --warning-color: #e9c46a;     /* Amarillo arena */
-  --danger-color: #e76f51;      /* Rojo terracota */
-  
+  --success-color: #2d6a4f; /* Verde aguamarina oscuro */
+  --warning-color: #e9c46a; /* Amarillo arena */
+  --danger-color: #e76f51; /* Rojo terracota */
+
   /* Texto - TODO BLANCO para visibilidad */
-  --text-dark: #ffffff;          /* Texto principal blanco */
-  --text-light: #e0e0e0;         /* Texto secundario gris claro */
-  --white: #ffffff;              /* Blanco puro */
-  
+  --text-dark: #ffffff; /* Texto principal blanco */
+  --text-light: #e0e0e0; /* Texto secundario gris claro */
+  --white: #ffffff; /* Blanco puro */
+
   /* Sombras */
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
-  
+
   /* Transiciones */
   --transition-fast: 0.2s ease;
   --transition-base: 0.3s ease;
@@ -49,8 +49,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  max-width: 1200px;
+  /* padding: 1rem 1.5rem; */
+  padding: 1rem;
+  /* max-width: 1200px; */
   margin: 0 auto;
   position: relative;
 }
@@ -119,27 +120,25 @@
 
 /* ----- MENÚ DE NAVEGACIÓN ----- */
 .nav-menu {
+  box-sizing: border-box;
   position: fixed;
   top: 0;
-  right: -100%;
-  width: 85%;
+  left: 0; /* importante */
+  right: 0; /* importante */
+  width: 100vw; /* ancho completo */
   height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  backdrop-filter: blur(10px);
   margin: 0;
-  padding: 80px 1.5rem 2rem 1.5rem;
-  list-style: none;
-  transition: right var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 80px 1rem 2rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   z-index: 1001;
-  overflow-y: auto;
-  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
-  flex-direction: column;
-  gap: 0.5rem;
+  transform: translateX(-100%);
+  transition: transform var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 10px;
 }
 
 /* Menú visible */
 .nav-menu.active {
-  right: 0;
+  transform: translateX(0);
 }
 
 /* Scroll personalizado - Acuarela */
@@ -153,7 +152,7 @@
 }
 
 .nav-menu::-webkit-scrollbar-thumb {
-  background: rgba(233, 196, 106, 0.5);  /* Color acuarela amarillo arena */
+  background: rgba(233, 196, 106, 0.5); /* Color acuarela amarillo arena */
   border-radius: 10px;
 }
 
@@ -213,15 +212,15 @@
 
 /* Efecto hover */
 .nav-link:hover {
-  background: rgba(233, 196, 106, 0.15);  /* Color acuarela amarillo arena */
+  background: rgba(233, 196, 106, 0.15); /* Color acuarela amarillo arena */
   transform: translateX(5px);
-  padding-left: 1.5rem;
+  /* padding-left: 1.5rem; */
 }
 
 /* Enlace activo - Acuarela */
 .nav-link.active {
   background: rgba(233, 196, 106, 0.2);
-  border-left: 4px solid #e9c46a;  /* Amarillo arena */
+  border-left: 4px solid #e9c46a; /* Amarillo arena */
   font-weight: 600;
 }
 
@@ -233,7 +232,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 1.2rem;
-  color: #e9c46a;  /* Amarillo arena */
+  color: #e9c46a; /* Amarillo arena */
 }
 
 /* Iconos y texto dentro del enlace */
@@ -324,7 +323,7 @@
   gap: 0.75rem;
   width: 100%;
   padding: 1rem 1.2rem;
-  background: rgba(231, 111, 81, 0.15);  /* Rojo terracota con opacidad */
+  background: rgba(231, 111, 81, 0.15); /* Rojo terracota con opacidad */
   color: var(--white);
   border: 1px solid rgba(231, 111, 81, 0.5);
   border-radius: 12px;
@@ -415,7 +414,7 @@ body.menu-open {
 .nav-link:focus-visible,
 .toggle-nav-btn:focus-visible,
 .logout-nav-btn:focus-visible {
-  outline: 2px solid #e9c46a;  /* Amarillo arena */
+  outline: 2px solid #e9c46a; /* Amarillo arena */
   outline-offset: 2px;
 }
 
@@ -445,3 +444,86 @@ body.menu-open {
 .nav-toggle.active {
   filter: drop-shadow(0 0 5px rgba(233, 196, 106, 0.5));
 }
+
+/* ============================================
+   NAVBAR - QUERIES
+   ============================================ */
+
+@media (min-width: 900px) {
+  /* Ocultar el botón hamburguesa */
+  .nav-toggle {
+    display: none;
+  }
+
+  /* Hacer que el menú sea horizontal */
+  .nav-menu {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    background: transparent;
+    backdrop-filter: none;
+    padding: 0;
+    box-shadow: none;
+    gap: 0.5rem;
+    right: auto;
+    overflow-y: visible;
+  }
+
+  /* Remover animaciones y transformaciones en desktop */
+  .nav-item {
+    opacity: 1;
+    transform: none;
+    margin-bottom: 0;
+    transition: none;
+  }
+
+  /* Estilo horizontal para los items */
+  .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  /* Ajustar el botón toggle para que sea inline */
+  .toggle-nav-btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+  }
+
+  /* Ajustar botón cerrar sesión */
+  .logout-nav-btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    margin-top: 0;
+    white-space: nowrap;
+  }
+
+  /* Remover bordes y separadores verticales */
+  .nav-item:not(:last-child) {
+    border-bottom: none;
+  }
+
+  /* Efecto hover sin desplazamiento en desktop */
+  .nav-link:hover,
+  .toggle-nav-btn:hover,
+  .logout-nav-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Mantener el overlay oculto en desktop */
+  .nav-overlay {
+    display: none;
+  }
+
+  /* Asegurar que el menú siempre esté visible */
+  .nav-menu.active {
+    right: auto;
+  }
+}
+
+/* ============================================
+   NAVBAR - END
+   ============================================ */
