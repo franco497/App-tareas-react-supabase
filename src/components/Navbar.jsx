@@ -14,9 +14,9 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 900);
     };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Controlar scroll solo en móvil y cuando el menú está abierto
@@ -74,28 +74,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
 
           {/* Menú de navegación - siempre visible en desktop, condicional en móvil */}
           <ul className={`nav-menu ${!isDesktop && isOpen ? "active" : ""}`}>
-            <li className="nav-item">
-              <Link
-                to="/scheduled"
-                className={`nav-link ${isActiveLink("/scheduled") ? "active" : ""}`}
-                onClick={closeMenu}
-              >
-                <span className="nav-icon">📅</span>
-                <span className="nav-text">Tareas programadas</span>
-              </Link>
-            </li>
-
-            <li className="nav-item">
-              <Link
-                to="/trash"
-                className={`nav-link ${isActiveLink("/trash") ? "active" : ""}`}
-                onClick={closeMenu}
-              >
-                <span className="nav-icon">🗑️</span>
-                <span className="nav-text">Papelera de reciclaje</span>
-              </Link>
-            </li>
-
+            {/* 1. Botón toggle (Tareas realizadas/pendientes) - PRIMERO */}
             <li className="nav-item">
               <button
                 onClick={() => {
@@ -113,7 +92,32 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
               </button>
             </li>
 
+            {/* 2. Tareas programadas - SEGUNDO */}
             <li className="nav-item">
+              <Link
+                to="/scheduled"
+                className={`nav-link ${isActiveLink("/scheduled") ? "active" : ""}`}
+                onClick={closeMenu}
+              >
+                <span className="nav-icon">📅</span>
+                <span className="nav-text">Tareas programadas</span>
+              </Link>
+            </li>
+
+            {/* 3. Papelera de reciclaje - TERCERO */}
+            <li className="nav-item">
+              <Link
+                to="/trash"
+                className={`nav-link ${isActiveLink("/trash") ? "active" : ""}`}
+                onClick={closeMenu}
+              >
+                <span className="nav-icon">🗑️</span>
+                <span className="nav-text">Papelera de reciclaje</span>
+              </Link>
+            </li>
+
+            {/* 4. Cerrar Sesión - ÚLTIMO (se mantiene al final) */}
+            <li className={`nav-item ${isDesktop ? "logout-desktop" : ""}`}>
               <button onClick={handleLogout} className="logout-nav-btn">
                 <span className="btn-icon">🚪</span>
                 <span className="btn-text">Cerrar Sesión</span>
@@ -124,7 +128,9 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
       </nav>
 
       {/* Overlay solo en móvil cuando el menú está abierto */}
-      {!isDesktop && isOpen && <div className="nav-overlay" onClick={closeMenu}></div>}
+      {!isDesktop && isOpen && (
+        <div className="nav-overlay" onClick={closeMenu}></div>
+      )}
     </>
   );
 }

@@ -165,6 +165,7 @@
   transform: translateX(30px);
   transition: all var(--transition-base);
   transition-delay: calc(0.05s * var(--item-index, 0));
+  list-style: none;
 }
 
 /* Animación de entrada en cascada */
@@ -466,6 +467,7 @@ body.menu-open {
     gap: 0.5rem;
     right: auto;
     overflow-y: visible;
+    width: 100%;
   }
 
   /* Remover animaciones y transformaciones en desktop */
@@ -549,6 +551,11 @@ body.menu-open {
   .nav-toggle {
     display: none !important;
   }
+
+  .nav-menu li:last-child {
+    margin-left: auto!important;
+  }
+  
 }
 
 /* ============================================
