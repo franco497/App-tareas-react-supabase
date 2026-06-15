@@ -5,23 +5,41 @@ import { supabase } from "../lib/supabase";
 
 function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Efecto para controlar el scroll del body cuando el menú está abierto
+  // Detectar si es desktop
   useEffect(() => {
-    if (isOpen) {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 900);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Controlar scroll solo en móvil y cuando el menú está abierto
+  useEffect(() => {
+    if (!isDesktop && isOpen) {
       document.body.classList.add("menu-open");
     } else {
       document.body.classList.remove("menu-open");
     }
-
-    // Cleanup al desmontar
     return () => document.body.classList.remove("menu-open");
-  }, [isOpen]);
+  }, [isOpen, isDesktop]);
+
+  // Cerrar menú automáticamente al cambiar a desktop
+  useEffect(() => {
+    if (isDesktop && isOpen) {
+      setIsOpen(false);
+    }
+  }, [isDesktop, isOpen]);
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
+    if (!isDesktop) {
+      setIsOpen(!isOpen);
+    }
   };
 
   const closeMenu = () => {
@@ -33,7 +51,6 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     navigate("/");
   };
 
-  // Función para determinar si un link está activo
   const isActiveLink = (path) => {
     return location.pathname === path;
   };
@@ -42,21 +59,21 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     <>
       <nav className="navbar">
         <div className="nav-container">
-          {/* Logo ELIMINADO */}
+          {/* Botón Hamburguesa - solo visible en móvil */}
+          {!isDesktop && (
+            <button
+              className={`nav-toggle ${isOpen ? "active" : ""}`}
+              onClick={toggleMenu}
+              aria-label="toggle navigation"
+            >
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </button>
+          )}
 
-          {/* Botón Hamburguesa */}
-          <button
-            className={`nav-toggle ${isOpen ? "active" : ""}`}
-            onClick={toggleMenu}
-            aria-label="toggle navigation"
-          >
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-          </button>
-
-          {/* Menú de navegación */}
-          <ul className={`nav-menu ${isOpen ? "active" : ""}`}>
+          {/* Menú de navegación - siempre visible en desktop, condicional en móvil */}
+          <ul className={`nav-menu ${!isDesktop && isOpen ? "active" : ""}`}>
             <li className="nav-item">
               <Link
                 to="/scheduled"
@@ -106,8 +123,8 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
         </div>
       </nav>
 
-      {/* Overlay para cerrar menú al hacer clic fuera */}
-      {isOpen && <div className="nav-overlay" onClick={closeMenu}></div>}
+      {/* Overlay solo en móvil cuando el menú está abierto */}
+      {!isDesktop && isOpen && <div className="nav-overlay" onClick={closeMenu}></div>}
     </>
   );
 }
