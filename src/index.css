@@ -553,11 +553,150 @@ body.menu-open {
   }
 
   .nav-menu li:last-child {
-    margin-left: auto!important;
+    margin-left: auto !important;
   }
-  
 }
 
 /* ============================================
    NAVBAR - END
    ============================================ */
+/* ============================================
+   TASK FORM - ACUARELA MODE
+   ============================================ */
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--surface-dark);
+  border-radius: 16px;
+  margin: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  width: auto;
+}
+
+.task-input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #000000;  /* ← Texto negro */
+  background: #ffffff;  /* ← Fondo blanco */
+  border: 2px solid #000000;
+  border-radius: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Placeholder más visible */
+.task-input::placeholder {
+  color: #a0a0a0; /* Gris medio, visible sobre fondo oscuro */
+  font-size: 0.95rem;
+  font-weight: 300;
+  opacity: 1; /* Asegura que no sea transparente */
+}
+
+/* Para navegadores WebKit (Chrome, Safari) */
+.task-input::-webkit-input-placeholder {
+  color: #a0a0a0;
+  font-size: 0.95rem;
+  font-weight: 300;
+  opacity: 1;
+}
+
+/* Para Firefox */
+.task-input::-moz-placeholder {
+  color: #a0a0a0;
+  font-size: 0.95rem;
+  font-weight: 300;
+  opacity: 1;
+}
+
+/* Para Internet Explorer */
+.task-input:-ms-input-placeholder {
+  color: #a0a0a0;
+  font-size: 0.95rem;
+  font-weight: 300;
+  opacity: 1;
+}
+
+.task-input:focus {
+  border-color: #333333;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.task-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botón principal - color success sólido */
+.submit-button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--white);
+  background: var(--success-color);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.submit-button:hover {
+  background: #1e5a3e;
+}
+
+.submit-button:active {
+  transform: scale(0.98);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   MEDIA QUERIES
+   ============================================ */
+
+@media (min-width: 600px) {
+  .task-form {
+    flex-direction: row;
+    max-width: 600px;
+    margin: 1rem auto;
+    padding: 1.5rem;
+  }
+
+  .task-input {
+    flex: 1;
+    width: auto;
+  }
+
+  .submit-button {
+    width: auto;
+    min-width: 140px;
+  }
+}
+
+@media (min-width: 900px) {
+  .task-form {
+    max-width: 800px;
+    margin: 1.5rem auto;
+    padding: 1.5rem 2rem;
+  }
+
+  .task-input {
+    font-size: 1.05rem;
+  }
+
+  .submit-button {
+    min-width: 160px;
+    font-size: 1.05rem;
+  }
+}
