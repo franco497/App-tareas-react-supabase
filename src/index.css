@@ -1,15 +1,14 @@
 /* ============================================
-   NAVBAR - MOBILE FIRST
-   PALETA ACUARELA MODO OSCURO
+   VARIABLES GLOBALES - ACUARELA NOCTURNA
    ============================================ */
 
-/* ----- RESET Y VARIABLES ----- */
 :root {
   /* Gradiente acuarela nocturna */
   --primary-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 
   /* Colores de fondo acuarela */
   --primary-dark: #0f0f1a;
+  --surface-dark: rgba(26, 26, 46, 0.85);
 
   /* Colores de acento acuarela */
   --success-color: #2d6a4f; /* Verde aguamarina oscuro */
@@ -21,6 +20,12 @@
   --text-light: #e0e0e0; /* Texto secundario gris claro */
   --white: #ffffff; /* Blanco puro */
 
+  /* Colores para inputs (contraste) */
+  --input-bg: #ffffff;
+  --input-text: #000000;
+  --input-border: #000000;
+  --input-placeholder: #a0a0a0;
+
   /* Sombras */
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -30,7 +35,22 @@
   --transition-fast: 0.2s ease;
   --transition-base: 0.3s ease;
   --transition-slow: 0.4s ease;
+
+  /* Bordes */
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-hover: rgba(255, 255, 255, 0.2);
 }
+
+body {
+  background: var(--primary-gradient);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================================
+   NAVBAR - MOBILE FIRST
+   ============================================ */
 
 /* ----- NAVBAR PRINCIPAL ----- */
 .navbar {
@@ -127,7 +147,7 @@
   height: 100vh;
   margin: 0;
   padding: 80px 1rem 2rem;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--primary-gradient);
   z-index: 1001;
   transform: translateX(-100%);
   transition: transform var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
@@ -218,7 +238,7 @@
 /* Enlace activo - Acuarela */
 .nav-link.active {
   background: rgba(233, 196, 106, 0.2);
-  border-left: 4px solid #e9c46a;
+  border-left: 4px solid var(--warning-color);
   font-weight: 600;
 }
 
@@ -230,7 +250,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 1.2rem;
-  color: #e9c46a;
+  color: var(--warning-color);
 }
 
 /* Iconos y texto dentro del enlace */
@@ -288,7 +308,7 @@
 /* ----- INFORMACIÓN DEL USUARIO ----- */
 .user-info-item {
   margin-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color);
   padding-top: 1rem;
 }
 
@@ -412,7 +432,7 @@ body.menu-open {
 .nav-link:focus-visible,
 .toggle-nav-btn:focus-visible,
 .logout-nav-btn:focus-visible {
-  outline: 2px solid #e9c46a;
+  outline: 2px solid var(--warning-color);
   outline-offset: 2px;
 }
 
@@ -558,9 +578,6 @@ body.menu-open {
 }
 
 /* ============================================
-   NAVBAR - END
-   ============================================ */
-/* ============================================
    TASK FORM - ACUARELA MODE
    ============================================ */
 
@@ -573,7 +590,7 @@ body.menu-open {
   border-radius: 16px;
   margin: 1rem;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
   width: auto;
 }
 
@@ -582,9 +599,9 @@ body.menu-open {
   padding: 1rem;
   font-size: 1rem;
   font-family: inherit;
-  color: #000000;  /* ← Texto negro */
-  background: #ffffff;  /* ← Fondo blanco */
-  border: 2px solid #000000;
+  color: var(--input-text);
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   outline: none;
   box-sizing: border-box;
@@ -592,15 +609,15 @@ body.menu-open {
 
 /* Placeholder más visible */
 .task-input::placeholder {
-  color: #a0a0a0; /* Gris medio, visible sobre fondo oscuro */
+  color: var(--input-placeholder);
   font-size: 0.95rem;
   font-weight: 300;
-  opacity: 1; /* Asegura que no sea transparente */
+  opacity: 1;
 }
 
 /* Para navegadores WebKit (Chrome, Safari) */
 .task-input::-webkit-input-placeholder {
-  color: #a0a0a0;
+  color: var(--input-placeholder);
   font-size: 0.95rem;
   font-weight: 300;
   opacity: 1;
@@ -608,7 +625,7 @@ body.menu-open {
 
 /* Para Firefox */
 .task-input::-moz-placeholder {
-  color: #a0a0a0;
+  color: var(--input-placeholder);
   font-size: 0.95rem;
   font-weight: 300;
   opacity: 1;
@@ -616,15 +633,17 @@ body.menu-open {
 
 /* Para Internet Explorer */
 .task-input:-ms-input-placeholder {
-  color: #a0a0a0;
+  color: var(--input-placeholder);
   font-size: 0.95rem;
   font-weight: 300;
   opacity: 1;
 }
 
 .task-input:focus {
-  border-color: #333333;
-  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--success-color);
+  background: #ffffff;
+  color: #000000;
+  outline: none;
 }
 
 .task-input:disabled {
@@ -662,7 +681,7 @@ body.menu-open {
 }
 
 /* ============================================
-   MEDIA QUERIES
+   TASK FORM - QUERIES
    ============================================ */
 
 @media (min-width: 600px) {
@@ -699,4 +718,410 @@ body.menu-open {
     min-width: 160px;
     font-size: 1.05rem;
   }
+}
+
+/* ============================================
+   TASK CARD - ACUARELA MODE
+   ============================================ */
+
+.task-card {
+  background: var(--surface-dark);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1rem;
+
+  /* mismo comportamiento visual que .task-form */
+  margin: 1rem;
+  width: auto;
+  box-sizing: border-box;
+
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto de acuarela - degradado sutil en hover */
+.task-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(
+      circle at 30% 50%,
+      rgba(45, 106, 79, 0.05) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      circle at 70% 80%,
+      rgba(233, 196, 106, 0.03) 0%,
+      transparent 60%
+    );
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+.task-card:hover::before {
+  opacity: 1;
+}
+
+.task-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--border-color-hover);
+}
+
+.task-card.completed {
+  background: rgba(45, 106, 79, 0.15);
+  border-color: rgba(45, 106, 79, 0.3);
+}
+
+.task-card.completed::after {
+  content: "✓";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  color: var(--success-color);
+  font-size: 1.2rem;
+  opacity: 0.4;
+}
+
+/* ===== CHECKBOX ===== */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  transition: color var(--transition-fast);
+}
+
+.checkbox-label:hover {
+  color: var(--white);
+}
+
+.task-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--success-color);
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.task-checkbox:hover {
+  transform: scale(1.1);
+}
+
+.checkbox-text {
+  font-weight: 500;
+  user-select: none;
+  color: var(--text-light);
+}
+
+/* ===== TASK TEXT ===== */
+.task-text {
+  font-size: 1.1rem;
+  padding: 0.25rem 0;
+  color: var(--text-dark);
+  word-break: break-word;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.task-text.completed {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== EDIT INPUT ===== */
+.task-edit-input {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  transition: all var(--transition-base);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dark);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.task-edit-input:focus {
+  outline: none;
+  border-color: var(--success-color);
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.task-edit-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== BUTTONS ===== */
+.edit-button,
+.delete-button,
+.notify-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.edit-button {
+  background: rgba(45, 106, 79, 0.3);
+  color: var(--white);
+  border-color: rgba(45, 106, 79, 0.3);
+}
+
+.edit-button:hover {
+  background: rgba(45, 106, 79, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+  border-color: var(--success-color);
+}
+
+.edit-button.save {
+  background: var(--success-color);
+  color: var(--white);
+  border-color: var(--success-color);
+}
+
+.edit-button.save:hover {
+  background: #1e5c3e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.4);
+}
+
+.delete-button {
+  background: rgba(231, 111, 81, 0.2);
+  color: var(--white);
+  border-color: rgba(231, 111, 81, 0.2);
+}
+
+.delete-button:hover {
+  background: rgba(231, 111, 81, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
+  border-color: var(--danger-color);
+}
+
+.notify-button {
+  background: rgba(233, 196, 106, 0.15);
+  color: var(--text-light);
+  border-color: rgba(233, 196, 106, 0.15);
+}
+
+.notify-button:hover {
+  background: rgba(233, 196, 106, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(233, 196, 106, 0.2);
+  border-color: var(--warning-color);
+  color: var(--white);
+}
+
+/* ===== BUTTON GROUP ===== */
+.task-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   TASK CARD - QUERIES
+   ============================================ */
+
+/* Tablets y pantallas pequeñas */
+@media (min-width: 576px) {
+  .task-card {
+    padding: 1.25rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .task-card-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 0;
+    margin-left: auto;
+    gap: 0.5rem;
+  }
+
+  .edit-button,
+  .delete-button,
+  .notify-button {
+    width: auto;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .task-text {
+    font-size: 1rem;
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .task-edit-input {
+    width: auto;
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .checkbox-label {
+    font-size: 0.9rem;
+    min-width: 80px;
+  }
+
+  .task-card.completed::after {
+    font-size: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  .task-card {
+    padding: 1rem 1.5rem;
+    flex-wrap: nowrap;
+    gap: 1.25rem;
+    align-items: center;
+  }
+
+  .task-card-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .edit-button,
+  .delete-button,
+  .notify-button {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .task-text {
+    flex: 0 1 auto;
+    min-width: 200px;
+    font-size: 1rem;
+  }
+
+  .task-edit-input {
+    flex: 0 1 auto;
+    min-width: 200px;
+    width: auto;
+  }
+
+  .checkbox-label {
+    min-width: 70px;
+  }
+
+  /* Efecto acuarela más pronunciado en desktop */
+  .task-card::before {
+    background:
+      radial-gradient(
+        circle at 20% 30%,
+        rgba(45, 106, 79, 0.08) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        rgba(233, 196, 106, 0.05) 0%,
+        transparent 50%
+      );
+  }
+}
+
+/* Pantallas grandes */
+@media (min-width: 992px) {
+  .task-card {
+    padding: 1rem 2rem;
+    gap: 1.5rem;
+  }
+
+  .task-text {
+    font-size: 1.05rem;
+    min-width: 250px;
+  }
+
+  .task-edit-input {
+    min-width: 250px;
+  }
+
+  .edit-button,
+  .delete-button,
+  .notify-button {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================
+   ANIMACIONES GLOBALES
+   ============================================ */
+
+@keyframes watercolorFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.task-card {
+  animation: watercolorFade 0.4s ease;
+}
+
+/* Efecto de brillo sutil en hover */
+.task-card::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+  pointer-events: none;
+}
+
+.task-card:hover::after {
+  opacity: 1;
 }
