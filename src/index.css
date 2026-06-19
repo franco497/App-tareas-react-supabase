@@ -721,32 +721,118 @@ body.menu-open {
 }
 
 /* ============================================
-   TASK CARD - ACUARELA MODE
+   TASK CARD - CONTAINER QUERIES (Mobile-First)
    ============================================ */
 
+/* Contenedor principal que agrupa todas las tarjetas */
+.task-list {
+  container-name: tasks;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem; /* ← Padding lateral reducido */
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box; /* ← IMPORTANTE: asegura que el padding no desborde */
+}
+
+/* ===== TASK CARD BASE (Mobile-First) ===== */
 .task-card {
   background: var(--surface-dark);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  padding: 1rem;
-
-  /* mismo comportamiento visual que .task-form */
-  margin: 1rem;
-  width: auto;
-  box-sizing: border-box;
-
+  padding: 1rem; /* ← Padding interno de la tarjeta */
+  width: 100%;
+  box-sizing: border-box; /* ← IMPORTANTE: evita desbordamiento */
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  position: relative;
-  overflow: hidden;
 }
 
-/* Efecto de acuarela - degradado sutil en hover */
+/* ===== SOLUCIÓN PARA CORTE EN BORDES LATERALES ===== */
+/* Aseguramos que el contenido no se salga */
+.task-card > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ajuste para el input de edición */
+.task-card .task-edit-input {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 100%; /* ← Evita que se salga */
+  box-sizing: border-box; /* ← IMPORTANTE */
+  transition: all var(--transition-base);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dark);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  order: 2;
+}
+
+/* Ajuste para el texto de la tarea */
+.task-card .task-text {
+  font-size: 1.1rem;
+  padding: 0.25rem 0;
+  color: var(--text-dark);
+  word-break: break-word; /* ← Rompe palabras largas */
+  overflow-wrap: break-word; /* ← Alternativa moderna */
+  hyphens: auto; /* ← Guiones automáticos */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-fast);
+  order: 2;
+  max-width: 100%; /* ← Evita desbordamiento */
+}
+
+/* Ajuste para checkbox y etiqueta */
+.task-card .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  transition: color var(--transition-fast);
+  order: 1;
+  max-width: 100%; /* ← Evita desbordamiento */
+}
+
+/* ===== BOTONES - Asegurar que no se salgan ===== */
+.task-card .notify-button,
+.task-card .edit-button,
+.task-card .delete-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%; /* ← Evita desbordamiento */
+  box-sizing: border-box; /* ← IMPORTANTE */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  min-height: 44px; /* ← Tamaño táctil mínimo */
+}
+
+/* Efecto de acuarela - degradado sutil */
 .task-card::before {
   content: "";
   position: absolute;
@@ -796,7 +882,7 @@ body.menu-open {
 }
 
 /* ===== CHECKBOX ===== */
-.checkbox-label {
+.task-card .checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -804,13 +890,14 @@ body.menu-open {
   font-size: 0.95rem;
   color: var(--text-light);
   transition: color var(--transition-fast);
+  order: 1;
 }
 
-.checkbox-label:hover {
+.task-card .checkbox-label:hover {
   color: var(--white);
 }
 
-.task-checkbox {
+.task-card .task-checkbox {
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -820,60 +907,75 @@ body.menu-open {
   transition: all var(--transition-fast);
 }
 
-.task-checkbox:hover {
+.task-card .task-checkbox:hover {
   transform: scale(1.1);
 }
 
-.checkbox-text {
+.task-card .checkbox-text {
   font-weight: 500;
   user-select: none;
   color: var(--text-light);
 }
 
 /* ===== TASK TEXT ===== */
-.task-text {
+.task-card .task-text {
   font-size: 1.1rem;
   padding: 0.25rem 0;
   color: var(--text-dark);
   word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all var(--transition-fast);
+  order: 2;
 }
 
-.task-text.completed {
+.task-card .task-text.completed {
   text-decoration: line-through;
   color: rgba(255, 255, 255, 0.5);
 }
 
 /* ===== EDIT INPUT ===== */
-.task-edit-input {
+.task-card .task-edit-input {
   padding: 0.5rem 0.75rem;
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   font-size: 1rem;
   width: 100%;
+  box-sizing: border-box;
   transition: all var(--transition-base);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-dark);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
+  order: 2;
 }
 
-.task-edit-input:focus {
+.task-card .task-edit-input:focus {
   outline: none;
   border-color: var(--success-color);
   box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.3);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.task-edit-input::placeholder {
+.task-card .task-edit-input::placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
 
-/* ===== BUTTONS ===== */
-.edit-button,
-.delete-button,
-.notify-button {
+/* ===== BOTONES - Mobile First ===== */
+.task-card .task-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  order: 3;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.task-card .notify-button,
+.task-card .edit-button,
+.task-card .delete-button {
   padding: 0.5rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -881,61 +983,26 @@ body.menu-open {
   font-size: 0.9rem;
   font-weight: 500;
   transition: all var(--transition-base);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
+  box-sizing: border-box;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  min-height: 44px;
 }
 
-.edit-button {
-  background: rgba(45, 106, 79, 0.3);
-  color: var(--white);
-  border-color: rgba(45, 106, 79, 0.3);
-}
-
-.edit-button:hover {
-  background: rgba(45, 106, 79, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
-  border-color: var(--success-color);
-}
-
-.edit-button.save {
-  background: var(--success-color);
-  color: var(--white);
-  border-color: var(--success-color);
-}
-
-.edit-button.save:hover {
-  background: #1e5c3e;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.4);
-}
-
-.delete-button {
-  background: rgba(231, 111, 81, 0.2);
-  color: var(--white);
-  border-color: rgba(231, 111, 81, 0.2);
-}
-
-.delete-button:hover {
-  background: rgba(231, 111, 81, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
-  border-color: var(--danger-color);
-}
-
-.notify-button {
+/* ===== RESTAURANTE DE ESTILOS (sin cambios) ===== */
+.task-card .notify-button {
   background: rgba(233, 196, 106, 0.15);
   color: var(--text-light);
   border-color: rgba(233, 196, 106, 0.15);
 }
 
-.notify-button:hover {
+.task-card .notify-button:hover {
   background: rgba(233, 196, 106, 0.3);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(233, 196, 106, 0.2);
@@ -943,146 +1010,42 @@ body.menu-open {
   color: var(--white);
 }
 
-/* ===== BUTTON GROUP ===== */
-.task-card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+.task-card .edit-button {
+  background: rgba(45, 106, 79, 0.3);
+  color: var(--white);
+  border-color: rgba(45, 106, 79, 0.3);
 }
 
-/* ============================================
-   TASK CARD - QUERIES
-   ============================================ */
-
-/* Tablets y pantallas pequeñas */
-@media (min-width: 576px) {
-  .task-card {
-    padding: 1.25rem;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .task-card-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    margin-top: 0;
-    margin-left: auto;
-    gap: 0.5rem;
-  }
-
-  .edit-button,
-  .delete-button,
-  .notify-button {
-    width: auto;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.85rem;
-  }
-
-  .task-text {
-    font-size: 1rem;
-    flex: 1;
-    min-width: 150px;
-  }
-
-  .task-edit-input {
-    width: auto;
-    flex: 1;
-    min-width: 150px;
-  }
-
-  .checkbox-label {
-    font-size: 0.9rem;
-    min-width: 80px;
-  }
-
-  .task-card.completed::after {
-    font-size: 1rem;
-    top: 0.75rem;
-    right: 0.75rem;
-  }
+.task-card .edit-button:hover {
+  background: rgba(45, 106, 79, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+  border-color: var(--success-color);
 }
 
-/* Desktop */
-@media (min-width: 768px) {
-  .task-card {
-    padding: 1rem 1.5rem;
-    flex-wrap: nowrap;
-    gap: 1.25rem;
-    align-items: center;
-  }
-
-  .task-card-actions {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-    margin-left: auto;
-  }
-
-  .edit-button,
-  .delete-button,
-  .notify-button {
-    padding: 0.4rem 1rem;
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
-
-  .task-text {
-    flex: 0 1 auto;
-    min-width: 200px;
-    font-size: 1rem;
-  }
-
-  .task-edit-input {
-    flex: 0 1 auto;
-    min-width: 200px;
-    width: auto;
-  }
-
-  .checkbox-label {
-    min-width: 70px;
-  }
-
-  /* Efecto acuarela más pronunciado en desktop */
-  .task-card::before {
-    background:
-      radial-gradient(
-        circle at 20% 30%,
-        rgba(45, 106, 79, 0.08) 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        circle at 80% 70%,
-        rgba(233, 196, 106, 0.05) 0%,
-        transparent 50%
-      );
-  }
+.task-card .edit-button.save {
+  background: var(--success-color);
+  color: var(--white);
+  border-color: var(--success-color);
 }
 
-/* Pantallas grandes */
-@media (min-width: 992px) {
-  .task-card {
-    padding: 1rem 2rem;
-    gap: 1.5rem;
-  }
+.task-card .edit-button.save:hover {
+  background: #1e5c3e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.4);
+}
 
-  .task-text {
-    font-size: 1.05rem;
-    min-width: 250px;
-  }
+.task-card .delete-button {
+  background: rgba(231, 111, 81, 0.2);
+  color: var(--white);
+  border-color: rgba(231, 111, 81, 0.2);
+}
 
-  .task-edit-input {
-    min-width: 250px;
-  }
-
-  .edit-button,
-  .delete-button,
-  .notify-button {
-    padding: 0.5rem 1.2rem;
-    font-size: 0.9rem;
-  }
+.task-card .delete-button:hover {
+  background: rgba(231, 111, 81, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
+  border-color: var(--danger-color);
 }
 
 /* ============================================
