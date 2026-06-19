@@ -721,7 +721,7 @@ body.menu-open {
 }
 
 /* ============================================
-   TASK CARD - CONTAINER QUERIES (Mobile-First)
+   TASK CARD - (Mobile-First)
    ============================================ */
 
 /* Contenedor principal que agrupa todas las tarjetas */
@@ -1046,6 +1046,168 @@ body.menu-open {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
   border-color: var(--danger-color);
+}
+
+/* ============================================
+   CONTAINER QUERIES - RESPONSIVE LAYOUTS
+   ============================================ */
+
+/* ----- TABLET PEQUEÑA (576px - 767px) ----- */
+@container tasks (min-width: 36rem) {
+  .task-card {
+    padding: 1.25rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .task-card .checkbox-label {
+    order: 1;
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  .task-card .task-text,
+  .task-card .task-edit-input {
+    order: 2;
+    flex: 1;
+    min-width: 120px;
+    max-width: calc(100% - 80px); /* ← Evita que se salga */
+  }
+
+  .task-card .task-card-actions {
+    order: 3;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-left: auto;
+    gap: 0.5rem;
+    margin-top: 0;
+    width: auto; /* ← Permite que se ajuste al contenido */
+  }
+
+  .task-card .notify-button,
+  .task-card .edit-button,
+  .task-card .delete-button {
+    width: auto;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    min-height: 38px;
+  }
+
+  .task-card.completed::after {
+    font-size: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+/* ----- TABLET GRANDE / ESCRITORIO PEQUEÑO (768px - 1023px) ----- */
+@container tasks (min-width: 48rem) {
+  .task-card {
+    padding: 1rem 1.5rem;
+    flex-wrap: nowrap;
+    gap: 1rem;
+  }
+
+  .task-card .checkbox-label {
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+
+  .task-card .task-text,
+  .task-card .task-edit-input {
+    flex: 0 1 auto;
+    min-width: 150px;
+    font-size: 1rem;
+    max-width: none; /* ← Permite que crezca naturalmente */
+  }
+
+  .task-card .task-card-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-left: auto;
+    width: auto;
+  }
+
+  .task-card .notify-button,
+  .task-card .edit-button,
+  .task-card .delete-button {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    min-height: 38px;
+  }
+
+  /* Efecto acuarela más pronunciado en desktop */
+  .task-card::before {
+    background:
+      radial-gradient(
+        circle at 20% 30%,
+        rgba(45, 106, 79, 0.08) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        rgba(233, 196, 106, 0.05) 0%,
+        transparent 50%
+      );
+  }
+}
+
+/* ----- ESCRITORIO (1024px - 1279px) ----- */
+@container tasks (min-width: 64rem) {
+  .task-card {
+    padding: 1rem 2rem;
+    gap: 1.25rem;
+  }
+
+  .task-card .task-text {
+    font-size: 1.05rem;
+    min-width: 200px;
+  }
+
+  .task-card .task-edit-input {
+    min-width: 200px;
+  }
+
+  .task-card .notify-button,
+  .task-card .edit-button,
+  .task-card .delete-button {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+}
+
+/* ----- ESCRITORIO GRANDE (1280px+) ----- */
+@container tasks (min-width: 80rem) {
+  .task-list {
+    padding: 0.5rem 2rem;
+  }
+
+  .task-card {
+    padding: 1rem 2.5rem;
+    gap: 1.5rem;
+  }
+
+  .task-card .task-text {
+    font-size: 1.1rem;
+    min-width: 250px;
+  }
+
+  .task-card .task-edit-input {
+    min-width: 250px;
+  }
+
+  .task-card .notify-button,
+  .task-card .edit-button,
+  .task-card .delete-button {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.95rem;
+    min-height: 42px;
+  }
 }
 
 /* ============================================
