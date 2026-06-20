@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer"; // ← Importar Footer
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
@@ -36,8 +37,8 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar 
-        showTaskDone={showTaskDone} 
+      <Navbar
+        showTaskDone={showTaskDone}
         onToggleView={handleToggleView}
         userEmail={user?.email}
       />
@@ -46,6 +47,7 @@ function Dashboard() {
         <TaskForm />
         <TaskList done={showTaskDone} />
       </div>
+      <Footer /> {/* ← Agregar Footer al final */}
     </>
   );
 }
