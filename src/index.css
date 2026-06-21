@@ -2599,6 +2599,520 @@ footer.footer-component::before {
 }
 
 /* ============================================
+   NOTIFICATION FORM - MODAL
+   Acuarela Nocturna - Mobile-First (Sin Scroll)
+   ============================================ */
+
+/* ----- OVERLAY (Fondo oscuro) ----- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ----- CONTENIDO DEL MODAL ----- */
+.modal-content {
+  background: var(--primary-gradient);
+  border-radius: 20px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: modalSlideUp 0.3s ease;
+  position: relative;
+  overflow: hidden; /* ← Oculta cualquier desbordamiento */
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ----- HEADER DEL MODAL ----- */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  color: var(--white);
+  font-size: 1rem;
+  margin: 0;
+  flex: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.modal-header h3 span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.6;
+  margin-top: 0.2rem;
+}
+
+/* ----- BOTÓN CERRAR ----- */
+.modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+.modal-close:hover {
+  background: rgba(231, 111, 81, 0.2);
+  border-color: var(--danger-color);
+  transform: rotate(90deg);
+}
+
+.modal-close:active {
+  transform: scale(0.9) rotate(90deg);
+}
+
+/* ----- SELECTOR DE TIPO DE ENVÍO ----- */
+.send-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.send-type-btn {
+  padding: 0.6rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  width: 100%;
+}
+
+.send-type-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-color-hover);
+}
+
+.send-type-btn.active {
+  background: rgba(233, 196, 106, 0.15);
+  border-color: var(--warning-color);
+  color: var(--white);
+  box-shadow: 0 0 20px rgba(233, 196, 106, 0.05);
+}
+
+.send-type-btn.active:hover {
+  background: rgba(233, 196, 106, 0.2);
+}
+
+/* ----- FORMULARIO (Programar para más tarde) ----- */
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white);
+  transition: all var(--transition-base);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--warning-color);
+  box-shadow: 0 0 0 3px rgba(233, 196, 106, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.form-input::-webkit-datetime-edit {
+  color: var(--white);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group small {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.1rem;
+}
+
+/* ----- MENSAJES DE NOTIFICACIÓN ----- */
+.notification-message {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+  animation: messageSlideIn 0.3s ease;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-message.success {
+  background: rgba(45, 106, 79, 0.2);
+  border: 1px solid rgba(45, 106, 79, 0.3);
+  color: var(--success-color);
+}
+
+.notification-message.error {
+  background: rgba(231, 111, 81, 0.2);
+  border: 1px solid rgba(231, 111, 81, 0.3);
+  color: var(--danger-color);
+}
+
+.notification-message.info {
+  background: rgba(233, 196, 106, 0.15);
+  border: 1px solid rgba(233, 196, 106, 0.2);
+  color: var(--warning-color);
+}
+
+/* ----- BOTONES DEL FORMULARIO ----- */
+.submit-button {
+  padding: 0.6rem 1rem;
+  background: var(--success-color);
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 44px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #1e5a3e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(45, 106, 79, 0.3);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ----- CONTENEDOR "ENVIAR AHORA" ----- */
+.send-now-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.send-now-info {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  line-height: 1.5;
+}
+
+.send-now-info strong {
+  color: var(--white);
+  word-break: break-all;
+}
+
+.send-now-button {
+  padding: 0.6rem 1rem;
+  background: rgba(233, 196, 106, 0.2);
+  color: var(--white);
+  border: 2px solid rgba(233, 196, 106, 0.3);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 44px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.send-now-button:hover:not(:disabled) {
+  background: rgba(233, 196, 106, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(233, 196, 106, 0.2);
+  border-color: var(--warning-color);
+}
+
+.send-now-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.send-now-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   NOTIFICATION FORM - QUERIES
+   ============================================ */
+
+/* ----- TABLET (576px - 767px) ----- */
+@media (min-width: 36rem) {
+  .modal-content {
+    padding: 1.75rem 2rem;
+    max-width: 520px;
+  }
+
+  .modal-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .send-type-selector {
+    flex-direction: row;
+  }
+
+  .send-type-btn {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+
+  .form-input {
+    font-size: 0.95rem;
+    min-height: 40px;
+  }
+
+  .submit-button,
+  .send-now-button {
+    min-height: 40px;
+    font-size: 0.95rem;
+  }
+}
+
+/* ----- DESKTOP (768px+) ----- */
+@media (min-width: 48rem) {
+  .modal-content {
+    padding: 2rem 2.5rem;
+    max-width: 540px;
+    border-radius: 24px;
+  }
+
+  .modal-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .send-type-btn {
+    font-size: 0.9rem;
+    padding: 0.7rem 1.2rem;
+    min-height: 44px;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-input {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    min-height: 44px;
+  }
+
+  .submit-button,
+  .send-now-button {
+    font-size: 1rem;
+    padding: 0.7rem 1.2rem;
+    min-height: 44px;
+  }
+
+  .send-now-info {
+    font-size: 0.95rem;
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* ----- DESKTOP GRANDE (1024px+) ----- */
+@media (min-width: 64rem) {
+  .modal-content {
+    padding: 2.5rem 3rem;
+    max-width: 580px;
+    border-radius: 28px;
+  }
+
+  .modal-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .send-type-btn {
+    font-size: 0.95rem;
+    padding: 0.8rem 1.5rem;
+    min-height: 48px;
+  }
+
+  .form-input {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.8rem 1.2rem;
+  }
+
+  .submit-button,
+  .send-now-button {
+    min-height: 48px;
+    font-size: 1.05rem;
+    padding: 0.8rem 1.5rem;
+  }
+}
+
+/* ============================================
+   ESTILOS ADICIONALES - SEGURIDAD
+   ============================================ */
+
+/* Prevenir scroll del body cuando el modal está abierto */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Mejora de accesibilidad - Focus visible */
+.modal-close:focus-visible,
+.send-type-btn:focus-visible,
+.form-input:focus-visible,
+.submit-button:focus-visible,
+.send-now-button:focus-visible {
+  outline: 2px solid var(--warning-color);
+  outline-offset: 2px;
+}
+
+/* Efecto de brillo sutil en el modal */
+.modal-content::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.modal-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ----- ELIMINADO: Scroll del modal ----- */
+/* Ya no hay scroll interno, todo el contenido es visible */
+/* ============================================
     RESET DE ESTILOS CONFLICTIVOS 
    ============================================ */
 
