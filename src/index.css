@@ -1532,6 +1532,7 @@ footer.footer-component::before {
     transparent 100%
   );
 }
+
 /* ============================================
    SCHEDULED TASKS - ACUARELA NOCTURNA
    Mobile-First (TEXTO BLANCO)
@@ -1545,7 +1546,7 @@ footer.footer-component::before {
   width: 100%;
   box-sizing: border-box;
   min-height: 80vh;
-  color: var(--white); /* ← AÑADIDO: Texto blanco en todo el contenedor */
+  color: var(--white);
 }
 
 /* ----- HEADER ----- */
@@ -1561,17 +1562,14 @@ footer.footer-component::before {
   backdrop-filter: blur(10px);
 }
 
-.scheduled-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
 .scheduled-header h1 {
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   font-size: 1.5rem;
   margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* ----- BOTONES DEL HEADER ----- */
@@ -1590,12 +1588,12 @@ footer.footer-component::before {
   justify-content: center;
   backdrop-filter: blur(5px);
   min-height: 44px;
-  color: var(--white); /* ← AÑADIDO: Texto blanco */
+  color: var(--white);
 }
 
 .back-btn {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   border: 1px solid var(--border-color);
 }
 
@@ -1607,7 +1605,7 @@ footer.footer-component::before {
 
 .refresh-btn {
   background: rgba(45, 106, 79, 0.3);
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   border: 1px solid rgba(45, 106, 79, 0.3);
   width: 100%;
 }
@@ -1629,7 +1627,7 @@ footer.footer-component::before {
   border: 1px solid rgba(231, 111, 81, 0.3);
   border-radius: 12px;
   padding: 1rem;
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   margin-bottom: 1rem;
   text-align: center;
 }
@@ -1645,7 +1643,7 @@ footer.footer-component::before {
 }
 
 .no-tasks-message p {
-  color: var(--white); /* ← CAMBIADO: de --text-light a --white */
+  color: var(--white);
   margin: 0.5rem 0;
   font-size: 1rem;
 }
@@ -1653,14 +1651,14 @@ footer.footer-component::before {
 .no-tasks-message p:first-child {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
 }
 
 .go-back-btn {
   margin-top: 1.5rem;
   padding: 0.8rem 2rem;
   background: var(--success-color);
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   border: none;
   border-radius: 12px;
   font-size: 1rem;
@@ -1695,7 +1693,7 @@ footer.footer-component::before {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
-  color: var(--white); /* ← AÑADIDO: Texto blanco en toda la tabla */
+  color: var(--white);
 }
 
 /* Ocultar thead en mobile (usaremos cards) */
@@ -1719,7 +1717,7 @@ footer.footer-component::before {
   padding: 1rem;
   transition: all var(--transition-base);
   position: relative;
-  color: var(--white); /* ← AÑADIDO: Texto blanco en cada fila */
+  color: var(--white);
 }
 
 .scheduled-table tbody tr:hover {
@@ -1737,7 +1735,7 @@ footer.footer-component::before {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   gap: 0.5rem;
   word-break: break-word;
-  color: var(--white); /* ← AÑADIDO: Texto blanco en cada celda */
+  color: var(--white);
 }
 
 .scheduled-table tbody td:last-child {
@@ -1748,18 +1746,18 @@ footer.footer-component::before {
 .scheduled-table tbody td::before {
   content: attr(data-label);
   font-weight: 600;
-  color: var(--white); /* ← CAMBIADO: de --text-light a --white */
+  color: var(--white);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  opacity: 0.7; /* ← Mantenemos opacidad para diferenciar */
+  opacity: 0.7;
   flex-shrink: 0;
   min-width: 80px;
 }
 
 /* Contenido de la celda */
 .scheduled-table tbody td > *:not(button) {
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   text-align: right;
   flex: 1;
 }
@@ -1776,30 +1774,30 @@ footer.footer-component::before {
   text-transform: uppercase;
   letter-spacing: 0.3px;
   white-space: nowrap;
-  color: var(--white); /* ← AÑADIDO: Base blanca para todos los badges */
+  color: var(--white);
 }
 
 .status-badge.pending {
   background: rgba(233, 196, 106, 0.2);
-  color: var(--white); /* ← CAMBIADO: de --warning-color a --white */
+  color: var(--white);
   border: 1px solid rgba(233, 196, 106, 0.3);
 }
 
 .status-badge.sent {
   background: rgba(45, 106, 79, 0.2);
-  color: var(--white); /* ← CAMBIADO: de --success-color a --white */
+  color: var(--white);
   border: 1px solid rgba(45, 106, 79, 0.3);
 }
 
 .status-badge.failed {
   background: rgba(231, 111, 81, 0.2);
-  color: var(--white); /* ← CAMBIADO: de --danger-color a --white */
+  color: var(--white);
   border: 1px solid rgba(231, 111, 81, 0.3);
 }
 
 .status-badge.cancelled {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--white); /* ← CAMBIADO: de --text-light a --white */
+  color: var(--white);
   border: 1px solid var(--border-color);
 }
 
@@ -1807,7 +1805,7 @@ footer.footer-component::before {
 .cancel-btn {
   padding: 0.4rem 0.8rem;
   background: rgba(231, 111, 81, 0.15);
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   border: 1px solid rgba(231, 111, 81, 0.3);
   border-radius: 8px;
   font-size: 0.8rem;
@@ -1837,7 +1835,7 @@ footer.footer-component::before {
   justify-content: center;
   align-items: center;
   min-height: 60vh;
-  color: var(--white); /* ← Ya está en blanco */
+  color: var(--white);
   font-size: 1.2rem;
 }
 
@@ -1858,14 +1856,9 @@ footer.footer-component::before {
     padding: 1.25rem 1.5rem;
   }
 
-  .scheduled-header-left {
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-  }
-
   .scheduled-header h1 {
     font-size: 1.6rem;
+    margin-left: auto; /* Empuja el título a la derecha */
   }
 
   .refresh-btn {
@@ -1945,10 +1938,16 @@ footer.footer-component::before {
 
   .scheduled-header {
     padding: 1.5rem 2rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
   }
 
   .scheduled-header h1 {
     font-size: 1.8rem;
+    margin: 0;
+    margin-left: auto; /* Empuja el título a la derecha */
   }
 
   .scheduled-table tbody td {
@@ -1982,10 +1981,16 @@ footer.footer-component::before {
 
   .scheduled-header {
     padding: 1.5rem 2.5rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
   }
 
   .scheduled-header h1 {
     font-size: 2rem;
+    margin: 0;
+    margin-left: auto; /* Empuja el título a la derecha */
   }
 
   .scheduled-table tbody td {

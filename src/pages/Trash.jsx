@@ -75,9 +75,9 @@ function Trash() {
           ← Volver a Inicio
         </button>
         <h1>🗑️ Papelera de Reciclaje</h1>
-        <button onClick={loadDeletedTasks} className="refresh-btn">
+        {/*<button onClick={loadDeletedTasks} className="refresh-btn">
           🔄 Actualizar
-        </button>
+        </button>*/}
       </div>
 
       {deletedTasks.length === 0 ? (

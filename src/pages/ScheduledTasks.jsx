@@ -16,8 +16,10 @@ function ScheduledTasks() {
   const fetchScheduledTasks = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         throw new Error("Usuario no autenticado");
       }
@@ -61,27 +63,27 @@ function ScheduledTasks() {
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
   const handleCancel = async (id) => {
     if (!window.confirm("¿Estás seguro de cancelar este recordatorio?")) return;
-    
+
     try {
       const { error } = await supabase
         .from("scheduled_notifications")
         .update({ status: "cancelled" })
         .eq("id", id);
-      
+
       if (error) throw error;
-      
-      setScheduledTasks(prev => 
-        prev.map(task => 
-          task.id === id ? { ...task, status: "cancelled" } : task
-        )
+
+      setScheduledTasks((prev) =>
+        prev.map((task) =>
+          task.id === id ? { ...task, status: "cancelled" } : task,
+        ),
       );
-      
+
       alert("✅ Recordatorio cancelado");
     } catch (err) {
       console.error("Error:", err);
@@ -104,22 +106,16 @@ function ScheduledTasks() {
   return (
     <div className="scheduled-tasks-container">
       <div className="scheduled-header">
-        <div className="scheduled-header-left">
-          <button onClick={handleGoBack} className="back-btn">
-            ← Volver a Inicio
-          </button>
-          <h1>📅 Tareas Programadas</h1>
-        </div>
-        <button onClick={fetchScheduledTasks} className="refresh-btn">
-          🔄 Actualizar
+        <button onClick={handleGoBack} className="back-btn">
+          ← Volver a Inicio
         </button>
+        <h1>📅 Tareas Programadas</h1>
+        {/* <button onClick={fetchScheduledTasks} className="refresh-btn">
+          🔄 Actualizar
+        </button> */}
       </div>
 
-      {error && (
-        <div className="error-message">
-          ❌ Error: {error}
-        </div>
-      )}
+      {error && <div className="error-message">❌ Error: {error}</div>}
 
       {scheduledTasks.length === 0 ? (
         <div className="no-tasks-message">
@@ -145,12 +141,14 @@ function ScheduledTasks() {
               {scheduledTasks.map((task) => (
                 <tr key={task.id}>
                   <td data-label="Tarea">{task.task_name}</td>
-                  <td data-label="Programada para">{formatDate(task.scheduled_for)}</td>
+                  <td data-label="Programada para">
+                    {formatDate(task.scheduled_for)}
+                  </td>
                   <td data-label="Estado">{getStatusBadge(task.status)}</td>
                   <td data-label="Creada">{formatDate(task.created_at)}</td>
                   <td data-label="Acciones">
                     {task.status === "pending" && (
-                      <button 
+                      <button
                         onClick={() => handleCancel(task.id)}
                         className="cancel-btn"
                       >
