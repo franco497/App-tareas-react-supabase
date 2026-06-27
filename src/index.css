@@ -726,6 +726,25 @@ body.menu-open {
 }
 
 /* ============================================
+   ESTILOS PARA TEXTO DEL H1
+   ============================================ */
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 80vh;
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  color: #fff;
+  margin: 20px 0;
+  padding: 10px 0;
+  text-align: center;
+}
+
+/* ============================================
    TASK CARD - (Mobile-First)
    ============================================ */
 

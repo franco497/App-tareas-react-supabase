@@ -43,8 +43,12 @@ function Dashboard() {
         userEmail={user?.email}
       />
       <div className="dashboard-container">
-        <h1 className="dashboard-title">Panel</h1>
+        {/* <h1 className="dashboard-title">Panel</h1> */}
+        <br /><br />
         <TaskForm />
+        <h1 className="dashboard-title">El sistema esta conectado a un 
+          back-end de supabase con una base de datos PostgreSQL,
+           puedes probar la integracion de la API de Gmail enviando una notificasion a tu correo electronico</h1>
         <TaskList done={showTaskDone} />
       </div>
       <Footer /> {/* ← Agregar Footer al final */}
