@@ -5,29 +5,33 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   
-  // ✅ Base URL para rutas absolutas (necesario para Netlify)
+  // ✅ Base URL para rutas absolutas
   base: '/',
   
   // ✅ Configuración de build para producción
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    // ✅ Generar sourcemaps para debugging (opcional)
     sourcemap: false,
-    // ✅ Minificar para producción
     minify: 'esbuild',
-    // ✅ Tamaño de chunk para mejor rendimiento
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // ✅ Nombres de archivos con hash para cache
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
-        // ✅ Separar dependencias de terceros
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          supabase: ['@supabase/supabase-js'],
+        // ✅ CORREGIDO: manualChunks debe ser una FUNCIÓN
+        manualChunks(id) {
+          // Separar dependencias de terceros
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            return 'vendor';
+          }
         },
       },
     },
@@ -36,24 +40,21 @@ export default defineConfig({
   // ✅ Configuración del servidor de desarrollo
   server: {
     port: 5175,
-    // ✅ Abrir el navegador automáticamente
     open: true,
-    // ✅ Hot Module Replacement (HMR)
     hmr: {
       overlay: true,
     },
   },
   
-  // ✅ Configuración para preview (Netlify)
+  // ✅ Configuración para preview
   preview: {
     port: 5175,
     open: true,
   },
   
-  // ✅ Resolución de módulos
+  // ✅ Resolución de módulos con alias
   resolve: {
     alias: {
-      // ✅ Alias para importaciones más limpias (opcional)
       '@': '/src',
       '@components': '/src/components',
       '@pages': '/src/pages',
@@ -62,6 +63,6 @@ export default defineConfig({
     },
   },
   
-  // ✅ Variables de entorno disponibles en el cliente
+  // ✅ Variables de entorno
   envPrefix: 'VITE_',
 })
