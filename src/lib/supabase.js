@@ -25,5 +25,5 @@ export const getRedirectUrl = () => {
   }
 
   // Para producción (Netlify)
-  return "https://sistema-tareas-recordatorios.netlify.app/#/auth/callback";
+  return "https://sistema-tareas-recordatorios.netlify.app/auth/callback";
 };
