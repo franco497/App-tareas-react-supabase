@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase, getRedirectUrl } from '../lib/supabase'; 
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -14,12 +14,18 @@ function Login() {
     setError("");
 
     try {
-      const currentUrl = window.location.origin;
+      // ✅ REEMPLAZA esta línea:
+      // const currentUrl = window.location.origin;
+      // POR ESTA:
+      const redirectUrl = getRedirectUrl(); // ← Usa la función que importaste
+      
+      console.log("📧 Enviando magic link a:", email);
+      console.log("🔗 Redirect URL:", redirectUrl); // ← Para verificar en consola
 
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: `${currentUrl}/auth/callback`,
+          emailRedirectTo: redirectUrl, // ← Usa redirectUrl en lugar de currentUrl
         },
       });
 
