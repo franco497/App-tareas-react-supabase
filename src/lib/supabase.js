@@ -10,7 +10,6 @@ console.log("Key existe:", !!supabaseAnonKey);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// ✅ AGREGAR ESTA FUNCIÓN
 export const getRedirectUrl = () => {
   const hostname = window.location.hostname;
   const port = window.location.port;
@@ -20,7 +19,7 @@ export const getRedirectUrl = () => {
   const isLocal = hostname === "localhost" || hostname === "5175";
 
   if (isLocal) {
-    // Para local: usa el puerto actual (5173, 3000, etc.)
+    // Para local: usa el puerto actual
     return `${protocol}//${hostname}:${port}/auth/callback`;
   }
 

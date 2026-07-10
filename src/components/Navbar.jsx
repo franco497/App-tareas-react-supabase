@@ -1,5 +1,4 @@
-// src/components/Navbar.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
@@ -8,11 +7,16 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900);
   const navigate = useNavigate();
   const location = useLocation();
+  const menuRef = useRef(null);
 
   // Detectar si es desktop
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 900);
+      console.log("===== NAVBAR =====");
+      console.log("window.innerWidth:", window.innerWidth);
+      console.log("isDesktop:", isDesktop);
+      console.log("isOpen:", isOpen);
     };
 
     window.addEventListener("resize", handleResize);
@@ -36,6 +40,26 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     }
   }, [isDesktop, isOpen]);
 
+  // Efecto para medir el ancho del menú
+  useEffect(() => {
+    if (menuRef.current) {
+      console.log("Menu width:", menuRef.current.offsetWidth);
+      console.log("Viewport width:", window.innerWidth);
+
+      const styles = window.getComputedStyle(menuRef.current);
+
+    console.log({
+      width: styles.width,
+      height: styles.height,
+      display: styles.display,
+      position: styles.position,
+      padding: styles.padding,
+      margin: styles.margin,
+      transform: styles.transform,
+    });
+    }
+  }, [isOpen, isDesktop]);
+
   const toggleMenu = () => {
     if (!isDesktop) {
       setIsOpen(!isOpen);
@@ -55,6 +79,19 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     return location.pathname === path;
   };
 
+  // ==== PRUEBAS DE DEPURACIÓN ====
+  console.log("===== NAVBAR =====");
+  console.log("window.innerWidth:", window.innerWidth);
+  console.log("isDesktop:", isDesktop);
+  console.log("isOpen:", isOpen);
+  console.log(
+    "nav-menu class:",
+    `nav-menu ${!isDesktop && isOpen ? "active" : ""}`,
+  );
+  console.log(document.documentElement.scrollWidth);
+  console.log(window.innerWidth);
+  // ==== FIN PRUEBAS DE DEPURACIÓN ====
+
   return (
     <>
       <nav className="navbar">
@@ -73,18 +110,23 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
           )}
 
           {/* Menú de navegación - siempre visible en desktop, condicional en móvil */}
-          <ul className={`nav-menu ${!isDesktop && isOpen ? "active" : ""}`}>
+          <ul
+            ref={menuRef}
+            className={`nav-menu ${!isDesktop && isOpen ? "active" : ""}`}
+          >
             {/* 1. Botón toggle (Tareas realizadas/pendientes) - PRIMERO */}
             <li className="nav-item">
               <button
+                type="button"
                 onClick={() => {
                   onToggleView();
                   closeMenu();
                 }}
-                className="toggle-nav-btn"
+                className="nav-link"
               >
-                <span className="btn-icon">{showTaskDone ? "📋" : "✅"}</span>
-                <span className="btn-text">
+                <span className="nav-icon">{showTaskDone ? "📋" : "✅"}</span>
+
+                <span className="nav-text">
                   {showTaskDone
                     ? "Mostrar tareas pendientes"
                     : "Mostrar tareas realizadas"}

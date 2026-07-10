@@ -144,10 +144,7 @@ body {
 .nav-menu {
   box-sizing: border-box;
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   margin: 0;
   padding: 80px 1rem 2rem;
@@ -156,6 +153,11 @@ body {
   transform: translateX(-100%);
   transition: transform var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
   gap: 10px;
+  inset: 0;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Menú visible */
@@ -190,6 +192,9 @@ body {
   transition: all var(--transition-base);
   transition-delay: calc(0.05s * var(--item-index, 0));
   list-style: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Animación de entrada en cascada */
@@ -216,27 +221,36 @@ body {
   transition-delay: 0.2s;
 }
 
-/* ----- ENLACES DE NAVEGACIÓN ----- */
-.nav-link {
+/* ----- ESTILOS BASE PARA ENLACES Y BOTONES ----- */
+.nav-link,
+.toggle-nav-btn,
+.logout-nav-btn {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.2rem;
-  color: var(--white);
-  text-decoration: none;
-  font-size: 1.1rem;
-  font-weight: 500;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border-radius: 12px;
   transition: all var(--transition-base);
-  background: rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--white);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-/* Efecto hover */
-.nav-link:hover {
-  background: rgba(233, 196, 106, 0.15);
-  transform: translateX(5px);
+/* ----- ENLACES DE NAVEGACIÓN (Link de React Router) ----- */
+.nav-link {
+  /* Hereda todos los estilos base */
 }
 
 /* Enlace activo - Acuarela */
@@ -257,56 +271,52 @@ body {
   color: var(--warning-color);
 }
 
-/* Iconos y texto dentro del enlace */
-.nav-icon {
-  font-size: 1.3rem;
-  min-width: 30px;
-}
-
-.nav-text {
-  flex: 1;
-}
-
-/* ----- BOTÓN TOGGLE VISTA - ESTILO ESTÁTICO ----- */
+/* ----- BOTÓN TOGGLE VISTA ----- */
 .toggle-nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 1rem 1.2rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
+  /* Hereda todos los estilos base */
   background: rgba(255, 255, 255, 0.05);
-  color: var(--white);
-  border: 1px solid transparent;
 }
 
-.toggle-nav-btn .btn-icon {
-  font-size: 1.3rem;
-  min-width: 30px;
+/* ----- BOTÓN CERRAR SESIÓN ----- */
+.logout-nav-btn {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
-.toggle-nav-btn .btn-text {
-  flex: 1;
-  text-align: left;
+.logout-nav-btn:hover {
+  background: rgba(231, 111, 81, 0.3);
+  transform: translateX(5px);
+  border-color: rgba(231, 111, 81, 0.8);
 }
 
-/* Efecto hover - Acuarela */
+/* ----- HOVER PARA TODOS ----- */
+.nav-link:hover,
 .toggle-nav-btn:hover {
   background: rgba(233, 196, 106, 0.15);
-  transform: translateX(5px);
   border-color: rgba(233, 196, 106, 0.3);
+  transform: translateX(5px);
 }
 
-/* Efecto de clic */
-.toggle-nav-btn:active {
+/* ----- ACTIVE PARA TODOS ----- */
+.nav-link:active,
+.toggle-nav-btn:active,
+.logout-nav-btn:active {
   transform: scale(0.98);
+}
+
+/* Iconos y texto dentro de los elementos */
+.nav-icon,
+.btn-icon {
+  font-size: 1.3rem;
+  min-width: 30px;
+  flex-shrink: 0;
+}
+
+.nav-text,
+.btn-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 /* ----- INFORMACIÓN DEL USUARIO ----- */
@@ -336,44 +346,6 @@ body {
 .user-email {
   flex: 1;
   opacity: 0.9;
-}
-
-/* ----- BOTÓN CERRAR SESIÓN ----- */
-.logout-nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 1rem 1.2rem;
-  background: rgba(231, 111, 81, 0.15);
-  color: var(--white);
-  border: 1px solid rgba(231, 111, 81, 0.5);
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  margin-top: 0.5rem;
-}
-
-.logout-nav-btn .btn-icon {
-  font-size: 1.2rem;
-  min-width: 30px;
-}
-
-.logout-nav-btn .btn-text {
-  flex: 1;
-  text-align: left;
-}
-
-.logout-nav-btn:hover {
-  background: rgba(231, 111, 81, 0.3);
-  transform: translateX(5px);
-  border-color: rgba(231, 111, 81, 0.8);
-}
-
-.logout-nav-btn:active {
-  transform: scale(0.98);
 }
 
 /* ----- OVERLAY (fondo oscuro) ----- */
