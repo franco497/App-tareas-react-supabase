@@ -464,6 +464,7 @@ body.menu-open {
     right: auto;
     overflow-y: visible;
     width: 100%;
+    align-items: center;
   }
 
   /* Remover animaciones y transformaciones en desktop */
@@ -472,6 +473,8 @@ body.menu-open {
     transform: none;
     margin-bottom: 0;
     transition: none;
+    width: auto;
+    max-width: none;
   }
 
   /* Estilo horizontal para los items */
@@ -479,6 +482,8 @@ body.menu-open {
     padding: 0.5rem 1rem;
     font-size: 1rem;
     white-space: nowrap;
+    width: auto;
+    max-width: none;
   }
 
   /* Ajustar el botón toggle para que sea inline */
@@ -548,8 +553,23 @@ body.menu-open {
     display: none !important;
   }
 
-  .nav-menu li:last-child {
+  /* ===== NUEVA REGLA: Cerrar Sesión al extremo derecho ===== */
+  /* Este es el item que contiene el botón de cerrar sesión */
+  .nav-item:last-child {
     margin-left: auto !important;
+  }
+
+  /* Asegurar que el botón de cerrar sesión mantenga su estilo */
+  .nav-item:last-child .logout-nav-btn {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    padding: 0.5rem 1.2rem;
+  }
+
+  .nav-item:last-child .logout-nav-btn:hover {
+    background: rgba(231, 111, 81, 0.3);
+    transform: translateY(-2px);
+    border-color: rgba(231, 111, 81, 0.8);
   }
 }
 
