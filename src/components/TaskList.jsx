@@ -12,7 +12,7 @@ function TaskList({ done = false }) {
   if (loading) {
     return (
       <div className="task-list-loading">
-        <p>Cargando tareas...</p>
+        <p className="task-list-loading-btn">Cargando tareas...</p>
       </div>
     );
   }
@@ -20,7 +20,9 @@ function TaskList({ done = false }) {
   if (tasks.length === 0) {
     return (
       <div className="task-list-empty">
-        <p>No hay tareas {done ? "completadas" : "pendientes"}</p>
+        <p className="task-list-loading-btn">
+          No hay tareas {done ? "completadas" : "pendientes"}
+        </p>
       </div>
     );
   }

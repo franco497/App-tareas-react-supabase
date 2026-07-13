@@ -676,6 +676,11 @@ body.menu-open {
   transform: none;
 }
 
+/*estado de carga*/
+.loading-container-text {
+  color: #fff;
+}
+
 /* ============================================
    TASK FORM - QUERIES
    ============================================ */
@@ -729,7 +734,7 @@ body.menu-open {
 }
 
 .dashboard-title {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #fff;
   margin: 20px 0;
   padding: 10px 0;
@@ -1062,6 +1067,10 @@ body.menu-open {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
   border-color: var(--danger-color);
+}
+
+.task-list-loading-btn {
+  color: #fff;
 }
 
 /* ============================================
@@ -1575,7 +1584,7 @@ footer.footer-component::before {
 
 .scheduled-header h1 {
   color: var(--white);
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   display: flex;
@@ -1848,6 +1857,10 @@ footer.footer-component::before {
   min-height: 60vh;
   color: var(--white);
   font-size: 1.2rem;
+}
+
+.loading-container-btn {
+  color: var(--white);
 }
 
 /* ============================================
@@ -3564,6 +3577,155 @@ body.modal-open {
     font-size: 0.8rem;
     padding: 0.7rem 0.8rem;
   }
+}
+
+/* ============================================
+   SUPABASE INFO BANNER - ACUARELA MODE
+   ============================================ */
+
+.supabase-info-banner {
+  background: rgba(45, 106, 79, 0.12);
+  border: 1px solid rgba(45, 106, 79, 0.25);
+  border-radius: 16px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem auto;
+  max-width: 800px;
+  animation: slideDown 0.5s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-base);
+}
+
+.supabase-info-banner:hover {
+  background: rgba(45, 106, 79, 0.18);
+  border-color: rgba(45, 106, 79, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+.supabase-info-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.supabase-info-text {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-align: center;
+  width: 100%;
+}
+
+.info-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+/* Botón de prueba Gmail */
+.test-gmail-btn {
+  background: rgba(45, 106, 79, 0.2);
+  color: var(--white);
+  border: 1px solid rgba(45, 106, 79, 0.4);
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  backdrop-filter: blur(5px);
+}
+
+.test-gmail-btn:hover {
+  background: rgba(45, 106, 79, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+  border-color: rgba(45, 106, 79, 0.6);
+}
+
+.test-gmail-btn:active {
+  transform: scale(0.97) translateY(-1px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   SUPABASE INFO BANNER - RESPONSIVE
+   ============================================ */
+
+@media (min-width: 600px) {
+  .supabase-info-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .supabase-info-text {
+    text-align: left;
+    flex: 1;
+  }
+
+  .test-gmail-btn {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 599px) {
+  .supabase-info-banner {
+    padding: 1rem;
+    margin: 1rem 0.5rem;
+    border-radius: 12px;
+  }
+
+  .supabase-info-text {
+    font-size: 1.1rem;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .info-icon {
+    font-size: 1.8rem;
+  }
+}
+
+/* ============================================
+   ESTILOS PARA TEXTO DEL H1 (actualizado)
+   ============================================ */
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 80vh;
+}
+
+.dashboard-title {
+  font-size: 1.2rem;
+  color: #fff;
+  margin: 20px 0;
+  padding: 10px 0;
+  text-align: center;
 }
 
 /* ============================================

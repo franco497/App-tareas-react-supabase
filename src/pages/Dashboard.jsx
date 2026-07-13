@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer"; // ← Importar Footer
+import Footer from "../components/Footer";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
@@ -30,7 +30,7 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Cargando...</h2>
+        <h2 className="loading-container-text">Cargando...</h2>
       </div>
     );
   }
@@ -43,15 +43,27 @@ function Dashboard() {
         userEmail={user?.email}
       />
       <div className="dashboard-container">
-        {/* <h1 className="dashboard-title">Panel</h1> */}
-        <br /><br />
+        <br />
+        <br />
         <TaskForm />
-        <h1 className="dashboard-title">El sistema esta conectado a un 
-          back-end de supabase con una base de datos PostgreSQL,
-           puedes probar la integracion de la API de Gmail enviando una notificasion a tu correo electronico</h1>
+
+        {/* Mostrar el mensaje SOLO cuando showTaskDone es false (tareas pendientes) */}
+        {!showTaskDone && (
+          <div className="supabase-info-banner">
+            <div className="supabase-info-content">
+              <p className="supabase-info-text">
+                <span className="info-icon">ℹ️</span>
+                El sistema está conectado a un back-end de Supabase con una base
+                de datos PostgreSQL, puedes probar la integración de la API de
+                Gmail enviando una notificación a tu correo electrónico
+              </p>
+            </div>
+          </div>
+        )}
+
         <TaskList done={showTaskDone} />
       </div>
-      <Footer /> {/* ← Agregar Footer al final */}
+      <Footer />
     </>
   );
 }

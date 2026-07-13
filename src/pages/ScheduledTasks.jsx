@@ -98,7 +98,9 @@ function ScheduledTasks() {
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Cargando tareas programadas...</h2>
+        <h2 className="loading-container-btn">
+          Cargando tareas programadas...
+        </h2>
       </div>
     );
   }
@@ -109,10 +111,7 @@ function ScheduledTasks() {
         <button onClick={handleGoBack} className="back-btn">
           ← Volver a Inicio
         </button>
-        <h1>📅 Tareas Programadas</h1>
-        {/* <button onClick={fetchScheduledTasks} className="refresh-btn">
-          🔄 Actualizar
-        </button> */}
+        <h1 scheduled-tasks-title>📅 Tareas Programadas</h1>
       </div>
 
       {error && <div className="error-message">❌ Error: {error}</div>}
