@@ -1,0 +1,53 @@
+/* ============================================
+   ESTILOS GLOBALES
+   ============================================ */
+
+body {
+  background: var(--primary-gradient);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbar global */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.6);
+}
+
+/* Selección de texto */
+::selection {
+  background: var(--warning-color);
+  color: var(--primary-dark);
+}
+
+/* Loading container global */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: var(--white);
+  font-size: 1.2rem;
+}
+
+.loading-container-text {
+  color: var(--white);
+}
+
+.loading-container-btn {
+  color: var(--white);
+}

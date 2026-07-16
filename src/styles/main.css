@@ -1,0 +1,28 @@
+/* ============================================
+   MAIN.CSS - Punto de entrada
+   ============================================ */
+
+/* 1. BASE - Variables y reset */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/global.css';
+
+/* 2. COMPONENTES */
+@import './components/navbar.css';
+@import './components/footer.css';
+@import './components/task-form.css';
+@import './components/task-card.css';
+@import './components/task-list.css';
+@import './components/notification-form.css';
+
+/* 3. PAGES */
+@import './pages/dashboard.css';
+@import './pages/login.css';
+@import './pages/scheduled-tasks.css';
+@import './pages/trash.css';
+@import './pages/auth-callback.css';
+
+/* 4. UTILITIES */
+/* @import './utilities/animations.css';
+@import './utilities/responsive.css'; */
+@import './utilities/supabase-banner.css';

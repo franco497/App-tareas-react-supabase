@@ -1,0 +1,91 @@
+/* ============================================
+   SUPABASE INFO BANNER - ACUARELA MODE
+   ============================================ */
+
+.supabase-info-banner {
+  background: rgba(45, 106, 79, 0.12);
+  border: 1px solid rgba(45, 106, 79, 0.25);
+  border-radius: 16px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem auto;
+  max-width: 800px;
+  animation: slideDown 0.5s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-base);
+}
+
+.supabase-info-banner:hover {
+  background: rgba(45, 106, 79, 0.18);
+  border-color: rgba(45, 106, 79, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+.supabase-info-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.supabase-info-text {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-align: center;
+  width: 100%;
+}
+
+.info-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 600px) {
+  .supabase-info-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .supabase-info-text {
+    text-align: left;
+    flex: 1;
+  }
+}
+
+@media (max-width: 599px) {
+  .supabase-info-banner {
+    padding: 1rem;
+    margin: 1rem 0.5rem;
+    border-radius: 12px;
+  }
+
+  .supabase-info-text {
+    font-size: 1.1rem;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .info-icon {
+    font-size: 1.8rem;
+  }
+}

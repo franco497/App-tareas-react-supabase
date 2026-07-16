@@ -1,0 +1,407 @@
+/* ============================================
+   NAVBAR - MOBILE FIRST
+   ============================================ */
+
+/* ----- NAVBAR PRINCIPAL ----- */
+.navbar {
+  background: var(--primary-gradient);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--navbar-z-index);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+}
+
+/* Contenedor interno */
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ----- LOGO ----- */
+.nav-logo {
+  z-index: 1002;
+}
+
+.nav-logo a {
+  color: var(--white);
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+}
+
+.nav-logo a:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ----- BOTÓN HAMBURGUESA ----- */
+.nav-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1002;
+  position: relative;
+}
+
+/* Líneas del botón - SIEMPRE BLANCAS */
+.hamburger-line {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background-color: var(--white);
+  border-radius: 3px;
+  transition: all var(--transition-base);
+  transform-origin: center;
+}
+
+/* Animación a X cuando está activo */
+.nav-toggle.active .hamburger-line:nth-child(1) {
+  transform: translateY(10px) rotate(45deg);
+}
+
+.nav-toggle.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.nav-toggle.active .hamburger-line:nth-child(3) {
+  transform: translateY(-11px) rotate(-45deg);
+}
+
+/* ----- MENÚ DE NAVEGACIÓN ----- */
+.nav-menu {
+  box-sizing: border-box;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 80px 1rem 2rem;
+  background: var(--primary-gradient);
+  z-index: 1001;
+  transform: translateX(-100%);
+  transition: transform var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 10px;
+  inset: 0;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Menú visible */
+.nav-menu.active {
+  transform: translateX(0);
+}
+
+/* Scroll personalizado - Acuarela */
+.nav-menu::-webkit-scrollbar {
+  width: 5px;
+}
+
+.nav-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.nav-menu::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.5);
+  border-radius: 10px;
+}
+
+.nav-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.8);
+}
+
+/* ----- ITEMS DEL MENÚ ----- */
+.nav-item {
+  margin-bottom: 0.75rem;
+  opacity: 0;
+  transform: translateX(30px);
+  transition: all var(--transition-base);
+  transition-delay: calc(0.05s * var(--item-index, 0));
+  list-style: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Animación de entrada en cascada */
+.nav-menu.active .nav-item {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Delays para cada item */
+.nav-item:nth-child(1) {
+  --item-index: 1;
+  transition-delay: 0.05s;
+}
+.nav-item:nth-child(2) {
+  --item-index: 2;
+  transition-delay: 0.1s;
+}
+.nav-item:nth-child(3) {
+  --item-index: 3;
+  transition-delay: 0.15s;
+}
+.nav-item:nth-child(4) {
+  --item-index: 4;
+  transition-delay: 0.2s;
+}
+
+/* ----- ESTILOS BASE PARA ENLACES Y BOTONES ----- */
+.nav-link,
+.toggle-nav-btn,
+.logout-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--white);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Enlace activo - Acuarela */
+.nav-link.active {
+  background: rgba(233, 196, 106, 0.2);
+  border-left: 4px solid var(--warning-color);
+  font-weight: 600;
+}
+
+/* Indicador visual de enlace activo */
+.nav-link.active::after {
+  content: "✓";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: var(--warning-color);
+}
+
+/* ----- BOTÓN CERRAR SESIÓN ----- */
+.logout-nav-btn {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.logout-nav-btn:hover {
+  background: rgba(231, 111, 81, 0.3);
+  transform: translateX(5px);
+  border-color: rgba(231, 111, 81, 0.8);
+}
+
+/* ----- HOVER PARA TODOS ----- */
+.nav-link:hover,
+.toggle-nav-btn:hover {
+  background: rgba(233, 196, 106, 0.15);
+  border-color: rgba(233, 196, 106, 0.3);
+  transform: translateX(5px);
+}
+
+/* ----- ACTIVE PARA TODOS ----- */
+.nav-link:active,
+.toggle-nav-btn:active,
+.logout-nav-btn:active {
+  transform: scale(0.98);
+}
+
+/* Iconos y texto dentro de los elementos */
+.nav-icon,
+.btn-icon {
+  font-size: 1.3rem;
+  min-width: 30px;
+  flex-shrink: 0;
+}
+
+.nav-text,
+.btn-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* ----- OVERLAY (fondo oscuro) ----- */
+.nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn var(--transition-base);
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ----- CONTROL DE SCROLL ----- */
+body.menu-open {
+  overflow: hidden;
+}
+
+/* ----- EFECTOS ADICIONALES ----- */
+
+/* Ripple effect para botones */
+.toggle-nav-btn::after,
+.logout-nav-btn::after,
+.nav-link::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.toggle-nav-btn:active::after,
+.logout-nav-btn:active::after,
+.nav-link:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Mejora de accesibilidad - Acuarela */
+.nav-toggle:focus-visible,
+.nav-link:focus-visible,
+.toggle-nav-btn:focus-visible,
+.logout-nav-btn:focus-visible {
+  outline: 2px solid var(--warning-color);
+  outline-offset: 2px;
+}
+
+/* Estado hover para items del menú */
+.nav-item:hover .nav-link:not(:hover) {
+  opacity: 0.7;
+}
+
+/* Separador visual entre secciones */
+.nav-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Efecto de glow en el botón activo */
+.nav-toggle.active {
+  filter: drop-shadow(0 0 5px rgba(233, 196, 106, 0.5));
+}
+
+/* ============================================
+   NAVBAR - QUERIES
+   ============================================ */
+
+@media (min-width: 900px) {
+  .nav-toggle {
+    display: none !important;
+  }
+
+  .nav-menu,
+  .nav-menu.active {
+    transform: translateX(0) !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static;
+    height: auto;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+    flex-direction: row;
+    width: auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .nav-item {
+    opacity: 1;
+    transform: none;
+    margin-bottom: 0;
+    transition: none;
+    width: auto;
+    max-width: none;
+  }
+
+  .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    white-space: nowrap;
+    width: auto;
+    max-width: none;
+  }
+
+  .logout-nav-btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    margin-top: 0;
+    white-space: nowrap;
+  }
+
+  .nav-item:last-child {
+    margin-left: auto !important;
+  }
+
+  .nav-item:last-child .logout-nav-btn {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    padding: 0.5rem 1.2rem;
+  }
+
+  .nav-item:last-child .logout-nav-btn:hover {
+    background: rgba(231, 111, 81, 0.3);
+    transform: translateY(-2px);
+    border-color: rgba(231, 111, 81, 0.8);
+  }
+
+  .nav-overlay {
+    display: none !important;
+  }
+
+  body.menu-open {
+    overflow: auto !important;
+  }
+}

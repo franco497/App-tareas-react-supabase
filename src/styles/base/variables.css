@@ -1,0 +1,46 @@
+/* ============================================
+   VARIABLES GLOBALES - ACUARELA NOCTURNA
+   ============================================ */
+
+:root {
+  /* Gradiente acuarela nocturna */
+  --primary-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+
+  /* Colores de fondo acuarela */
+  --primary-dark: #0f0f1a;
+  --surface-dark: rgba(26, 26, 46, 0.85);
+
+  /* Colores de acento acuarela */
+  --success-color: #2d6a4f;
+  --warning-color: #e9c46a;
+  --danger-color: #e76f51;
+
+  /* Texto */
+  --text-dark: #ffffff;
+  --text-light: #e0e0e0;
+  --white: #ffffff;
+
+  /* Colores para inputs */
+  --input-bg: #ffffff;
+  --input-text: #000000;
+  --input-border: #000000;
+  --input-placeholder: #a0a0a0;
+
+  /* Sombras */
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+
+  /* Transiciones */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.4s ease;
+
+  /* Bordes */
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-hover: rgba(255, 255, 255, 0.2);
+
+  /* Navbar */
+  --navbar-height: 70px;
+  --navbar-z-index: 1000;
+}

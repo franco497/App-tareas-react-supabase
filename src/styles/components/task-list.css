@@ -1,0 +1,95 @@
+/* ============================================
+   TASK LIST
+   ============================================ */
+
+.task-list {
+  container-name: tasks;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.task-list-loading-btn {
+  color: var(--white);
+}
+
+.task-list-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+}
+
+@container tasks (min-width: 48rem) {
+  .task-card {
+    padding: 1rem 1.5rem;
+    flex-wrap: nowrap;
+    gap: 1rem;
+  }
+
+  .task-card .checkbox-label {
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+
+  .task-card .task-text,
+  .task-card .task-edit-input {
+    flex: 0 1 auto;
+    min-width: 150px;
+    font-size: 1rem;
+  }
+
+  .task-card .task-card-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-left: auto;
+    width: auto;
+  }
+
+  .task-card .notify-button,
+  .task-card .edit-button,
+  .task-card .delete-button {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    min-height: 38px;
+  }
+}
+
+@container tasks (min-width: 64rem) {
+  .task-card {
+    padding: 1rem 2rem;
+    gap: 1.25rem;
+  }
+
+  .task-card .task-text {
+    font-size: 1.05rem;
+    min-width: 200px;
+  }
+
+  .task-card .task-edit-input {
+    min-width: 200px;
+  }
+}
+
+@container tasks (min-width: 80rem) {
+  .task-list {
+    padding: 0.5rem 2rem;
+  }
+
+  .task-card {
+    padding: 1rem 2.5rem;
+    gap: 1.5rem;
+  }
+
+  .task-card .task-text {
+    font-size: 1.1rem;
+    min-width: 250px;
+  }
+}
