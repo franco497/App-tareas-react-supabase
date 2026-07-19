@@ -96,6 +96,61 @@
   transform: none;
 }
 
+/* ============================================
+   TASK FORM - REACT HOOK FORM
+   ============================================ */
+
+.task-form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.task-input.error {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.2) !important;
+}
+
+.error-message {
+  color: var(--danger-color);
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(231, 111, 81, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid var(--danger-color);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.char-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  padding-right: 0.25rem;
+  transition: color var(--transition-base);
+}
+
+.char-counter.warning {
+  color: var(--warning-color);
+}
+
+.char-counter.danger {
+  color: var(--danger-color);
+}
+
 @media (min-width: 600px) {
   .task-form {
     flex-direction: row;

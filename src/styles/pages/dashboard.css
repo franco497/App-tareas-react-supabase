@@ -48,6 +48,17 @@
 }
 
 /* ============================================
+   TEXTO DE BIENVENIDA
+   ============================================ */
+
+.welcome-text {
+  color: #ffffff;
+  text-align: center;
+  margin: 0.5rem 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+/* ============================================
    RESPONSIVE - SOLUCIÓN PARA TABLETS
    ============================================ */
 

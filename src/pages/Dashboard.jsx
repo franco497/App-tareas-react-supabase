@@ -45,8 +45,11 @@ function Dashboard() {
       
       <main className="main-content">
         <div className="dashboard-container">
-          <br />
-          <br />
+          {/* ✅ TEXTO DE BIENVENIDA - Solo texto blanco centrado */}
+          <p className="welcome-text">
+            Bienvenido {user?.email || "Usuario"}
+          </p>
+
           <TaskForm />
 
           {!showTaskDone && (

@@ -158,7 +158,11 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 70%
+  );
   opacity: 0;
   transition: opacity var(--transition-slow);
   pointer-events: none;
@@ -183,6 +187,30 @@
   pointer-events: none;
   transform: rotate(15deg);
 }
+
+/* ============================================
+   LOGIN - REACT HOOK FORM
+   ============================================ */
+
+.login-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.login-input.error {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.2) !important;
+}
+
+.login-error {
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   QUERIES
+   ============================================ */
 
 @media (min-width: 36rem) {
   .login-container {
