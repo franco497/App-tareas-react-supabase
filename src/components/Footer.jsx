@@ -1,5 +1,4 @@
 // src/components/Footer.jsx
-// ✅ Importar la imagen al inicio
 import fotoCV from '../assets/footer/foto-cv-Franco-De-Vincentis.jfif';
 
 const Footer = () => {
@@ -12,7 +11,6 @@ const Footer = () => {
             <h3 className="footer-name">Franco De Vincentis</h3>
             <img
               className="footer-avatar"
-              // ✅ Cambiar src por la variable importada
               src={fotoCV}
               alt="Franco De Vincentis"
             />

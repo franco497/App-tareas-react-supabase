@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 
 function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 970);
   const navigate = useNavigate();
   const location = useLocation();
   const menuRef = useRef(null);
@@ -12,11 +12,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
   // Detectar si es desktop
   useEffect(() => {
     const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 900);
-      console.log("===== NAVBAR =====");
-      console.log("window.innerWidth:", window.innerWidth);
-      console.log("isDesktop:", isDesktop);
-      console.log("isOpen:", isOpen);
+      setIsDesktop(window.innerWidth >= 970);
     };
 
     window.addEventListener("resize", handleResize);
@@ -43,20 +39,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
   // Efecto para medir el ancho del menú
   useEffect(() => {
     if (menuRef.current) {
-      console.log("Menu width:", menuRef.current.offsetWidth);
-      console.log("Viewport width:", window.innerWidth);
-
       const styles = window.getComputedStyle(menuRef.current);
-
-    console.log({
-      width: styles.width,
-      height: styles.height,
-      display: styles.display,
-      position: styles.position,
-      padding: styles.padding,
-      margin: styles.margin,
-      transform: styles.transform,
-    });
     }
   }, [isOpen, isDesktop]);
 
@@ -78,19 +61,6 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const isActiveLink = (path) => {
     return location.pathname === path;
   };
-
-  // ==== PRUEBAS DE DEPURACIÓN ====
-  console.log("===== NAVBAR =====");
-  console.log("window.innerWidth:", window.innerWidth);
-  console.log("isDesktop:", isDesktop);
-  console.log("isOpen:", isOpen);
-  console.log(
-    "nav-menu class:",
-    `nav-menu ${!isDesktop && isOpen ? "active" : ""}`,
-  );
-  console.log(document.documentElement.scrollWidth);
-  console.log(window.innerWidth);
-  // ==== FIN PRUEBAS DE DEPURACIÓN ====
 
   return (
     <>

@@ -19,9 +19,6 @@ function AuthCallback() {
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
 
-        console.log("🔍 Sesión:", session);
-        console.log("🔍 Tokens en URL:", { accessToken, refreshToken });
-
         // ✅ Si hay sesión o tokens, autenticación exitosa
         if (session || accessToken) {
           setStatus("✅ ¡Login exitoso! Redirigiendo...");

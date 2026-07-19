@@ -1,4 +1,21 @@
 /* ============================================
+   TASK LIST - CON PAGINACIÓN
+   ============================================ */
+
+/* ============================================
+   WRAPPER PRINCIPAL
+   ============================================ */
+
+.task-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 200px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ============================================
    TASK LIST
    ============================================ */
 
@@ -13,7 +30,12 @@
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  flex: 1 0 auto;
 }
+
+/* ============================================
+   ESTADOS DE CARGA Y VACÍO
+   ============================================ */
 
 .task-list-loading-btn {
   color: var(--white);
@@ -23,7 +45,83 @@
   text-align: center;
   padding: 2rem;
   color: var(--text-light);
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
+
+/* ============================================
+   PAGINACIÓN
+   ============================================ */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.pagination-btn {
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(233, 196, 106, 0.2);
+  border-color: var(--warning-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(233, 196, 106, 0.15);
+}
+
+.pagination-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-info {
+  color: var(--white);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ============================================
+   TASK CARD - RESPONSIVE CONTAINER QUERIES
+   ============================================ */
 
 @container tasks (min-width: 48rem) {
   .task-card {
@@ -92,4 +190,198 @@
     font-size: 1.1rem;
     min-width: 250px;
   }
+}
+
+/* ============================================
+   RESPONSIVE MEDIA QUERIES
+   ============================================ */
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+  .pagination {
+    gap: 0.5rem;
+    padding: 0.75rem 0.25rem;
+    flex-direction: column;
+  }
+
+  .pagination-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+    width: 100%;
+  }
+
+  .pagination-info {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    min-width: auto;
+    width: 100%;
+  }
+
+  .task-list-wrapper {
+    min-height: 150px;
+  }
+}
+
+/* Móviles grandes y tablets pequeñas */
+@media (min-width: 481px) and (max-width: 767px) {
+  .pagination {
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .pagination-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    min-height: 38px;
+  }
+
+  .pagination-info {
+    font-size: 0.85rem;
+    padding: 0.2rem 0.6rem;
+    min-width: 80px;
+  }
+
+  .task-list-wrapper {
+    min-height: 180px;
+  }
+}
+
+/* Tablets en portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .task-list-wrapper {
+    min-height: 250px;
+  }
+
+  .pagination {
+    padding: 0.75rem 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .pagination-btn {
+    padding: 0.4rem 1rem;
+    min-height: 38px;
+  }
+}
+
+/* Tablets en landscape */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .task-list-wrapper {
+    min-height: 200px;
+  }
+
+  .pagination {
+    padding: 0.5rem 0.5rem;
+  }
+
+  .pagination-btn {
+    padding: 0.4rem 0.8rem;
+    min-height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .pagination-info {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    min-width: 80px;
+  }
+}
+
+/* Desktop y pantallas grandes */
+@media (min-width: 1025px) {
+  .task-list-wrapper {
+    min-height: 300px;
+  }
+
+  .pagination {
+    padding: 1rem 0.5rem;
+  }
+
+  .pagination-btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+    min-height: 44px;
+  }
+
+  .pagination-info {
+    font-size: 0.95rem;
+    padding: 0.3rem 1rem;
+  }
+}
+
+/* Pantallas landscape en móviles */
+@media (max-height: 600px) and (orientation: landscape) {
+  .task-list-wrapper {
+    min-height: 120px;
+  }
+
+  .task-list {
+    padding: 0.25rem 0.25rem;
+    gap: 0.5rem;
+  }
+
+  .pagination {
+    padding: 0.25rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .pagination-btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    min-height: 30px;
+  }
+
+  .pagination-info {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+    min-width: 60px;
+  }
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+
+@keyframes pageChange {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-list .task-card {
+  animation: pageChange 0.3s ease;
+}
+
+/* ============================================
+   FIX PARA QUE EL FOOTER NO SE SUPERPONGA
+   ============================================ */
+
+footer.footer-component {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 1;
+}
+
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-container {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
 }

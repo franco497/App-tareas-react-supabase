@@ -14,18 +14,12 @@ function Login() {
     setError("");
 
     try {
-      // ✅ REEMPLAZA esta línea:
-      // const currentUrl = window.location.origin;
-      // POR ESTA:
-      const redirectUrl = getRedirectUrl(); // ← Usa la función que importaste
+      const redirectUrl = getRedirectUrl(); 
       
-      console.log("📧 Enviando magic link a:", email);
-      console.log("🔗 Redirect URL:", redirectUrl); // ← Para verificar en consola
-
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: redirectUrl, // ← Usa redirectUrl en lugar de currentUrl
+          emailRedirectTo: redirectUrl, 
         },
       });
 

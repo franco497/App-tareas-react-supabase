@@ -36,35 +36,38 @@ function Dashboard() {
   }
 
   return (
-    <>
+    <div className="app-wrapper">
       <Navbar
         showTaskDone={showTaskDone}
         onToggleView={handleToggleView}
         userEmail={user?.email}
       />
-      <div className="dashboard-container">
-        <br />
-        <br />
-        <TaskForm />
+      
+      <main className="main-content">
+        <div className="dashboard-container">
+          <br />
+          <br />
+          <TaskForm />
 
-        {/* Mostrar el mensaje SOLO cuando showTaskDone es false (tareas pendientes) */}
-        {!showTaskDone && (
-          <div className="supabase-info-banner">
-            <div className="supabase-info-content">
-              <p className="supabase-info-text">
-                <span className="info-icon">ℹ️</span>
-                El sistema está conectado a un back-end de Supabase con una base
-                de datos PostgreSQL, puedes probar la integración de la API de
-                Gmail enviando una notificación a tu correo electrónico
-              </p>
+          {!showTaskDone && (
+            <div className="supabase-info-banner">
+              <div className="supabase-info-content">
+                <p className="supabase-info-text">
+                  <span className="info-icon">ℹ️</span>
+                  El sistema está conectado a un back-end de Supabase con una base
+                  de datos PostgreSQL, puedes probar la integración de la API de
+                  Gmail enviando una notificación a tu correo electrónico
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <TaskList done={showTaskDone} />
-      </div>
+          <TaskList done={showTaskDone} />
+        </div>
+      </main>
+      
       <Footer />
-    </>
+    </div>
   );
 }
 

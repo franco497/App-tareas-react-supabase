@@ -42,7 +42,7 @@ export const TaskContextProvider = ({ children }) => {
         .from("tasks")
         .select()
         .eq("userId", user.id)
-        .eq("deleted", false) // ← SOLO tareas NO borradas
+        .eq("deleted", false) 
         .eq("done", done)
         .order("id", { ascending: true });
 
@@ -75,7 +75,7 @@ export const TaskContextProvider = ({ children }) => {
         .from("tasks")
         .select()
         .eq("userId", user.id)
-        .eq("deleted", true) // ← SOLO tareas borradas
+        .eq("deleted", true) 
         .order("id", { ascending: true });
 
       if (error) throw error;
@@ -109,7 +109,7 @@ export const TaskContextProvider = ({ children }) => {
           name: taskName,
           userId: user.id,
           done: false,
-          deleted: false, // ← Nueva tarea NO está borrada
+          deleted: false, 
         })
         .select()
         .single();
@@ -260,11 +260,11 @@ export const TaskContextProvider = ({ children }) => {
     adding,
     getTasks,
     createTask,
-    deleteTask: softDeleteTask, // ← deleteTask ahora es borrado lógico
-    softDeleteTask, // ← Borrado lógico (mover a papelera)
-    permanentDeleteTask, // ← Borrado real (eliminar)
-    restoreTask, // ← Restaurar tarea
-    getDeletedTasks, // ← Obtener tareas borradas
+    deleteTask: softDeleteTask,
+    softDeleteTask,
+    permanentDeleteTask,
+    restoreTask,
+    getDeletedTasks,
     updateTask,
     toggleTaskDone,
     currentDoneFilter,

@@ -13,6 +13,8 @@
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all var(--transition-base);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .supabase-info-banner:hover {
@@ -27,6 +29,7 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  width: 100%;
 }
 
 .supabase-info-text {
@@ -58,7 +61,70 @@
   }
 }
 
-@media (min-width: 600px) {
+/* ============================================
+   RESPONSIVE - Mobile (menos de 600px)
+   ============================================ */
+
+@media (max-width: 599px) {
+  .supabase-info-banner {
+    padding: 1rem;
+    margin: 1rem 0.75rem;
+    border-radius: 12px;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .supabase-info-text {
+    font-size: 0.95rem;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .info-icon {
+    font-size: 1.8rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Tablet (600px a 860px)
+   ============================================ */
+
+@media (min-width: 600px) and (max-width: 860px) {
+  .supabase-info-banner {
+    max-width: 800px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem auto;
+    width: calc(100% - 2rem);
+  }
+
+  .supabase-info-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .supabase-info-text {
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .info-icon {
+    font-size: 1.4rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Desktop (más de 860px)
+   ============================================ */
+
+@media (min-width: 861px) {
+  .supabase-info-banner {
+    max-width: 800px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem auto;
+    width: 100%;
+  }
+
   .supabase-info-content {
     flex-direction: row;
     align-items: center;
@@ -69,23 +135,17 @@
     text-align: left;
     flex: 1;
   }
-}
-
-@media (max-width: 599px) {
-  .supabase-info-banner {
-    padding: 1rem;
-    margin: 1rem 0.5rem;
-    border-radius: 12px;
-  }
-
-  .supabase-info-text {
-    font-size: 1.1rem;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
 
   .info-icon {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
   }
+}
+
+/* ============================================
+   📌 CORRECCIÓN: Asegurar que el banner no se desborde
+   ============================================ */
+
+.dashboard-container .supabase-info-banner {
+  margin-left: auto;
+  margin-right: auto;
 }

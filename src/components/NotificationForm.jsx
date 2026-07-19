@@ -26,7 +26,9 @@ function NotificationForm({ task, onClose }) {
 
   useEffect(() => {
     const getUserEmail = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
       }
@@ -39,7 +41,9 @@ function NotificationForm({ task, onClose }) {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user || !user.email) {
         throw new Error("No se encontró el email del usuario");
@@ -49,16 +53,19 @@ function NotificationForm({ task, onClose }) {
       const currentDate = now.toISOString().split("T")[0];
       const currentTime = now.toTimeString().slice(0, 5);
 
-      const { data, error } = await supabase.functions.invoke("send-email-gmail", {
-        body: {
-          taskName: task.name,
-          taskId: task.id,
-          scheduledDate: currentDate,
-          scheduledTime: currentTime,
-          userEmail: user.email,
-          toEmail: user.email,
+      const { data, error } = await supabase.functions.invoke(
+        "send-email-gmail",
+        {
+          body: {
+            taskName: task.name,
+            taskId: task.id,
+            scheduledDate: currentDate,
+            scheduledTime: currentTime,
+            userEmail: user.email,
+            toEmail: user.email,
+          },
         },
-      });
+      );
 
       if (error) throw error;
 
@@ -71,7 +78,6 @@ function NotificationForm({ task, onClose }) {
       });
 
       onClose();
-
     } catch (error) {
       console.error("Error al enviar:", error);
 
@@ -94,7 +100,9 @@ function NotificationForm({ task, onClose }) {
     setMessage({ text: "", type: "" });
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user || !user.email) {
         throw new Error("No se encontró el email del usuario");
@@ -138,7 +146,6 @@ function NotificationForm({ task, onClose }) {
       });
 
       onClose();
-
     } catch (error) {
       console.error("Error al programar:", error);
 
@@ -201,9 +208,7 @@ function NotificationForm({ task, onClose }) {
                 min={getArgentinaDateString()}
                 className="form-input"
               />
-              <small style={{ color: "var(--text)", fontSize: "12px", display: "block", marginTop: "5px" }}>
-                🇦🇷 Zona horaria: Argentina (UTC-3)
-              </small>
+              <br />
             </div>
 
             <div className="form-group">
@@ -216,9 +221,7 @@ function NotificationForm({ task, onClose }) {
                 required
                 className="form-input"
               />
-              <small style={{ color: "var(--text)", fontSize: "12px", display: "block", marginTop: "5px" }}>
-                ⏰ Hora de Argentina (UTC-3)
-              </small>
+              <br />
             </div>
 
             {message.text && (

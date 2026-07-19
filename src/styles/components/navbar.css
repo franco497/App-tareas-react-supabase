@@ -297,7 +297,9 @@ body.menu-open {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .toggle-nav-btn:active::after,
@@ -335,7 +337,7 @@ body.menu-open {
    NAVBAR - QUERIES
    ============================================ */
 
-@media (min-width: 900px) {
+@media (min-width: 970px) {
   .nav-toggle {
     display: none !important;
   }
@@ -352,9 +354,10 @@ body.menu-open {
     background: transparent;
     backdrop-filter: none;
     flex-direction: row;
-    width: auto;
+    width: 100%; /* Ocupa todo el ancho */
     align-items: center;
     gap: 0.5rem;
+    justify-content: flex-start; /* Items alineados a la izquierda */
   }
 
   .nav-item {
@@ -374,27 +377,30 @@ body.menu-open {
     max-width: none;
   }
 
-  .logout-nav-btn {
-    width: auto;
-    padding: 0.5rem 1rem;
-    margin-top: 0;
-    white-space: nowrap;
-  }
-
+  /* El último item (cerrar sesión) se va a la derecha */
   .nav-item:last-child {
     margin-left: auto !important;
+    margin-right: 0 !important;
   }
 
   .nav-item:last-child .logout-nav-btn {
-    background: rgba(220, 53, 69, 0.1);
+    background: rgba(220, 53, 69, 0.15);
     border: 1px solid rgba(220, 53, 69, 0.3);
-    padding: 0.5rem 1.2rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: 10px;
+    color: var(--white);
+    transition: all var(--transition-base);
+    white-space: nowrap;
+    min-height: 40px;
+    width: auto !important;
+    max-width: none !important;
   }
 
   .nav-item:last-child .logout-nav-btn:hover {
-    background: rgba(231, 111, 81, 0.3);
-    transform: translateY(-2px);
-    border-color: rgba(231, 111, 81, 0.8);
+    background: rgba(231, 111, 81, 0.4);
+    transform: translateY(-2px) !important;
+    border-color: var(--danger-color);
+    box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
   }
 
   .nav-overlay {
