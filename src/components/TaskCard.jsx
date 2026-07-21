@@ -8,7 +8,8 @@ function TaskCard({ task }) {
   const { softDeleteTask, toggleTaskDone, updateTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(task.name);
-  const [showNotificationForm, setShowNotificationForm] = useState(false); // ← Estado para el modal
+  const [showNotificationForm, setShowNotificationForm] = useState(false);
+  const MAX_CHARS = 50;
 
   const handleToggle = () => {
     toggleTaskDone(task.id, task.done);
@@ -52,15 +53,34 @@ function TaskCard({ task }) {
     }
   };
 
-  // ✅ Función corregida - abre el modal
   const handleNotify = () => {
     setShowNotificationForm(true);
   };
 
-  // ✅ Cerrar el modal
   const handleCloseForm = () => {
     setShowNotificationForm(false);
   };
+
+  // ✅ Validaciones para el contador y error
+  const charCount = editName.length;
+  const isNearLimit = charCount > MAX_CHARS * 0.8;
+  const isOverLimit = charCount > MAX_CHARS;
+  const hasError = charCount === 0 || charCount > MAX_CHARS || (editName.trim().length === 0 && charCount > 0);
+
+  const getErrorMessage = () => {
+    if (editName.trim().length === 0 && charCount > 0) {
+      return "La tarea no puede estar vacía";
+    }
+    if (charCount === 0) {
+      return "La tarea es obligatoria";
+    }
+    if (charCount > MAX_CHARS) {
+      return `La tarea no puede tener más de ${MAX_CHARS} caracteres`;
+    }
+    return null;
+  };
+
+  const errorMessage = getErrorMessage();
 
   return (
     <>
@@ -76,34 +96,58 @@ function TaskCard({ task }) {
         </label>
 
         {isEditing ? (
-          <input
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            onKeyPress={handleKeyPress}
-            autoFocus
-            className="task-edit-input"
-          />
+          // ✅ Modo edición con contador y error
+          <div className="task-edit-wrapper">
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyPress={handleKeyPress}
+              autoFocus
+              className={`task-edit-input ${errorMessage ? "error" : ""}`}
+            />
+            
+            {/* ✅ Contador de caracteres */}
+            {charCount > 0 && (
+              <small className={`char-counter ${isOverLimit ? "danger" : isNearLimit ? "warning" : ""}`}>
+                {charCount}/{MAX_CHARS}
+              </small>
+            )}
+
+            {/* ✅ Mensaje de error */}
+            {errorMessage && (
+              <span className="error-message">{errorMessage}</span>
+            )}
+          </div>
         ) : (
           <span className={`task-text ${task.done ? "completed" : ""}`}>
             {task.name}
           </span>
         )}
 
-        {!task.done && (
-          <button onClick={handleNotify} className="notify-button">
-            📧 Enviar notificación
-          </button>
-        )}
+        {/* ✅ Botón Enviar notificación - Bloqueado en modo edición */}
+        <button 
+          onClick={handleNotify} 
+          className={`notify-button ${isEditing ? "disabled" : ""}`}
+          disabled={isEditing}
+        >
+          📧 Enviar notificación
+        </button>
 
         <button
           onClick={handleEdit}
           className={`edit-button ${isEditing ? "save" : ""}`}
+          disabled={isEditing && !!errorMessage}
         >
           {isEditing ? "Guardar" : "Editar"}
         </button>
 
-        <button onClick={handleDelete} className="delete-button">
+        {/* ✅ Botón Eliminar - Bloqueado en modo edición */}
+        <button 
+          onClick={handleDelete} 
+          className={`delete-button ${isEditing ? "disabled" : ""}`}
+          disabled={isEditing}
+        >
           🗑️ Borrar
         </button>
       </div>

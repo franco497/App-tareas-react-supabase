@@ -42,9 +42,9 @@ export const TaskContextProvider = ({ children }) => {
         .from("tasks")
         .select()
         .eq("userId", user.id)
-        .eq("deleted", false) 
+        .eq("deleted", false)
         .eq("done", done)
-        .order("id", { ascending: true });
+        .order("id", { ascending: false }); // ← 🔥 CAMBIADO AQUÍ
 
       if (error) throw error;
 
@@ -75,7 +75,7 @@ export const TaskContextProvider = ({ children }) => {
         .from("tasks")
         .select()
         .eq("userId", user.id)
-        .eq("deleted", true) 
+        .eq("deleted", true)
         .order("id", { ascending: true });
 
       if (error) throw error;
@@ -109,7 +109,7 @@ export const TaskContextProvider = ({ children }) => {
           name: taskName,
           userId: user.id,
           done: false,
-          deleted: false, 
+          deleted: false,
         })
         .select()
         .single();
@@ -117,6 +117,7 @@ export const TaskContextProvider = ({ children }) => {
       if (error) throw error;
 
       if (!currentDoneFilter) {
+        // 🔥 CAMBIADO: La nueva tarea se agrega al PRINCIPIO
         setTasks((prevTasks) => [data, ...prevTasks]);
       }
 

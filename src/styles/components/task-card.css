@@ -135,7 +135,7 @@
   border-color: rgba(233, 196, 106, 0.15);
 }
 
-.task-card .notify-button:hover {
+.task-card .notify-button:hover:not(:disabled) {
   background: rgba(233, 196, 106, 0.3);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(233, 196, 106, 0.2);
@@ -149,7 +149,7 @@
   border-color: rgba(45, 106, 79, 0.3);
 }
 
-.task-card .edit-button:hover {
+.task-card .edit-button:hover:not(:disabled) {
   background: rgba(45, 106, 79, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
@@ -162,7 +162,7 @@
   border-color: var(--success-color);
 }
 
-.task-card .edit-button.save:hover {
+.task-card .edit-button.save:hover:not(:disabled) {
   background: #1e5c3e;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(45, 106, 79, 0.4);
@@ -174,11 +174,28 @@
   border-color: rgba(231, 111, 81, 0.2);
 }
 
-.task-card .delete-button:hover {
+.task-card .delete-button:hover:not(:disabled) {
   background: rgba(231, 111, 81, 0.4);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
   border-color: var(--danger-color);
+}
+
+/* ✅ Estilos para botones deshabilitados */
+.task-card .notify-button:disabled,
+.task-card .edit-button:disabled,
+.task-card .delete-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ✅ Estilo específico para cuando están deshabilitados en modo edición */
+.task-card .notify-button.disabled,
+.task-card .delete-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .task-card::before {
@@ -248,6 +265,68 @@
   }
 }
 
+/* ============================================
+   TASK CARD - EDIT MODE (Contador y Error)
+   ============================================ */
+
+.task-edit-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  order: 2;
+}
+
+/* Input con error */
+.task-edit-input.error {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.2) !important;
+}
+
+/* Contador de caracteres */
+.char-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  padding-right: 0.25rem;
+  transition: color var(--transition-base);
+}
+
+.char-counter.warning {
+  color: var(--warning-color);
+}
+
+.char-counter.danger {
+  color: var(--danger-color);
+}
+
+/* Mensaje de error */
+.error-message {
+  color: var(--danger-color);
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(231, 111, 81, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid var(--danger-color);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Task Card
+   ============================================ */
+
 /* Responsive Task Card */
 @container tasks (min-width: 36rem) {
   .task-card {
@@ -265,7 +344,7 @@
   }
 
   .task-card .task-text,
-  .task-card .task-edit-input {
+  .task-card .task-edit-wrapper {
     order: 2;
     flex: 1;
     min-width: 120px;
