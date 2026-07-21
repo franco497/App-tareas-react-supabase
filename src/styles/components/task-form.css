@@ -159,7 +159,7 @@
 @media (min-width: 600px) {
   .task-form {
     flex-direction: column;
-    max-width: 800px;
+    max-width: 500px;
     width: calc(100% - 2rem); 
     margin: 1rem auto;
     padding: 1.5rem;
@@ -178,7 +178,7 @@
 
 @media (min-width: 900px) {
   .task-form {
-    max-width: 800px;
+    max-width: 500px;
     width: calc(100% - 4rem); 
     margin: 1.5rem auto;
     margin-top: 3rem;
