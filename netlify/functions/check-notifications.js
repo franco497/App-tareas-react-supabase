@@ -1,176 +1,92 @@
 // netlify/functions/check-notifications.js
 import { schedule } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
-import { google } from "googleapis";
-import nodemailer from "nodemailer";
 
-// Función para parsear fecha (maneja TIMESTAMP de Supabase)
-function parseLocalDate(dateString) {
-  console.log(`🔍 Parseando fecha: ${dateString}`);
-
-  // Si es un objeto Date o string ISO (con T)
-  if (dateString && dateString.includes("T")) {
-    // Es un timestamp UTC de Supabase, NO restar nada
-    const date = new Date(dateString);
-    console.log(`   → Parseado ISO: ${date.toLocaleString()}`);
-    return date;
-  }
-
-  // Formato string local: "2026-06-08 17:52:00"
-  const parts = dateString.match(
-    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/,
-  );
-  if (parts) {
-    const [_, year, month, day, hour, minute, second] = parts;
-    const date = new Date(year, month - 1, day, hour, minute, second);
-    console.log(`   → Parseado local: ${date.toLocaleString()}`);
-    return date;
-  }
-
-  console.log(`   → Formato desconocido: ${dateString}`);
-  return new Date(dateString);
-}
-
-// Configuración de Supabase (desde variables de entorno)
+// ✅ Usar la misma función de Supabase para enviar emails
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-// Configuración de Gmail (desde variables de entorno)
-const CLIENT_ID = process.env.GMAIL_CLIENT_ID;
-const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
-const REDIRECT_URI = process.env.GMAIL_REDIRECT_URI;
-const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
-const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL;
-
-let transporter = null;
-
-async function getTransporter() {
-  if (transporter) return transporter;
-
-  const oAuth2Client = new google.auth.OAuth2(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URI,
-  );
-  oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
-  const accessToken = await oAuth2Client.getAccessToken();
-
-  transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      type: "OAuth2",
-      user: FROM_EMAIL,
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-      refreshToken: REFRESH_TOKEN,
-      accessToken: accessToken.token,
-    },
-    tls: { rejectUnauthorized: false },
-  });
-
-  return transporter;
-}
-
-async function processEmails() {
-  // 🔧 CORRECCIÓN: Obtener hora actual y convertirla a Argentina (UTC-3)
-  const nowUTC = new Date();
-  const argentinaNow = new Date(nowUTC);
-  argentinaNow.setHours(argentinaNow.getHours() - 3); // Convertir UTC → Argentina
-
-  console.log(`🕒 Hora servidor (UTC): ${nowUTC.toISOString()}`);
-  console.log(`⏰ Hora actual Argentina: ${argentinaNow.toLocaleString()}`);
+export const handler = schedule("*/1 * * * *", async (event, context) => {
+  console.log("🔄 Verificando emails programados...");
 
   try {
+    const now = new Date();
+    
+    // Buscar emails pendientes que ya deben enviarse
     const { data: pending, error } = await supabase
       .from("scheduled_notifications")
       .select("*")
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .lte("scheduled_for", now.toISOString());
 
     if (error) throw error;
+
     if (!pending || pending.length === 0) {
-      console.log("📭 No hay emails pendientes");
-      return;
+      console.log("📭 No hay emails para enviar");
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: "No hay emails" })
+      };
     }
 
-    console.log(`📋 Total pendientes encontrados: ${pending.length}`);
+    console.log(`📧 Enviando ${pending.length} emails...`);
 
-    // Mostrar detalles de cada tarea pendiente
-    for (const notif of pending) {
-      const scheduledDate = parseLocalDate(notif.scheduled_for);
-      const diffMinutes = (scheduledDate - argentinaNow) / 60000;
-      console.log(`📅 "${notif.task_name}":`);
-      console.log(`   scheduled_for (original): ${notif.scheduled_for}`);
-      console.log(`   parseado como: ${scheduledDate.toLocaleString()}`);
-      console.log(`   diferencia: ${diffMinutes.toFixed(1)} minutos`);
-      console.log(
-        `   debe enviar ahora?: ${scheduledDate <= argentinaNow ? "✅ SI" : "⏳ NO"}`,
-      );
-    }
-
-    // Filtrar las que ya deben enviarse (usando hora Argentina)
-    const toSend = pending.filter((notif) => {
-      const scheduledDate = parseLocalDate(notif.scheduled_for);
-      return scheduledDate <= argentinaNow;
-    });
-
-    if (toSend.length === 0) {
-      console.log("📭 No hay emails para enviar en este momento");
-      return;
-    }
-
-    console.log(`📧 Preparando envío de ${toSend.length} email(s)...`);
-    const mailTransporter = await getTransporter();
-
-    for (const notification of toSend) {
+    let sent = 0;
+    for (const notification of pending) {
       try {
-        const scheduledDate = parseLocalDate(notification.scheduled_for);
-        const formattedDate = scheduledDate.toLocaleString("es-ES", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        // ✅ LLAMAR A LA FUNCIÓN DE SUPABASE PARA ENVIAR
+        const response = await fetch(
+          `${process.env.SUPABASE_URL}/functions/v1/send-email-gmail`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              taskName: notification.task_name,
+              taskId: notification.task_id,
+              scheduledDate: notification.scheduled_for.split(" ")[0],
+              scheduledTime: notification.scheduled_for.split(" ")[1],
+              userEmail: notification.user_email,
+              toEmail: notification.user_email,
+            }),
+          }
+        );
 
-        const htmlContent = `
-          <h2>📋 Recordatorio de Tarea</h2>
-          <p><strong>Tarea:</strong> ${notification.task_name}</p>
-          <p><strong>📅 Programada para:</strong> ${formattedDate} (hora Argentina)</p>
-          <p>¡No olvides completar esta tarea!</p>
-          <small>App de Tareas - Recordatorio automático</small>
-        `;
-
-        await mailTransporter.sendMail({
-          from: `"App de Tareas" <${FROM_EMAIL}>`,
-          to: notification.user_email,
-          subject: `📬 Recordatorio: ${notification.task_name}`,
-          html: htmlContent,
-        });
-
-        await supabase
-          .from("scheduled_notifications")
-          .update({ status: "sent", sent_at: new Date().toISOString() })
-          .eq("id", notification.id);
-
-        console.log(`✅ Email enviado: ${notification.task_name}`);
+        if (response.ok) {
+          // ✅ Marcar como enviado
+          await supabase
+            .from("scheduled_notifications")
+            .update({ status: "sent", sent_at: new Date().toISOString() })
+            .eq("id", notification.id);
+          sent++;
+          console.log(`✅ Enviado: ${notification.task_name}`);
+        } else {
+          const errorData = await response.json();
+          console.error(`❌ Error enviando ${notification.task_name}:`, errorData);
+        }
       } catch (err) {
-        console.error(`❌ Error: ${notification.task_name}`, err.message);
-        await supabase
-          .from("scheduled_notifications")
-          .update({ status: "failed" })
-          .eq("id", notification.id);
+        console.error(`❌ Error con ${notification.task_name}:`, err.message);
       }
     }
-  } catch (err) {
-    console.error("❌ Error en worker:", err.message);
-  }
-}
 
-// Programar cada 1 minuto
-export const handler = schedule("* * * * *", async () => {
-  await processEmails();
-  return { statusCode: 200 };
+    console.log(`📊 Resumen: ${sent} de ${pending.length} enviados`);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ 
+        message: `${sent} emails enviados de ${pending.length}` 
+      })
+    };
+
+  } catch (error) {
+    console.error("❌ Error en cron:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
 });
