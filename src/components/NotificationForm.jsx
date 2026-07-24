@@ -69,24 +69,41 @@ function NotificationForm({ task, onClose }) {
 
       if (error) throw error;
 
+      // ✅ CERRAR MODAL PRIMERO
+      onClose();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // ✅ SWEETALERT CON FONDO BLANCO
       await Swal.fire({
-        title: "✅ Correo enviado",
+        title: "✅ ¡Correo enviado!",
         text: `El recordatorio para "${task.name}" ha sido enviado exitosamente a ${user.email}.`,
         icon: "success",
-        timer: 2000,
+        timer: 3000,
+        timerProgressBar: true,
         showConfirmButton: false,
+        background: "#ffffff", // ✅ FONDO BLANCO
+        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        iconColor: "#2d6a4f",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
       });
+    } catch (error) {
+      console.error("❌ Error al enviar:", error);
 
       onClose();
-    } catch (error) {
-      console.error("Error al enviar:", error);
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
+      // ❌ SWEETALERT DE ERROR CON FONDO BLANCO
       await Swal.fire({
         title: "❌ Error al enviar",
         text: error.message || "No se pudo enviar la notificación.",
         icon: "error",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "Entendido",
+        confirmButtonColor: "#e76f51",
+        confirmButtonText: "Intentar de nuevo",
+        background: "#ffffff", // ✅ FONDO BLANCO
+        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        allowOutsideClick: false,
+        allowEscapeKey: false,
       });
     } finally {
       setLoading(false);
@@ -137,24 +154,47 @@ function NotificationForm({ task, onClose }) {
       setScheduledDate("");
       setScheduledTime("");
 
-      await Swal.fire({
-        title: "✅ Recordatorio programado",
-        text: `El recordatorio para "${task.name}" ha sido programado para el ${scheduledDate} a las ${scheduledTime}.`,
-        icon: "success",
-        timer: 3000,
-        showConfirmButton: false,
-      });
-
+      // ✅ CERRAR MODAL PRIMERO
       onClose();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // ✅ SWEETALERT PROGRAMADO CON FONDO BLANCO
+      await Swal.fire({
+        title: "📅 ¡Recordatorio programado!",
+        html: `
+          <p>El recordatorio para <strong>"${task.name}"</strong> ha sido programado para:</p>
+          <p style="font-size: 1.2rem; color: #2d6a4f; margin: 10px 0;">
+            📆 ${scheduledDate} <br>
+            ⏰ ${scheduledTime}
+          </p>
+          <p style="font-size: 0.9rem; opacity: 0.8;">Recibirás el correo en la fecha y hora programada.</p>
+        `,
+        icon: "success",
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        background: "#ffffff", // ✅ FONDO BLANCO
+        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        iconColor: "#2d6a4f",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      });
     } catch (error) {
       console.error("Error al programar:", error);
+
+      onClose();
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       await Swal.fire({
         title: "❌ Error al programar",
         text: error.message || "No se pudo programar el recordatorio.",
         icon: "error",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "Entendido",
+        confirmButtonColor: "#e76f51",
+        confirmButtonText: "Intentar de nuevo",
+        background: "#ffffff", // ✅ FONDO BLANCO
+        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        allowOutsideClick: false,
+        allowEscapeKey: false,
       });
     } finally {
       setLoading(false);
