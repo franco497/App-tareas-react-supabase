@@ -7,6 +7,10 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# ✅ CONFIGURAR ZONA HORARIA PARA NETLIFY FUNCTIONS
+[functions.environment]
+  TZ = "America/Argentina/Buenos_Aires"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
