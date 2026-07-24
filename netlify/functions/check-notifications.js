@@ -12,26 +12,20 @@ const supabase = createClient(
 
 function parseLocalDate(dateString) {
   if (!dateString) return null;
+  if (dateString.includes("T")) return new Date(dateString);
   
-  // Si es un string ISO (con T), convertirlo a Date
-  if (dateString.includes("T")) {
-    return new Date(dateString);
-  }
-  
-  // Formato: "2024-07-24 15:11:00"
   const parts = dateString.match(
     /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/
   );
   if (parts) {
     const [_, year, month, day, hour, minute, second] = parts;
-    // ✅ Crear fecha en hora local Argentina
     return new Date(year, month - 1, day, hour, minute, second);
   }
-  
   return new Date(dateString);
 }
 
-export const handler = schedule("*/1 * * * *", async (event, context) => {
+// ✅ EJECUTAR EN EL SEGUNDO 0 DE CADA MINUTO (más preciso)
+export const handler = schedule("0 * * * * *", async (event, context) => {
   console.log("🔄 Verificando emails programados...");
   console.log("🕒 Zona horaria:", process.env.TZ);
   console.log("🕒 Hora actual:", new Date().toString());
@@ -39,15 +33,13 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
   try {
     const now = new Date();
     console.log(`⏰ Hora actual Argentina: ${now.toLocaleString()}`);
-    
-    // Buscar emails pendientes
+
     const { data: pending, error } = await supabase
       .from("scheduled_notifications")
       .select("*")
       .eq("status", "pending");
 
     if (error) throw error;
-
     if (!pending || pending.length === 0) {
       console.log("📭 No hay emails para enviar");
       return {
@@ -56,7 +48,7 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
       };
     }
 
-    // ✅ FILTRAR CORRECTAMENTE POR FECHA
+    // ✅ FILTRAR: Solo los que ya deben enviarse (con margen de 2 minutos)
     const toSend = pending.filter((notif) => {
       const scheduledDate = parseLocalDate(notif.scheduled_for);
       if (!scheduledDate) {
@@ -64,7 +56,6 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
         return false;
       }
       
-      // ✅ COMPARAR EN LA MISMA ZONA HORARIA
       const diffMs = scheduledDate - now;
       const diffMinutes = diffMs / 60000;
       
@@ -72,9 +63,12 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
       console.log(`   Programado: ${notif.scheduled_for}`);
       console.log(`   Parseado: ${scheduledDate.toLocaleString()}`);
       console.log(`   Diferencia: ${diffMinutes.toFixed(1)} minutos`);
-      console.log(`   ¿Enviar ahora?: ${scheduledDate <= now ? "✅ SI" : "❌ NO"}`);
       
-      return scheduledDate <= now;
+      // ✅ ENVIAR si la hora programada ya pasó Y no pasó hace más de 2 minutos
+      const shouldSend = scheduledDate <= now && scheduledDate > new Date(now - 120000);
+      console.log(`   ¿Enviar ahora?: ${shouldSend ? "✅ SI" : "❌ NO"}`);
+      
+      return shouldSend;
     });
 
     if (toSend.length === 0) {
@@ -92,7 +86,6 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
 
     for (const notification of toSend) {
       try {
-        // ✅ VALIDAR DATOS
         if (!notification.user_email) {
           console.error(`❌ Error: email es undefined para ${notification.task_name}`);
           failed++;
@@ -103,7 +96,6 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
         const scheduledDate = scheduledParts[0] || new Date().toISOString().split("T")[0];
         const scheduledTime = scheduledParts[1] || "00:00:00";
 
-        // ✅ FORMATO CORRECTO PARA EL EMAIL
         const scheduledDateObj = parseLocalDate(notification.scheduled_for);
         const formattedDate = scheduledDateObj ? scheduledDateObj.toLocaleString("es-ES", {
           timeZone: "America/Argentina/Buenos_Aires",
@@ -122,14 +114,12 @@ export const handler = schedule("*/1 * * * *", async (event, context) => {
           scheduledTime: scheduledTime.slice(0, 5),
           userEmail: notification.user_email,
           toEmail: notification.user_email,
-          // ✅ PASAR LA FECHA FORMATEADA PARA EL EMAIL
           formattedDate: formattedDate,
         };
 
         console.log(`📨 Enviando a: ${requestBody.userEmail}`);
         console.log(`📋 Fecha programada: ${formattedDate}`);
 
-        // ✅ LLAMAR A SUPABASE CON DATOS COMPLETOS
         const response = await fetch(
           `${process.env.SUPABASE_URL}/functions/v1/send-email-gmail`,
           {
