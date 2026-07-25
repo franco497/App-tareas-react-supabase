@@ -1,4 +1,5 @@
 // netlify/functions/check-notifications.js
+import { schedule } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 
 // ✅ FORZAR ZONA HORARIA ARGENTINA
@@ -27,8 +28,7 @@ function parseLocalDate(dateString) {
   return new Date(dateString);
 }
 
-// ✅ SIN export const config - la configuración está en netlify.toml
-export const handler = async (event, context) => {
+async function processEmails() {
   console.log("🔄 Verificando emails programados...");
   console.log("🕒 Zona horaria:", process.env.TZ);
   console.log("🕒 Hora actual:", new Date().toString());
@@ -45,10 +45,7 @@ export const handler = async (event, context) => {
     if (error) throw error;
     if (!pending || pending.length === 0) {
       console.log("📭 No hay emails para enviar");
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "No hay emails" })
-      };
+      return { success: true, message: "No hay emails" };
     }
 
     // ✅ FILTRAR: Solo los que ya deben enviarse
@@ -67,7 +64,6 @@ export const handler = async (event, context) => {
       console.log(`   Parseado: ${scheduledDate.toLocaleString()}`);
       console.log(`   Diferencia: ${diffMinutes.toFixed(1)} minutos`);
       
-      // ✅ ENVIAR si la hora programada ya pasó
       const shouldSend = scheduledDate <= now;
       console.log(`   ¿Enviar ahora?: ${shouldSend ? "✅ SI" : "❌ NO"}`);
       
@@ -76,10 +72,7 @@ export const handler = async (event, context) => {
 
     if (toSend.length === 0) {
       console.log("⏳ No hay emails para enviar en este momento");
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "No hay emails para ahora" })
-      };
+      return { success: true, message: "No hay emails para ahora" };
     }
 
     console.log(`📧 Enviando ${toSend.length} emails...`);
@@ -159,21 +152,24 @@ export const handler = async (event, context) => {
     }
 
     console.log(`📊 Resumen: ${sent} enviados, ${failed} fallidos`);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ 
-        message: `${sent} emails enviados de ${toSend.length}`,
-        sent,
-        failed
-      })
-    };
+    return { success: true, sent, failed };
 
   } catch (error) {
     console.error("❌ Error en cron:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
+    return { success: false, error: error.message };
   }
-};
+}
+
+// ============================================
+// ✅ EXPORTACIÓN CON schedule (5 campos)
+// ============================================
+
+export const handler = schedule("* * * * *", async (event, context) => {
+  console.log("🚀 Cron job ejecutándose...");
+  const result = await processEmails();
+  
+  return {
+    statusCode: result.success ? 200 : 500,
+    body: JSON.stringify(result)
+  };
+});
