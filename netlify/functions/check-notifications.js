@@ -1,5 +1,4 @@
 // netlify/functions/check-notifications.js
-import { schedule } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 
 // ✅ FORZAR ZONA HORARIA ARGENTINA
@@ -9,6 +8,18 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+
+// ============================================
+// ✅ CONFIGURACIÓN DEL CRON JOB
+// ============================================
+
+export const config = {
+  schedule: "0 * * * * *", // ← Ejecuta cada minuto exacto
+};
+
+// ============================================
+// FUNCIÓN PRINCIPAL
+// ============================================
 
 function parseLocalDate(dateString) {
   if (!dateString) return null;
@@ -24,8 +35,7 @@ function parseLocalDate(dateString) {
   return new Date(dateString);
 }
 
-// ✅ EJECUTAR EN EL SEGUNDO 0 DE CADA MINUTO (más preciso)
-export const handler = schedule("0 * * * * *", async (event, context) => {
+export const handler = async (event, context) => {
   console.log("🔄 Verificando emails programados...");
   console.log("🕒 Zona horaria:", process.env.TZ);
   console.log("🕒 Hora actual:", new Date().toString());
@@ -48,7 +58,7 @@ export const handler = schedule("0 * * * * *", async (event, context) => {
       };
     }
 
-    // ✅ FILTRAR: Solo los que ya deben enviarse (con margen de 2 minutos)
+    // ✅ FILTRAR: Solo los que ya deben enviarse
     const toSend = pending.filter((notif) => {
       const scheduledDate = parseLocalDate(notif.scheduled_for);
       if (!scheduledDate) {
@@ -64,8 +74,8 @@ export const handler = schedule("0 * * * * *", async (event, context) => {
       console.log(`   Parseado: ${scheduledDate.toLocaleString()}`);
       console.log(`   Diferencia: ${diffMinutes.toFixed(1)} minutos`);
       
-      // ✅ ENVIAR si la hora programada ya pasó Y no pasó hace más de 2 minutos
-      const shouldSend = scheduledDate <= now && scheduledDate > new Date(now - 120000);
+      // ✅ ENVIAR si la hora programada ya pasó
+      const shouldSend = scheduledDate <= now;
       console.log(`   ¿Enviar ahora?: ${shouldSend ? "✅ SI" : "❌ NO"}`);
       
       return shouldSend;
@@ -173,4 +183,4 @@ export const handler = schedule("0 * * * * *", async (event, context) => {
       body: JSON.stringify({ error: error.message })
     };
   }
-});
+};
