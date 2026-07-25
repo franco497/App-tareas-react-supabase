@@ -10,14 +10,6 @@ const supabase = createClient(
 );
 
 // ============================================
-// ✅ CONFIGURACIÓN DEL CRON JOB
-// ============================================
-
-export const config = {
-  schedule: "0 * * * * *", // ← Ejecuta cada minuto exacto
-};
-
-// ============================================
 // FUNCIÓN PRINCIPAL
 // ============================================
 
@@ -35,6 +27,7 @@ function parseLocalDate(dateString) {
   return new Date(dateString);
 }
 
+// ✅ SIN export const config - la configuración está en netlify.toml
 export const handler = async (event, context) => {
   console.log("🔄 Verificando emails programados...");
   console.log("🕒 Zona horaria:", process.env.TZ);
