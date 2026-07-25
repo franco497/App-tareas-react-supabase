@@ -1,6 +1,6 @@
 // src/components/TaskCard.jsx
 import { useState } from "react";
-import { useTasks } from "../context/TaskContex";
+import { useTasks } from "../context";
 import Swal from 'sweetalert2';
 import NotificationForm from "./NotificationForm";
 

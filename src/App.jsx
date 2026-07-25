@@ -7,7 +7,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import ScheduledTasks from "./pages/ScheduledTasks";
 import NotFound from "./pages/NotFound";
-import { TaskContextProvider } from "./context/TaskContex";
+import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {

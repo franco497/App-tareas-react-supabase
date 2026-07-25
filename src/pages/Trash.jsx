@@ -1,7 +1,7 @@
 // src/pages/Trash.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTasks } from "../context/TaskContex";
+import { useTasks } from "../context";
 import Swal from 'sweetalert2';
 
 function Trash() {

@@ -1,6 +1,6 @@
 // src/components/TaskList.jsx
 import { useEffect, useState } from "react";
-import { useTasks } from "../context/TaskContex";
+import { useTasks } from "../context";
 import TaskCard from "./TaskCard";
 
 function TaskList({ done = false }) {

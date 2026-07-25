@@ -1,45 +1,20 @@
 // src/pages/ScheduledTasks.jsx
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { useTasks } from "../context";
 
 function ScheduledTasks() {
-  const [scheduledTasks, setScheduledTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const {
+    scheduledTasks,
+    scheduledLoading,
+    getScheduledTasks,
+    cancelScheduledTask,
+  } = useTasks();
 
   useEffect(() => {
-    fetchScheduledTasks();
-  }, []);
-
-  const fetchScheduledTasks = async () => {
-    try {
-      setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Usuario no autenticado");
-      }
-
-      const { data, error } = await supabase
-        .from("scheduled_notifications")
-        .select("*")
-        .eq("user_email", user.email)
-        .in("status", ["pending", "sent", "failed"])
-        .order("scheduled_for", { ascending: true });
-
-      if (error) throw error;
-      setScheduledTasks(data || []);
-    } catch (err) {
-      console.error("Error:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    getScheduledTasks();
+  }, [getScheduledTasks]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -49,6 +24,8 @@ function ScheduledTasks() {
         return <span className="status-badge sent">✅ Enviado</span>;
       case "failed":
         return <span className="status-badge failed">❌ Fallido</span>;
+      case "cancelled":
+        return <span className="status-badge cancelled">⛔ Cancelado</span>;
       default:
         return <span className="status-badge">{status}</span>;
     }
@@ -71,19 +48,7 @@ function ScheduledTasks() {
     if (!window.confirm("¿Estás seguro de cancelar este recordatorio?")) return;
 
     try {
-      const { error } = await supabase
-        .from("scheduled_notifications")
-        .update({ status: "cancelled" })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setScheduledTasks((prev) =>
-        prev.map((task) =>
-          task.id === id ? { ...task, status: "cancelled" } : task,
-        ),
-      );
-
+      await cancelScheduledTask(id);
       alert("✅ Recordatorio cancelado");
     } catch (err) {
       console.error("Error:", err);
@@ -95,7 +60,7 @@ function ScheduledTasks() {
     navigate("/dashboard");
   };
 
-  if (loading) {
+  if (scheduledLoading) {
     return (
       <div className="loading-container">
         <h2 className="loading-container-btn">
@@ -111,10 +76,8 @@ function ScheduledTasks() {
         <button onClick={handleGoBack} className="back-btn">
           ← Volver a Inicio
         </button>
-        <h1 scheduled-tasks-title>📅 Tareas Programadas</h1>
+        <h1 className="scheduled-tasks-title">📅 Tareas Programadas</h1>
       </div>
-
-      {error && <div className="error-message">❌ Error: {error}</div>}
 
       {scheduledTasks.length === 0 ? (
         <div className="no-tasks-message">

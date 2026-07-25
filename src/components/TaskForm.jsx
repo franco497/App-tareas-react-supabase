@@ -1,6 +1,6 @@
 // src/components/TaskForm.jsx
 import { useForm } from "react-hook-form";
-import { useTasks } from "../context/TaskContex";
+import { useTasks } from "../context";
 
 function TaskForm() {
   const { createTask, adding, getTasks, currentDoneFilter } = useTasks();

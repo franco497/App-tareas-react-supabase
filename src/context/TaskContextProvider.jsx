@@ -1,28 +1,20 @@
-// src/context/TaskContext.jsx
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+// src/context/TaskContextProvider.jsx
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
-
-export const TaskContext = createContext();
-
-export const useTasks = () => {
-  const context = useContext(TaskContext);
-  if (!context) throw new Error("useTask must be used within a TaskContext");
-  return context;
-};
+import { TaskContext } from "./TaskContext"; // ← Debe apuntar a TaskContext.jsx
 
 export const TaskContextProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
+  const [scheduledTasks, setScheduledTasks] = useState([]);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [scheduledLoading, setScheduledLoading] = useState(false);
   const [currentDoneFilter, setCurrentDoneFilter] = useState(false);
 
-  // Obtener tareas NO borradas (activas)
+  // ============================================
+  // TAREAS NORMALES
+  // ============================================
+
   const getTasks = useCallback(async (done = false) => {
     try {
       setLoading(true);
@@ -44,7 +36,7 @@ export const TaskContextProvider = ({ children }) => {
         .eq("userId", user.id)
         .eq("deleted", false)
         .eq("done", done)
-        .order("id", { ascending: false }); // ← 🔥 CAMBIADO AQUÍ
+        .order("id", { ascending: false });
 
       if (error) throw error;
 
@@ -57,7 +49,6 @@ export const TaskContextProvider = ({ children }) => {
     }
   }, []);
 
-  // Obtener tareas borradas (para la papelera)
   const getDeletedTasks = useCallback(async () => {
     try {
       setLoading(true);
@@ -117,7 +108,6 @@ export const TaskContextProvider = ({ children }) => {
       if (error) throw error;
 
       if (!currentDoneFilter) {
-        // 🔥 CAMBIADO: La nueva tarea se agrega al PRINCIPIO
         setTasks((prevTasks) => [data, ...prevTasks]);
       }
 
@@ -130,7 +120,6 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
-  // ❌ Borrado REAL (eliminar de la base de datos)
   const permanentDeleteTask = async (id) => {
     try {
       const {
@@ -152,7 +141,6 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
-  // 🗑️ Borrado LÓGICO (mover a papelera)
   const softDeleteTask = async (id) => {
     try {
       const {
@@ -169,7 +157,6 @@ export const TaskContextProvider = ({ children }) => {
 
       if (error) throw error;
 
-      // Eliminar la tarea del estado local (desaparece del dashboard)
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
     } catch (error) {
       console.error("Error soft deleting task:", error);
@@ -177,7 +164,6 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
-  // ↩️ Restaurar tarea desde papelera
   const restoreTask = async (id) => {
     try {
       const {
@@ -255,7 +241,144 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
+  // ============================================
+  // TAREAS PROGRAMADAS (SCHEDULED)
+  // ============================================
+
+  const getScheduledTasks = useCallback(async () => {
+    try {
+      setScheduledLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.error("No user logged in");
+        setScheduledTasks([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("scheduled_notifications")
+        .select("*")
+        .eq("user_email", user.email)
+        .in("status", ["pending", "sent", "failed", "cancelled"])
+        .order("scheduled_for", { ascending: true });
+
+      if (error) throw error;
+
+      console.log("📋 Tareas programadas cargadas:", data?.length || 0);
+      setScheduledTasks(data || []);
+    } catch (error) {
+      console.error("Error fetching scheduled tasks:", error);
+      setScheduledTasks([]);
+    } finally {
+      setScheduledLoading(false);
+    }
+  }, []);
+
+  // ✅ SUSCRIPCIÓN EN TIEMPO REAL
+  useEffect(() => {
+    console.log("🔄 Iniciando suscripción a scheduled_notifications...");
+
+    const channel = supabase
+      .channel("scheduled_notifications_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "scheduled_notifications",
+        },
+        (payload) => {
+          console.log("🔄 Cambio detectado en scheduled_notifications:");
+          console.log("  📋 Evento:", payload.eventType);
+          console.log("  📋 Nuevo estado:", payload.new);
+
+          if (payload.eventType === "UPDATE") {
+            const updatedTask = payload.new;
+            setScheduledTasks((prevTasks) =>
+              prevTasks.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task
+              )
+            );
+            console.log("✅ Tarea actualizada localmente:", updatedTask.status);
+          } else if (payload.eventType === "INSERT") {
+            setScheduledTasks((prevTasks) => [payload.new, ...prevTasks]);
+            console.log("✅ Nueva tarea agregada");
+          } else if (payload.eventType === "DELETE") {
+            setScheduledTasks((prevTasks) =>
+              prevTasks.filter((task) => task.id !== payload.old.id)
+            );
+            console.log("✅ Tarea eliminada");
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log("📡 Estado de la suscripción:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("✅ ¡Suscripción a scheduled_notifications ACTIVA!");
+        }
+      });
+
+    return () => {
+      console.log("🔄 Limpiando suscripción...");
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // ✅ POLLING DE RESPALDO
+  useEffect(() => {
+    const hasPendingTasks = scheduledTasks.some(
+      (task) => task.status === "pending"
+    );
+
+    if (!hasPendingTasks) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from("scheduled_notifications")
+          .select("*")
+          .eq("user_email", user.email)
+          .in("status", ["pending", "sent", "failed"]);
+
+        if (error) throw error;
+
+        const currentStatuses = scheduledTasks.map((t) => ({
+          id: t.id,
+          status: t.status,
+        }));
+        const newStatuses = data.map((t) => ({ id: t.id, status: t.status }));
+
+        const hasChanges =
+          JSON.stringify(currentStatuses) !== JSON.stringify(newStatuses);
+
+        if (hasChanges) {
+          console.log("🔄 Polling detectó cambios, actualizando...");
+          setScheduledTasks(data);
+        }
+      } catch (error) {
+        console.error("Error en polling:", error);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [scheduledTasks]);
+
+  // ============================================
+  // VALORES DEL CONTEXTO
+  // ============================================
+
   const value = {
+    // Tareas normales
     tasks,
     loading,
     adding,
@@ -269,6 +392,11 @@ export const TaskContextProvider = ({ children }) => {
     updateTask,
     toggleTaskDone,
     currentDoneFilter,
+
+    // Tareas programadas
+    scheduledTasks,
+    scheduledLoading,
+    getScheduledTasks,
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

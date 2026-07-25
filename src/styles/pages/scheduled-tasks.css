@@ -268,7 +268,11 @@
   box-shadow: 0 4px 15px rgba(231, 111, 81, 0.2);
 }
 
-@media (min-width: 37.5rem) {
+/* ============================================
+   QUERIES
+   ============================================ */
+
+@media (min-width: 900px) {
   .scheduled-tasks-container {
     padding: 1.5rem;
   }
@@ -340,7 +344,7 @@
   }
 }
 
-@media (min-width: 48rem) {
+/* @media (min-width: 768px) {
   .scheduled-tasks-container {
     padding: 2rem;
   }
@@ -362,9 +366,9 @@
   .scheduled-table thead th {
     padding: 1rem 1.5rem;
   }
-}
+} */
 
-@media (min-width: 64rem) {
+@media (min-width: 1024px) {
   .scheduled-tasks-container {
     padding: 2rem 2.5rem;
   }
