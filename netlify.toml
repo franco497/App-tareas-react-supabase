@@ -3,11 +3,16 @@
   command = "npm run build"
   publish = "dist"
 
+# ✅ CONFIGURACIÓN DE FUNCIONES CON CRON
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# ✅ CONFIGURAR ZONA HORARIA PARA NETLIFY FUNCTIONS
+# ✅ CONFIGURACIÓN DEL CRON JOB PARA check-notifications
+[functions."check-notifications"]
+  schedule = "0 * * * * *"
+
+# ✅ ZONA HORARIA ARGENTINA
 [functions.environment]
   TZ = "America/Argentina/Buenos_Aires"
 
