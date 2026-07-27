@@ -185,36 +185,33 @@ function ScheduledTasks() {
                   <td data-label="Estado">{getStatusBadge(task.status)}</td>
                   <td data-label="Creada">{formatDate(task.created_at)}</td>
                   <td data-label="Acciones">
-                    <div className="task-actions">
-                      {/* ✅ Reprogramar (para sent, failed, pending) */}
+                    <div className="task-actions-scheduled">
+                      {/* ✅ Reprogramar - CON TEXTO */}
                       {task.status !== "cancelled" && (
                         <button
                           onClick={() => handleReschedule(task)}
                           className="reschedule-btn"
-                          title="Reprogramar"
                         >
-                          🔄
+                          🔄 Reprogramar
                         </button>
                       )}
 
-                      {/* ✅ Cancelar (solo para pending) */}
+                      {/* ✅ Cancelar - CON TEXTO (solo para pending) */}
                       {task.status === "pending" && (
                         <button
                           onClick={() => handleCancel(task.id, task.task_name)}
                           className="cancel-btn"
-                          title="Cancelar"
                         >
-                          🚫
+                          🚫 Cancelar
                         </button>
                       )}
 
-                      {/* ✅ Eliminar (para todos) */}
+                      {/* ✅ Eliminar - CON TEXTO (para todos) */}
                       <button
                         onClick={() => handleDelete(task.id, task.task_name)}
-                        className="delete-btn"
-                        title="Eliminar permanentemente"
+                        className="delete-btn-scheduled"
                       >
-                        🗑️
+                        🗑️ Eliminar
                       </button>
                     </div>
                   </td>
