@@ -1,7 +1,7 @@
 // src/context/TaskContextProvider.jsx
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
-import { TaskContext } from "./TaskContext"; // ← Debe apuntar a TaskContext.jsx
+import { TaskContext } from "./TaskContext";
 
 export const TaskContextProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
@@ -278,6 +278,60 @@ export const TaskContextProvider = ({ children }) => {
     }
   }, []);
 
+  // ✅ NUEVA FUNCIÓN: PROGRAMAR TAREA PARA MÁS TARDE
+  const scheduleTaskLater = useCallback(
+    async (task, scheduledDate, scheduledTime) => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user || !user.email) {
+          throw new Error("No se encontró el email del usuario");
+        }
+
+        if (!scheduledDate || !scheduledTime) {
+          throw new Error("Debes seleccionar fecha y hora");
+        }
+
+        const [year, month, day] = scheduledDate.split("-");
+        const [hour, minute] = scheduledTime.split(":");
+
+        const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
+
+        const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
+        const now = new Date();
+
+        if (selectedDate < now) {
+          throw new Error("No puedes programar una notificación en el pasado");
+        }
+
+        const { data, error } = await supabase
+          .from("scheduled_notifications")
+          .insert({
+            task_id: task.id,
+            task_name: task.name,
+            user_email: user.email,
+            scheduled_for: localDateString,
+            status: "pending",
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // ✅ ACTUALIZAR ESTADO LOCAL
+        setScheduledTasks((prevTasks) => [data, ...prevTasks]);
+
+        return data;
+      } catch (error) {
+        console.error("Error programando tarea:", error);
+        throw error;
+      }
+    },
+    [],
+  );
+
   // ✅ SUSCRIPCIÓN EN TIEMPO REAL
   useEffect(() => {
     console.log("🔄 Iniciando suscripción a scheduled_notifications...");
@@ -300,8 +354,8 @@ export const TaskContextProvider = ({ children }) => {
             const updatedTask = payload.new;
             setScheduledTasks((prevTasks) =>
               prevTasks.map((task) =>
-                task.id === updatedTask.id ? updatedTask : task
-              )
+                task.id === updatedTask.id ? updatedTask : task,
+              ),
             );
             console.log("✅ Tarea actualizada localmente:", updatedTask.status);
           } else if (payload.eventType === "INSERT") {
@@ -309,11 +363,11 @@ export const TaskContextProvider = ({ children }) => {
             console.log("✅ Nueva tarea agregada");
           } else if (payload.eventType === "DELETE") {
             setScheduledTasks((prevTasks) =>
-              prevTasks.filter((task) => task.id !== payload.old.id)
+              prevTasks.filter((task) => task.id !== payload.old.id),
             );
             console.log("✅ Tarea eliminada");
           }
-        }
+        },
       )
       .subscribe((status) => {
         console.log("📡 Estado de la suscripción:", status);
@@ -331,7 +385,7 @@ export const TaskContextProvider = ({ children }) => {
   // ✅ POLLING DE RESPALDO
   useEffect(() => {
     const hasPendingTasks = scheduledTasks.some(
-      (task) => task.status === "pending"
+      (task) => task.status === "pending",
     );
 
     if (!hasPendingTasks) return;
@@ -373,6 +427,121 @@ export const TaskContextProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [scheduledTasks]);
 
+  // ✅ REPROGRAMAR TAREA PROGRAMADA
+  const rescheduleScheduledTask = useCallback(
+    async (id, scheduledDate, scheduledTime) => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user || !user.email) {
+          throw new Error("No se encontró el email del usuario");
+        }
+
+        if (!scheduledDate || !scheduledTime) {
+          throw new Error("Debes seleccionar fecha y hora");
+        }
+
+        // ✅ PARSEAR FECHA (IGUAL QUE EN scheduleTaskLater)
+        const [year, month, day] = scheduledDate.split("-");
+        const [hour, minute] = scheduledTime.split(":");
+
+        const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
+
+        const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
+        const now = new Date();
+
+        if (selectedDate < now) {
+          throw new Error("No puedes reprogramar para una fecha pasada");
+        }
+
+        // ✅ ACTUALIZAR EN SUPABASE (IGUAL QUE scheduleTaskLater pero con UPDATE)
+        const { error } = await supabase
+          .from("scheduled_notifications")
+          .update({
+            scheduled_for: localDateString,
+            status: "pending",
+            sent_at: null,
+          })
+          .eq("id", id);
+
+        if (error) throw error;
+
+        // ✅ RECARGAR LISTA (IGUAL QUE scheduleTaskLater)
+        await getScheduledTasks();
+
+        return true;
+      } catch (error) {
+        console.error("Error reprogramando tarea:", error);
+        throw error;
+      }
+    },
+    [getScheduledTasks],
+  );
+
+  // ✅ ELIMINAR TAREA PROGRAMADA
+  const deleteScheduledTask = useCallback(async (id) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      const { error } = await supabase
+        .from("scheduled_notifications")
+        .delete()
+        .eq("id", id)
+        .eq("user_email", user.email);
+
+      if (error) throw error;
+
+      setScheduledTasks((prevTasks) =>
+        prevTasks.filter((task) => task.id !== id),
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Error eliminando tarea:", error);
+      throw error;
+    }
+  }, []);
+
+  // ✅ CANCELAR TAREA PROGRAMADA
+  const cancelScheduledTask = useCallback(async (id) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      const { error } = await supabase
+        .from("scheduled_notifications")
+        .update({ status: "cancelled" })
+        .eq("id", id)
+        .eq("user_email", user.email);
+
+      if (error) throw error;
+
+      setScheduledTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === id ? { ...task, status: "cancelled" } : task,
+        ),
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Error cancelando tarea:", error);
+      throw error;
+    }
+  }, []);
+
   // ============================================
   // VALORES DEL CONTEXTO
   // ============================================
@@ -397,6 +566,10 @@ export const TaskContextProvider = ({ children }) => {
     scheduledTasks,
     scheduledLoading,
     getScheduledTasks,
+    scheduleTaskLater, // ✅ NUEVO
+    rescheduleScheduledTask,
+    deleteScheduledTask,
+    cancelScheduledTask, // ✅ NUEVO
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

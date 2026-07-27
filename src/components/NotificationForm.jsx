@@ -1,6 +1,7 @@
 // src/components/NotificationForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { useTasks } from "../context"; // ← IMPORTAR EL CONTEXTO
 import Swal from "sweetalert2";
 
 function NotificationForm({ task, onClose }) {
@@ -10,6 +11,9 @@ function NotificationForm({ task, onClose }) {
   const [message, setMessage] = useState({ text: "", type: "" });
   const [sendType, setSendType] = useState("now");
   const [userEmail, setUserEmail] = useState("");
+
+  // ✅ USAR EL CONTEXTO
+  const { scheduleTaskLater } = useTasks();
 
   const getArgentinaDate = () => {
     const now = new Date();
@@ -69,11 +73,9 @@ function NotificationForm({ task, onClose }) {
 
       if (error) throw error;
 
-      // ✅ CERRAR MODAL PRIMERO
       onClose();
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // ✅ SWEETALERT CON FONDO BLANCO
       await Swal.fire({
         title: "✅ ¡Correo enviado!",
         text: `El recordatorio para "${task.name}" ha sido enviado exitosamente a ${user.email}.`,
@@ -81,8 +83,8 @@ function NotificationForm({ task, onClose }) {
         timer: 3000,
         timerProgressBar: true,
         showConfirmButton: false,
-        background: "#ffffff", // ✅ FONDO BLANCO
-        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        background: "#ffffff",
+        color: "#1a1a2e",
         iconColor: "#2d6a4f",
         allowOutsideClick: false,
         allowEscapeKey: false,
@@ -93,15 +95,14 @@ function NotificationForm({ task, onClose }) {
       onClose();
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // ❌ SWEETALERT DE ERROR CON FONDO BLANCO
       await Swal.fire({
         title: "❌ Error al enviar",
         text: error.message || "No se pudo enviar la notificación.",
         icon: "error",
         confirmButtonColor: "#e76f51",
         confirmButtonText: "Intentar de nuevo",
-        background: "#ffffff", // ✅ FONDO BLANCO
-        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        background: "#ffffff",
+        color: "#1a1a2e",
         allowOutsideClick: false,
         allowEscapeKey: false,
       });
@@ -110,55 +111,22 @@ function NotificationForm({ task, onClose }) {
     }
   };
 
-  // Programar para más tarde
+  // ✅ Programar para más tarde - AHORA USA EL CONTEXTO
   const handleScheduleLater = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage({ text: "", type: "" });
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user || !user.email) {
-        throw new Error("No se encontró el email del usuario");
-      }
-
-      if (!scheduledDate || !scheduledTime) {
-        throw new Error("Debes seleccionar fecha y hora");
-      }
-
-      const [year, month, day] = scheduledDate.split("-");
-      const [hour, minute] = scheduledTime.split(":");
-
-      const localDateString = `${year}-${month}-${day} ${hour}:${minute}:00`;
-
-      const selectedDate = new Date(year, month - 1, day, hour, minute, 0);
-      const now = new Date();
-
-      if (selectedDate < now) {
-        throw new Error("No puedes programar una notificación en el pasado");
-      }
-
-      const { error } = await supabase.from("scheduled_notifications").insert({
-        task_id: task.id,
-        task_name: task.name,
-        user_email: user.email,
-        scheduled_for: localDateString,
-        status: "pending",
-      });
-
-      if (error) throw error;
+      // ✅ LLAMAR A LA FUNCIÓN DEL CONTEXTO
+      await scheduleTaskLater(task, scheduledDate, scheduledTime);
 
       setScheduledDate("");
       setScheduledTime("");
 
-      // ✅ CERRAR MODAL PRIMERO
       onClose();
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // ✅ SWEETALERT PROGRAMADO CON FONDO BLANCO
       await Swal.fire({
         title: "📅 ¡Recordatorio programado!",
         html: `
@@ -173,8 +141,8 @@ function NotificationForm({ task, onClose }) {
         timer: 4000,
         timerProgressBar: true,
         showConfirmButton: false,
-        background: "#ffffff", // ✅ FONDO BLANCO
-        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        background: "#ffffff",
+        color: "#1a1a2e",
         iconColor: "#2d6a4f",
         allowOutsideClick: false,
         allowEscapeKey: false,
@@ -191,8 +159,8 @@ function NotificationForm({ task, onClose }) {
         icon: "error",
         confirmButtonColor: "#e76f51",
         confirmButtonText: "Intentar de nuevo",
-        background: "#ffffff", // ✅ FONDO BLANCO
-        color: "#1a1a2e", // ✅ TEXTO OSCURO
+        background: "#ffffff",
+        color: "#1a1a2e",
         allowOutsideClick: false,
         allowEscapeKey: false,
       });

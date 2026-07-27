@@ -1,7 +1,9 @@
 // src/pages/ScheduledTasks.jsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTasks } from "../context";
+import Swal from "sweetalert2";
+import RescheduleModal from "../components/RescheduleModal";
 
 function ScheduledTasks() {
   const navigate = useNavigate();
@@ -10,7 +12,12 @@ function ScheduledTasks() {
     scheduledLoading,
     getScheduledTasks,
     cancelScheduledTask,
+    deleteScheduledTask,
+    rescheduleScheduledTask,
   } = useTasks();
+
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
     getScheduledTasks();
@@ -44,20 +51,89 @@ function ScheduledTasks() {
     });
   };
 
-  const handleCancel = async (id) => {
-    if (!window.confirm("¿Estás seguro de cancelar este recordatorio?")) return;
+  // ✅ CANCELAR
+  const handleCancel = async (id, taskName) => {
+    const result = await Swal.fire({
+      title: "¿Cancelar recordatorio?",
+      text: `¿Estás seguro de cancelar "${taskName}"?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#e76f51",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, cancelar",
+      cancelButtonText: "No",
+    });
 
-    try {
-      await cancelScheduledTask(id);
-      alert("✅ Recordatorio cancelado");
-    } catch (err) {
-      console.error("Error:", err);
-      alert("❌ Error al cancelar");
+    if (result.isConfirmed) {
+      try {
+        await cancelScheduledTask(id);
+        await Swal.fire({
+          title: "✅ Cancelado",
+          text: `El recordatorio "${taskName}" ha sido cancelado.`,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } catch (err) {
+        console.error("Error:", err);
+        await Swal.fire({
+          title: "❌ Error",
+          text: "No se pudo cancelar el recordatorio.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
+    }
+  };
+
+  // ✅ REPROGRAMAR (abrir modal)
+  const handleReschedule = (task) => {
+    setSelectedTask(task);
+    setShowRescheduleModal(true);
+  };
+
+  // ✅ ELIMINAR (permanente)
+  const handleDelete = async (id, taskName) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar permanentemente?",
+      text: `¿Estás seguro de eliminar "${taskName}" permanentemente?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteScheduledTask(id);
+        await Swal.fire({
+          title: "🗑️ Eliminada",
+          text: `La tarea "${taskName}" ha sido eliminada permanentemente.`,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } catch (err) {
+        console.error("Error:", err);
+        await Swal.fire({
+          title: "❌ Error",
+          text: "No se pudo eliminar la tarea.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
     }
   };
 
   const handleGoBack = () => {
     navigate("/dashboard");
+  };
+
+  const handleRescheduleClose = () => {
+    setShowRescheduleModal(false);
+    setSelectedTask(null);
   };
 
   if (scheduledLoading) {
@@ -109,20 +185,49 @@ function ScheduledTasks() {
                   <td data-label="Estado">{getStatusBadge(task.status)}</td>
                   <td data-label="Creada">{formatDate(task.created_at)}</td>
                   <td data-label="Acciones">
-                    {task.status === "pending" && (
+                    <div className="task-actions">
+                      {/* ✅ Reprogramar (para sent, failed, pending) */}
+                      {task.status !== "cancelled" && (
+                        <button
+                          onClick={() => handleReschedule(task)}
+                          className="reschedule-btn"
+                          title="Reprogramar"
+                        >
+                          🔄
+                        </button>
+                      )}
+
+                      {/* ✅ Cancelar (solo para pending) */}
+                      {task.status === "pending" && (
+                        <button
+                          onClick={() => handleCancel(task.id, task.task_name)}
+                          className="cancel-btn"
+                          title="Cancelar"
+                        >
+                          🚫
+                        </button>
+                      )}
+
+                      {/* ✅ Eliminar (para todos) */}
                       <button
-                        onClick={() => handleCancel(task.id)}
-                        className="cancel-btn"
+                        onClick={() => handleDelete(task.id, task.task_name)}
+                        className="delete-btn"
+                        title="Eliminar permanentemente"
                       >
-                        🗑️ Cancelar
+                        🗑️
                       </button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Modal de reprogramación */}
+      {showRescheduleModal && selectedTask && (
+        <RescheduleModal task={selectedTask} onClose={handleRescheduleClose} />
       )}
     </div>
   );
