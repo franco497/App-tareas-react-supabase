@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTasks } from "../context";
 import Swal from "sweetalert2";
 import RescheduleModal from "../components/RescheduleModal";
+import ScheduledDetailsModal from "../components/ScheduledDetailsModal";
 
 function ScheduledTasks() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ function ScheduledTasks() {
   } = useTasks();
 
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
@@ -51,39 +53,10 @@ function ScheduledTasks() {
     });
   };
 
-  // ✅ CANCELAR
-  const handleCancel = async (id, taskName) => {
-    const result = await Swal.fire({
-      title: "¿Cancelar recordatorio?",
-      text: `¿Estás seguro de cancelar "${taskName}"?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#e76f51",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, cancelar",
-      cancelButtonText: "No",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await cancelScheduledTask(id);
-        await Swal.fire({
-          title: "✅ Cancelado",
-          text: `El recordatorio "${taskName}" ha sido cancelado.`,
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      } catch (err) {
-        console.error("Error:", err);
-        await Swal.fire({
-          title: "❌ Error",
-          text: "No se pudo cancelar el recordatorio.",
-          icon: "error",
-          confirmButtonText: "Entendido",
-        });
-      }
-    }
+  // ✅ VER DETALLES - Abre modal con detalles
+  const handleViewDetails = (task) => {
+    setSelectedTask(task);
+    setShowDetailsModal(true);
   };
 
   // ✅ REPROGRAMAR (abrir modal)
@@ -136,6 +109,11 @@ function ScheduledTasks() {
     setSelectedTask(null);
   };
 
+  const handleDetailsClose = () => {
+    setShowDetailsModal(false);
+    setSelectedTask(null);
+  };
+
   if (scheduledLoading) {
     return (
       <div className="loading-container">
@@ -164,67 +142,67 @@ function ScheduledTasks() {
           </button>
         </div>
       ) : (
-        <div className="scheduled-table-container">
-          <table className="scheduled-table">
-            <thead>
-              <tr>
-                <th>Tarea</th>
-                <th>Programada para</th>
-                <th>Estado</th>
-                <th>Creada</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scheduledTasks.map((task) => (
-                <tr key={task.id}>
-                  <td data-label="Tarea">{task.task_name}</td>
-                  <td data-label="Programada para">
-                    {formatDate(task.scheduled_for)}
-                  </td>
-                  <td data-label="Estado">{getStatusBadge(task.status)}</td>
-                  <td data-label="Creada">{formatDate(task.created_at)}</td>
-                  <td data-label="Acciones">
-                    <div className="task-actions-scheduled">
-                      {/* ✅ Reprogramar - CON TEXTO */}
-                      {task.status !== "cancelled" && (
-                        <button
-                          onClick={() => handleReschedule(task)}
-                          className="reschedule-btn"
-                        >
-                          🔄 Reprogramar
-                        </button>
-                      )}
+        <>
+          <p className="scheduled-info">
+            📌 Tienes {scheduledTasks.length} tarea(s) programadas.
+          </p>
+          <div className="scheduled-list">
+            {scheduledTasks.map((task) => (
+              <div key={task.id} className="scheduled-item">
+                <div className="scheduled-item-info">
+                  <span className={task.status === "sent" ? "completed-task" : ""}>
+                    {task.task_name}
+                  </span>
+                  <div className="scheduled-item-meta">
+                    <small>
+                      📅 {formatDate(task.scheduled_for)}
+                    </small>
+                    <small>
+                      {getStatusBadge(task.status)}
+                    </small>
+                  </div>
+                </div>
+                <div className="scheduled-item-actions">
+                  {/* ✅ Ver detalles - SIEMPRE visible */}
+                  <button
+                    onClick={() => handleViewDetails(task)}
+                    className="details-btn"
+                  >
+                    📋 Ver detalles
+                  </button>
 
-                      {/* ✅ Cancelar - CON TEXTO (solo para pending) */}
-                      {task.status === "pending" && (
-                        <button
-                          onClick={() => handleCancel(task.id, task.task_name)}
-                          className="cancel-btn"
-                        >
-                          🚫 Cancelar
-                        </button>
-                      )}
+                  {/* ✅ Reprogramar - Solo para pending, sent, failed */}
+                  {task.status !== "cancelled" && (
+                    <button
+                      onClick={() => handleReschedule(task)}
+                      className="reschedule-btn-card"
+                    >
+                      🔄 Reprogramar
+                    </button>
+                  )}
 
-                      {/* ✅ Eliminar - CON TEXTO (para todos) */}
-                      <button
-                        onClick={() => handleDelete(task.id, task.task_name)}
-                        className="delete-btn-scheduled"
-                      >
-                        🗑️ Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  {/* ✅ Eliminar - SIEMPRE visible */}
+                  <button
+                    onClick={() => handleDelete(task.id, task.task_name)}
+                    className="delete-btn-scheduled-card"
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Modal de reprogramación */}
       {showRescheduleModal && selectedTask && (
         <RescheduleModal task={selectedTask} onClose={handleRescheduleClose} />
+      )}
+
+      {/* Modal de detalles */}
+      {showDetailsModal && selectedTask && (
+        <ScheduledDetailsModal task={selectedTask} onClose={handleDetailsClose} />
       )}
     </div>
   );
