@@ -10,7 +10,7 @@
 
 # ✅ CONFIGURACIÓN DEL CRON - FORMATO 5 CAMPOS (sin segundos)
 [functions."check-notifications"]
-  schedule = "* * * * *"  # ← Cada minuto (5 campos)
+  schedule: "*/5 * * * *", // ← Cada 5 minutos
 
 # ✅ ZONA HORARIA ARGENTINA
 [functions.environment]

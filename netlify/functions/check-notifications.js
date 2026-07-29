@@ -164,7 +164,7 @@ async function processEmails() {
 // ✅ EXPORTACIÓN CON schedule (5 campos)
 // ============================================
 
-export const handler = schedule("* * * * *", async (event, context) => {
+export const handler = schedule("*/5 * * * *", async (event, context) => {
   console.log("🚀 Cron job ejecutándose...");
   const result = await processEmails();
   
