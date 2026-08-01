@@ -7,17 +7,22 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
 );
 
-// ✅ IGUAL QUE LA VERSIÓN FUNCIONAL
+// ✅ FUNCIÓN PARA OBTENER HORA ACTUAL EN ARGENTINA
+function getNowInArgentina() {
+  const now = new Date();
+  return new Date(now.getTime() - 3 * 60 * 60 * 1000);
+}
+
+// ✅ FUNCIÓN PARA PARSEAR FECHA EN ARGENTINA
 function parseLocalDate(dateString) {
   if (!dateString) return null;
   if (dateString.includes("T")) return new Date(dateString);
-  
+
   const parts = dateString.match(
-    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/
+    /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/,
   );
   if (parts) {
     const [_, year, month, day, hour, minute, second] = parts;
-    // ✅ IGUAL QUE LA VERSIÓN FUNCIONAL
     return new Date(year, month - 1, day, hour, minute, second);
   }
   return new Date(dateString);
@@ -25,10 +30,14 @@ function parseLocalDate(dateString) {
 
 async function processEmails() {
   console.log("🔄 Verificando emails programados...");
-  
+
   try {
-    const now = new Date();
-    console.log(`⏰ Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`);
+    // ✅ USAR HORA ARGENTINA PARA LA COMPARACIÓN
+    const now = getNowInArgentina();
+    console.log(
+      `⏰ Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`,
+    );
+    console.log(`⏰ Hora actual UTC: ${new Date().toISOString()}`);
 
     const { data: pending, error } = await supabase
       .from("scheduled_notifications")
@@ -49,18 +58,23 @@ async function processEmails() {
         console.log(`⚠️ Fecha inválida: ${notif.scheduled_for}`);
         return false;
       }
-      
-      const diffMs = scheduledDate - now;
+
+      const diffMs = scheduledDate.getTime() - now.getTime();
       const diffMinutes = diffMs / 60000;
-      
+
       console.log(`📅 "${notif.task_name}":`);
       console.log(`   Programado: ${notif.scheduled_for}`);
-      console.log(`   Parseado: ${scheduledDate.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`);
+      console.log(
+        `   Parseado: ${scheduledDate.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`,
+      );
+      console.log(
+        `   Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`,
+      );
       console.log(`   Diferencia: ${diffMinutes.toFixed(1)} minutos`);
-      
+
       const shouldSend = scheduledDate <= now;
       console.log(`   ¿Enviar ahora?: ${shouldSend ? "✅ SI" : "❌ NO"}`);
-      
+
       return shouldSend;
     });
 
@@ -77,27 +91,31 @@ async function processEmails() {
     for (const notification of toSend) {
       try {
         if (!notification.user_email) {
-          console.error(`❌ Error: email es undefined para ${notification.task_name}`);
+          console.error(
+            `❌ Error: email es undefined para ${notification.task_name}`,
+          );
           failed++;
           continue;
         }
 
         const scheduledParts = notification.scheduled_for.split(" ");
-        const scheduledDate = scheduledParts[0] || new Date().toISOString().split("T")[0];
+        const scheduledDate =
+          scheduledParts[0] || new Date().toISOString().split("T")[0];
         const scheduledTime = scheduledParts[1] || "00:00:00";
 
         const scheduledDateObj = parseLocalDate(notification.scheduled_for);
-        const formattedDate = scheduledDateObj ? scheduledDateObj.toLocaleString("es-ES", {
-          timeZone: "America/Argentina/Buenos_Aires",
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }) : "Fecha no válida";
+        const formattedDate = scheduledDateObj
+          ? scheduledDateObj.toLocaleString("es-ES", {
+              timeZone: "America/Argentina/Buenos_Aires",
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "Fecha no válida";
 
-        // ✅ IGUAL QUE LA VERSIÓN FUNCIONAL
         const requestBody = {
           taskName: notification.task_name || "Tarea sin nombre",
           taskId: notification.task_id || "sin-id",
@@ -105,7 +123,7 @@ async function processEmails() {
           scheduledTime: scheduledTime.slice(0, 5),
           userEmail: notification.user_email,
           toEmail: notification.user_email,
-          formattedDate: formattedDate, // ✅ Envía la fecha formateada
+          formattedDate: formattedDate,
         };
 
         console.log(`📨 Enviando a: ${requestBody.userEmail}`);
@@ -117,10 +135,10 @@ async function processEmails() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
             },
             body: JSON.stringify(requestBody),
-          }
+          },
         );
 
         const responseData = await response.json();
@@ -128,16 +146,19 @@ async function processEmails() {
         if (response.ok) {
           await supabase
             .from("scheduled_notifications")
-            .update({ 
-              status: "sent", 
-              sent_at: new Date().toISOString() 
+            .update({
+              status: "sent",
+              sent_at: new Date().toISOString(),
             })
             .eq("id", notification.id);
-          
+
           sent++;
           console.log(`✅ Enviado: ${notification.task_name}`);
         } else {
-          console.error(`❌ Error enviando ${notification.task_name}:`, responseData);
+          console.error(
+            `❌ Error enviando ${notification.task_name}:`,
+            responseData,
+          );
           failed++;
         }
       } catch (err) {
@@ -147,7 +168,6 @@ async function processEmails() {
     }
 
     console.log(`📊 Resumen: ${sent} enviados, ${failed} fallidos`);
-
   } catch (error) {
     console.error("❌ Error en cron:", error);
   }
@@ -155,19 +175,22 @@ async function processEmails() {
 
 serve(async (req) => {
   console.log("📨 === NUEVA PETICIÓN RECIBIDA ===");
-  
+
   try {
     await processEmails();
-    
+
     return new Response(
-      JSON.stringify({ success: true, message: "Emails procesados correctamente" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        success: true,
+        message: "Emails procesados correctamente",
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("❌ Error:", error);
     return new Response(
       JSON.stringify({ error: "Error interno del servidor" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 });
