@@ -40,7 +40,7 @@ function NotificationForm({ task, onClose }) {
     getUserEmail();
   }, []);
 
-  // Enviar ahora
+  // Enviar ahora - VERSIÓN CON FETCH DIRECTO
   const handleSendNow = async () => {
     setLoading(true);
 
@@ -57,22 +57,35 @@ function NotificationForm({ task, onClose }) {
       const currentDate = now.toISOString().split("T")[0];
       const currentTime = now.toTimeString().slice(0, 5);
 
-      const { data, error } = await supabase.functions.invoke(
-        "send-email-gmail",
+      // ✅ USAR FETCH DIRECTO (como probaste en PowerShell)
+      const response = await fetch(
+        "https://vjywpkrncmsijpggdfwf.supabase.co/functions/v1/send-email-gmail",
         {
-          body: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
             taskName: task.name,
             taskId: task.id,
             scheduledDate: currentDate,
             scheduledTime: currentTime,
             userEmail: user.email,
             toEmail: user.email,
-          },
+          }),
         },
       );
 
-      if (error) throw error;
+      const data = await response.json();
 
+      if (!response.ok) {
+        console.error("❌ Error de respuesta:", data);
+        throw new Error(data.error || "Error al enviar el correo");
+      }
+
+      console.log("✅ Correo enviado:", data);
+
+      // ✅ CERRAR MODAL Y MOSTRAR SWEETALERT
       onClose();
       await new Promise((resolve) => setTimeout(resolve, 300));
 

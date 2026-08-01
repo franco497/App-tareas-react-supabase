@@ -1,4 +1,4 @@
-// supabase/functions/send-email-gmail/index.js
+// @ts-nocheck
 import { google } from "https://esm.sh/googleapis@172.0.0";
 import nodemailer from "https://esm.sh/nodemailer@8.0.9";
 
@@ -15,7 +15,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Obtener datos del body
     const {
       taskName,
       taskId,
@@ -23,6 +22,7 @@ Deno.serve(async (req) => {
       scheduledTime,
       userEmail,
       toEmail,
+      formattedDate, // ✅ RECIBE DE check-notifications
     } = await req.json();
 
     // Validar datos requeridos
@@ -71,10 +71,11 @@ Deno.serve(async (req) => {
     );
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
-    // Formatear fecha para mostrar bonito
-    const formattedDate = new Date(
+    // ✅ USAR formattedDate SI EXISTE
+    const displayDate = formattedDate || new Date(
       `${scheduledDate}T${scheduledTime}`,
     ).toLocaleString("es-ES", {
+      timeZone: "America/Argentina/Buenos_Aires",
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -113,8 +114,8 @@ Deno.serve(async (req) => {
             </div>
             
             <div class="date">
-              📅 <strong>Fecha y hora programada:</strong><br>
-              ${formattedDate}
+              📅 <strong>Fecha y hora programada (Argentina UTC-3):</strong><br>
+              ${displayDate}
             </div>
             
             <p>No olvides completar esta tarea a tiempo.</p>

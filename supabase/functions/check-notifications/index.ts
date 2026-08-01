@@ -1,51 +1,13 @@
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.104.0";
-import { google } from "https://esm.sh/googleapis@172.0.0";
-import nodemailer from "https://esm.sh/nodemailer@8.0.9";
-
-const TZ = "America/Argentina/Buenos_Aires";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL"),
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
 );
 
-const CLIENT_ID = Deno.env.get("GMAIL_CLIENT_ID");
-const CLIENT_SECRET = Deno.env.get("GMAIL_CLIENT_SECRET");
-const REDIRECT_URI = Deno.env.get("GMAIL_REDIRECT_URI");
-const REFRESH_TOKEN = Deno.env.get("GMAIL_REFRESH_TOKEN");
-const FROM_EMAIL = Deno.env.get("GMAIL_FROM_EMAIL") || "devincentisf35@gmail.com";
-
-let transporter = null;
-
-async function getTransporter() {
-  if (transporter) return transporter;
-
-  const oAuth2Client = new google.auth.OAuth2(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URI,
-  );
-  oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
-  const accessToken = await oAuth2Client.getAccessToken();
-
-  transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      type: "OAuth2",
-      user: FROM_EMAIL,
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-      refreshToken: REFRESH_TOKEN,
-      accessToken: accessToken.token,
-    },
-    tls: { rejectUnauthorized: false },
-  });
-
-  return transporter;
-}
-
+// ✅ IGUAL QUE LA VERSIÓN FUNCIONAL
 function parseLocalDate(dateString) {
   if (!dateString) return null;
   if (dateString.includes("T")) return new Date(dateString);
@@ -55,17 +17,18 @@ function parseLocalDate(dateString) {
   );
   if (parts) {
     const [_, year, month, day, hour, minute, second] = parts;
-    return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second));
+    // ✅ IGUAL QUE LA VERSIÓN FUNCIONAL
+    return new Date(year, month - 1, day, hour, minute, second);
   }
   return new Date(dateString);
 }
 
 async function processEmails() {
-  console.log(`🕒 [${new Date().toISOString()}] Verificando emails programados...`);
-
+  console.log("🔄 Verificando emails programados...");
+  
   try {
     const now = new Date();
-    console.log(`⏰ Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: TZ })}`);
+    console.log(`⏰ Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`);
 
     const { data: pending, error } = await supabase
       .from("scheduled_notifications")
@@ -87,12 +50,12 @@ async function processEmails() {
         return false;
       }
       
-      const diffMs = scheduledDate.getTime() - now.getTime();
+      const diffMs = scheduledDate - now;
       const diffMinutes = diffMs / 60000;
       
       console.log(`📅 "${notif.task_name}":`);
       console.log(`   Programado: ${notif.scheduled_for}`);
-      console.log(`   Parseado: ${scheduledDate.toLocaleString("es-AR", { timeZone: TZ })}`);
+      console.log(`   Parseado: ${scheduledDate.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`);
       console.log(`   Diferencia: ${diffMinutes.toFixed(1)} minutos`);
       
       const shouldSend = scheduledDate <= now;
@@ -107,7 +70,6 @@ async function processEmails() {
     }
 
     console.log(`📧 Enviando ${toSend.length} emails...`);
-    const mailTransporter = await getTransporter();
 
     let sent = 0;
     let failed = 0;
@@ -126,7 +88,7 @@ async function processEmails() {
 
         const scheduledDateObj = parseLocalDate(notification.scheduled_for);
         const formattedDate = scheduledDateObj ? scheduledDateObj.toLocaleString("es-ES", {
-          timeZone: TZ,
+          timeZone: "America/Argentina/Buenos_Aires",
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -135,56 +97,62 @@ async function processEmails() {
           minute: "2-digit",
         }) : "Fecha no válida";
 
-        await mailTransporter.sendMail({
-          from: `"App de Tareas" <${FROM_EMAIL}>`,
-          to: notification.user_email,
-          subject: `📬 Recordatorio: ${notification.task_name}`,
-          html: `
-            <h2>📋 Recordatorio de Tarea</h2>
-            <p><strong>Tarea:</strong> ${notification.task_name}</p>
-            <p><strong>📅 Programada para:</strong> ${formattedDate}</p>
-            <p>¡No olvides completar esta tarea!</p>
-            <small>App de Tareas - Recordatorio automático</small>
-          `,
-        });
+        // ✅ IGUAL QUE LA VERSIÓN FUNCIONAL
+        const requestBody = {
+          taskName: notification.task_name || "Tarea sin nombre",
+          taskId: notification.task_id || "sin-id",
+          scheduledDate: scheduledDate,
+          scheduledTime: scheduledTime.slice(0, 5),
+          userEmail: notification.user_email,
+          toEmail: notification.user_email,
+          formattedDate: formattedDate, // ✅ Envía la fecha formateada
+        };
 
-        await supabase
-          .from("scheduled_notifications")
-          .update({ 
-            status: "sent", 
-            sent_at: new Date().toISOString() 
-          })
-          .eq("id", notification.id);
+        console.log(`📨 Enviando a: ${requestBody.userEmail}`);
+        console.log(`📋 Fecha programada: ${formattedDate}`);
 
-        sent++;
-        console.log(`✅ Enviado: ${notification.task_name}`);
-      } catch (err) {
-        console.error(`❌ Error enviando ${notification.task_name}:`, err.message);
-        failed++;
-        
-        const attempts = (notification.attempts || 0) + 1;
-        if (attempts >= 3) {
+        const response = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email-gmail`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+
+        const responseData = await response.json();
+
+        if (response.ok) {
           await supabase
             .from("scheduled_notifications")
-            .update({ status: "failed" })
+            .update({ 
+              status: "sent", 
+              sent_at: new Date().toISOString() 
+            })
             .eq("id", notification.id);
+          
+          sent++;
+          console.log(`✅ Enviado: ${notification.task_name}`);
         } else {
-          await supabase
-            .from("scheduled_notifications")
-            .update({ attempts: attempts })
-            .eq("id", notification.id);
+          console.error(`❌ Error enviando ${notification.task_name}:`, responseData);
+          failed++;
         }
+      } catch (err) {
+        console.error(`❌ Error con ${notification.task_name}:`, err.message);
+        failed++;
       }
     }
 
     console.log(`📊 Resumen: ${sent} enviados, ${failed} fallidos`);
 
   } catch (error) {
-    console.error("❌ Error en processEmails:", error);
+    console.error("❌ Error en cron:", error);
   }
 }
 
-// ✅ VERSIÓN SIMPLIFICADA - SIN AUTENTICACIÓN
 serve(async (req) => {
   console.log("📨 === NUEVA PETICIÓN RECIBIDA ===");
   
