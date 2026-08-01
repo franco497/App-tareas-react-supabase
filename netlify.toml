@@ -3,18 +3,9 @@
   command = "npm run build"
   publish = "dist"
 
-# ✅ CONFIGURACIÓN DE FUNCIONES
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-
-# ✅ CONFIGURACIÓN DEL CRON - FORMATO 5 CAMPOS (sin segundos)
-[functions."check-notifications"]
-  schedule: "*/5 * * * *", // ← Cada 5 minutos
-
-# ✅ ZONA HORARIA ARGENTINA
-[functions.environment]
-  TZ = "America/Argentina/Buenos_Aires"
 
 [[redirects]]
   from = "/*"
