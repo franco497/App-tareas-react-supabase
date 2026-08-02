@@ -72,17 +72,17 @@ Deno.serve(async (req) => {
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
     // ✅ USAR formattedDate SI EXISTE
-    const displayDate = formattedDate || new Date(
-      `${scheduledDate}T${scheduledTime}`,
-    ).toLocaleString("es-ES", {
-      timeZone: "America/Argentina/Buenos_Aires",
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const displayDate =
+      formattedDate ||
+      new Date(`${scheduledDate}T${scheduledTime}`).toLocaleString("es-ES", {
+        timeZone: "America/Argentina/Buenos_Aires",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
     // Crear HTML del email
     const htmlContent = `
@@ -106,24 +106,19 @@ Deno.serve(async (req) => {
             <h2>📋 Recordatorio de Tarea</h2>
           </div>
           <div class="content">
-            <p>Hola,</p>
             <p>Has programado un recordatorio para la siguiente tarea:</p>
             
             <div class="task">
               <strong>✅ Tarea:</strong> ${taskName}
             </div>
             
-            <div class="date">
-              📅 <strong>Fecha y hora programada (Argentina UTC-3):</strong><br>
-              ${displayDate}
-            </div>
-            
             <p>No olvides completar esta tarea a tiempo.</p>
+            <p>Puedes revisar los detalles en el sistema.</p>
             <p>¡Éxito con tus actividades! 🚀</p>
           </div>
           <div class="footer">
             <p>Este es un recordatorio automático de tu app de tareas.</p>
-            <p>© 2025 - Mi App de Tareas</p>
+            <p>© 2026 - App de Tareas</p>
           </div>
         </div>
       </body>

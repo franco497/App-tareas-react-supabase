@@ -13,6 +13,22 @@ function ScheduledDetailsModal({ task, onClose }) {
     });
   };
 
+  // ✅ NUEVA FUNCIÓN: Sumar 3 horas a la fecha
+  const formatSentDate = (dateString) => {
+    if (!dateString) return "No especificada";
+    const date = new Date(dateString);
+    // Sumar 3 horas (10800000 milisegundos)
+    date.setTime(date.getTime() + 3 * 60 * 60 * 1000);
+    return date.toLocaleString("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const getStatusLabel = (status) => {
     switch (status) {
       case "pending":
@@ -46,7 +62,9 @@ function ScheduledDetailsModal({ task, onClose }) {
 
           <div className="detail-item">
             <span className="detail-label">📅 Programada para:</span>
-            <span className="detail-value">{formatDate(task.scheduled_for)}</span>
+            <span className="detail-value">
+              {formatDate(task.scheduled_for)}
+            </span>
           </div>
 
           <div className="detail-item">
@@ -61,7 +79,10 @@ function ScheduledDetailsModal({ task, onClose }) {
 
           <div className="detail-item">
             <span className="detail-label">🆔 ID:</span>
-            <span className="detail-value" style={{ fontSize: "0.8rem", wordBreak: "break-all" }}>
+            <span
+              className="detail-value"
+              style={{ fontSize: "0.8rem", wordBreak: "break-all" }}
+            >
               {task.id}
             </span>
           </div>
@@ -74,7 +95,9 @@ function ScheduledDetailsModal({ task, onClose }) {
           {task.sent_at && (
             <div className="detail-item">
               <span className="detail-label">📨 Enviado el:</span>
-              <span className="detail-value">{formatDate(task.sent_at)}</span>
+              <span className="detail-value">
+                {formatSentDate(task.sent_at)}
+              </span>
             </div>
           )}
         </div>
