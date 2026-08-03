@@ -12,13 +12,14 @@ export const getRedirectUrl = () => {
   const protocol = window.location.protocol;
 
   // Detectar si es localhost
-  const isLocal = hostname === "localhost" || hostname === "5175";
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
 
   if (isLocal) {
-    // Para local: usa el puerto actual
+    // Para local: usa el puerto actual + /auth/callback
     return `${protocol}//${hostname}:${port}/auth/callback`;
   }
 
-  // Para producción (Netlify)
+  // ✅ Para producción (Netlify) - SIN el hash (#)
+  // Supabase redirects necesitan la URL exacta SIN el hash
   return "https://sistema-tareas-recordatorios.netlify.app/auth/callback";
 };
