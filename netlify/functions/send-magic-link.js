@@ -147,17 +147,21 @@ export const handler = async (event) => {
       };
     }
 
-    // ✅ Límite de 5 intentos por hora
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    // ✅ Configuración para DEMO (más permisivo)
+    const RATE_LIMIT = 15; // 15 intentos por hora
+    const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
+
+    // Verificar límite
+    const timeAgo = new Date(Date.now() - TIME_WINDOW);
     const { count, error: countError } = await supabase
       .from("magic_links")
       .select("*", { count: "exact", head: true })
       .eq("email", email)
-      .gte("created_at", oneHourAgo.toISOString());
+      .gte("created_at", timeAgo.toISOString());
 
     if (countError) throw countError;
 
-    if (count && count >= 5) {
+    if (count && count >= RATE_LIMIT) {
       return {
         statusCode: 429,
         headers: {
@@ -165,7 +169,7 @@ export const handler = async (event) => {
           "Access-Control-Allow-Origin": "*",
         },
         body: JSON.stringify({
-          error: "Demasiados intentos. Espera una hora.",
+          error: `Demasiados intentos. Espera una hora. (Límite: ${RATE_LIMIT} intentos por hora)`,
         }),
       };
     }
