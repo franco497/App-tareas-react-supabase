@@ -1,5 +1,5 @@
 // src/components/Footer.jsx
-import fotoCV from '../assets/footer/foto-cv-Franco-De-Vincentis.jfif';
+import fotoCV from "../assets/footer/foto-cv-Franco-De-Vincentis.jfif";
 
 const Footer = () => {
   return (
@@ -69,7 +69,11 @@ const Footer = () => {
               >
                 <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48c-1.37-.38-2.8-.38-4.17 0-2.73-1.83-3.91-1.48-3.91-1.48A5.07 5.07 0 0 0 8 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 12 18.13V22" />
               </svg>
-              <a href="" target="_blank" rel="noreferrer">
+              <a
+                href="https://github.com/franco497/App-tareas-react-supabase"
+                target="_blank"
+                rel="noreferrer"
+              >
                 Repositorio
               </a>
             </div>
