@@ -45,7 +45,7 @@ body {
 }
 
 .loading-container-text {
-  color: var(--white);
+  color: var(--white) !important ;
 }
 
 .loading-container-btn {

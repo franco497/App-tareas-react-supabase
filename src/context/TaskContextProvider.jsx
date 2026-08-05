@@ -566,10 +566,10 @@ export const TaskContextProvider = ({ children }) => {
     scheduledTasks,
     scheduledLoading,
     getScheduledTasks,
-    scheduleTaskLater, // ✅ NUEVO
+    scheduleTaskLater, 
     rescheduleScheduledTask,
     deleteScheduledTask,
-    cancelScheduledTask, // ✅ NUEVO
+    cancelScheduledTask, 
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

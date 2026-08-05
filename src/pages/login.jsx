@@ -35,7 +35,13 @@ function Login() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // TRADUCIR ERRORES DE SUPABASE
+        if (error.message === "email rate limit exceeded") {
+          throw new Error("Demasiados intentos. Espera 1 hora para volver a intentar.");
+        }
+        throw error;
+      }
 
       setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
       reset();
@@ -49,7 +55,7 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2 className="login-title">Inicia Sesion con Magic Link, solo ingresa tu E-mail:</h2>
+      <h2 className="login-title">Inicia Sesión con tu email</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="login-form">
         <div className="login-form-group">
           <input
@@ -66,7 +72,6 @@ function Login() {
             })}
           />
           
-          {/* Mensaje de error */}
           {errors.email && (
             <span className="error-message login-error">{errors.email.message}</span>
           )}

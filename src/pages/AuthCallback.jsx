@@ -82,7 +82,7 @@ function AuthCallback() {
 
         <h2 className="auth-callback-status">{status}</h2>
         {status.includes("Redirigiendo") && countdown > 0 && (
-          <p style={{ marginTop: "10px", color: "#666" }}>
+          <p style={{ marginTop: "10px", color: "#fff" }}>
             Redirigiendo en {countdown} segundos...
           </p>
         )}
