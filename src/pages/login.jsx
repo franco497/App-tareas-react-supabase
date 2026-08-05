@@ -26,25 +26,29 @@ function Login() {
     setError("");
 
     try {
-      // ✅ LLAMAR A TU NETLIFY FUNCTION
+      console.log("📤 Enviando solicitud a Netlify Function...");
+      console.log("📧 Email:", data.email);
+
       const response = await fetch("/.netlify/functions/send-magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.email }),
       });
 
-      const result = await response.json();
+      console.log("📨 Respuesta status:", response.status);
+      console.log("📨 Respuesta ok:", response.ok);
 
-      // ✅ VERIFICAR SI HUBO ERROR
+      const result = await response.json();
+      console.log("📨 Datos de respuesta:", result);
+
       if (!response.ok) {
         throw new Error(result.error || "Error al enviar el magic link");
       }
 
-      // ✅ SI TODO ESTÁ BIEN
       setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
       reset();
     } catch (err) {
-      console.error("Error:", err);
+      console.error("❌ Error:", err);
       setError(err.message || "Error al enviar el magic link");
     } finally {
       setLoading(false);
