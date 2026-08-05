@@ -1,75 +1,128 @@
-# React + Vite
+App Tareas - Sistema de Gestión y Recordatorios
+Sistema completo de gestión de tareas con recordatorios automáticos por email. Desarrollado con React + Vite + Supabase + Netlify, integra autenticación con Magic Links, envío de emails con Gmail API y un cron job automatizado para recordatorios programados.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🔗 Demo: https://sistema-tareas-recordatorios.netlify.app
 
-Currently, two official plugins are available:
+✨ Características principales
+📝 Gestión de tareas
+Crear, editar y eliminar tareas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Marcar tareas como completadas/pendientes
 
-## React Compiler
+Paginación para listas largas de tareas
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Papelera de reciclaje con restauración y eliminación permanente
 
-## Expanding the ESLint configuration
+📧 Recordatorios por email
+Envío inmediato: Notificaciones instantáneas con Gmail API
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Programación de recordatorios: Selecciona fecha y hora para recibir recordatorios
 
+Cron job automatizado: Servicio externo que revisa la base de datos cada minuto
 
-estructura de carpetas del sistema
+Interfaz de seguimiento: Visualiza todas las tareas programadas y su estado
 
-APP-TAREAS-REACT-SUPABASE-22-I/
-│
-├── node_modules/
-├── public/
+🔐 Autenticación
+Magic Links con Netlify Functions
+
+Límite de 15 intentos por hora por usuario (protección anti-spam)
+
+Registro automático de nuevos usuarios
+
+Experiencia fluida sin necesidad de contraseñas
+
+📱 Diseño y experiencia
+Mobile First: Adaptable a todos los dispositivos
+
+Arquitectura CSS: ITCSS + Atomic Design
+
+Tema visual: Acuarela nocturna con fondos degradados
+
+Responsive: Optimizado para móviles, tablets y escritorio
+
+🛠️ Stack Tecnológico
+Tecnología	Uso
+React 19	UI y componentes
+Vite	Build tool y desarrollo
+React Router DOM	Enrutamiento de la aplicación
+React Hook Form	Manejo de formularios
+Supabase	Base de datos PostgreSQL + Autenticación
+Netlify Functions	Magic Links (serverless)
+Supabase Edge Functions	Envío de emails programados
+Gmail API	Envío de emails
+cron-job.org	Ejecución del cron job
+SweetAlert2	Notificaciones y modales
+CSS3	Estilos y diseño responsive
+📊 Base de Datos
+PostgreSQL (Supabase) con 4 tablas relacionales y RLS:
+
+Tabla	Propósito
+tasks	Almacenamiento de tareas de usuarios
+scheduled_notifications	Recordatorios programados
+magic_links	Tokens de autenticación temporal
+users Tabla de usuarios
+Configuración de seguridad: Row Level Security (RLS) con políticas por usuario.
+
+🚀 Flujo del sistema
+📧 Recordatorios programados
+text
+Usuario programa tarea → Guarda en Supabase → Cron job revisa cada minuto →
+  → Compara fechas (UTC-3 Argentina) → Envía email con Gmail API →
+    → Actualiza estado a "enviado"
+🔐 Magic Links
+text
+Usuario ingresa email → Netlify Function genera token →
+  → Guarda en tabla magic_links → Envía email con enlace →
+    → Usuario hace clic → Verifica token → Inicia sesión
+📂 Estructura del Proyecto
+/
 ├── src/
-│   ├── components/
+│   ├── components/          # Componentes reutilizables
+│   │   ├── Footer.jsx
 │   │   ├── Navbar.jsx
 │   │   ├── NotificationForm.jsx
+│   │   ├── RescheduleModal.jsx
+│   │   ├── ScheduledDetailsModal.jsx
 │   │   ├── TaskCard.jsx
 │   │   ├── TaskForm.jsx
 │   │   └── TaskList.jsx
-│   │
-│   ├── context/
-│   │   └── TaskContext.jsx
-│   │
-│   ├── lib/
-│   │   └── supabase.js
-│   │
-│   ├── pages/
-│   │   ├── AuthCallback.jsx
+│   ├── context/             # Context API (estado global)
+│   ├── pages/               # Vistas de la aplicación
 │   │   ├── Dashboard.jsx
-│   │   ├── login.jsx
-│   │   └── NotFound.jsx
-│   │
-│   ├── supabase/
-│   │   └── auth/
-│   │       └── callback.js
-│   │
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-│
-├── .env
-└── .gitignore
+│   │   ├── Login.jsx
+│   │   ├── AuthCallback.jsx
+│   │   ├── ScheduledTasks.jsx
+│   │   └── Trash.jsx
+│   ├── styles/              # CSS modular (ITCSS + Atomic Design)
+│   ├── lib/                 # Configuraciones (Supabase)
+│   └── App.jsx              # Componente principal
+├── netlify/
+│   └── functions/           # Serverless Functions
+│       ├── send-magic-link.js
+│       └── verify-magic-link.js
+├── supabase/
+│   └── functions/           # Edge Functions
+│       ├── check-notifications/
+│       └── send-email-gmail/
+├── index.html
+├── package.json
+└── netlify.toml
 
- Estructura final de tu proyecto:
+🎨 Arquitectura CSS
+Mobile First con estructura ITCSS + Atomic Design:
 
- APP-TAREAS-REACT-SUPABASE-22-I/
-│
-├── backend-worker/              ← NUEVO (código del worker)
-│   ├── package.json
-│   ├── index.js
-│   └── .env
-│
-├── supabase/                    ← Sigue existiendo
-│   └── functions/
-│       ├── send-email-gmail/   ← Para "Enviar ahora"
-│       └── process-scheduled-emails/ (opcional, ya no necesitas)
-│
-├── src/                         ← Tu React App
-│   ├── components/
-│   ├── pages/
-│   └── ...
-│
-└── .env
+styles/
+├── base/           # Variables, reset, globales
+├── components/     # Estilos de componentes (Navbar, TaskCard, etc.)
+├── pages/          # Estilos específicos de páginas
+└── utilities/      # Animaciones, responsive, banners
+
+📖 Referencias Bibliográficas
+El gran libro de HTML5, CSS3 y Javascript - Juan Diego Gauchat
+Guía completa sobre las tecnologías fundamentales del desarrollo web moderno.
+
+Eloquent JavaScript (JavaScript Elocuente) - Marijn Haverbeke
+Libro moderno y práctico que cubre desde fundamentos hasta temas avanzados del lenguaje. Disponible gratuitamente en línea.
+
+📝 Licencia
+Este proyecto es de código abierto para fines educativos y de portafolio.
