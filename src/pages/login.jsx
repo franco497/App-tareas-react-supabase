@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { supabase, getRedirectUrl } from '../lib/supabase'; 
+import { supabase, getRedirectUrl } from "../lib/supabase";
 
 function Login() {
   const [loading, setLoading] = useState(false);
@@ -12,12 +12,12 @@ function Login() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isValid, isSubmitting }
+    formState: { errors, isValid, isSubmitting },
   } = useForm({
     defaultValues: {
-      email: ""
+      email: "",
     },
-    mode: "onChange"
+    mode: "onChange",
   });
 
   const onSubmit = async (data) => {
@@ -26,23 +26,21 @@ function Login() {
     setError("");
 
     try {
-      const redirectUrl = getRedirectUrl(); 
-      
-      const { error } = await supabase.auth.signInWithOtp({
-        email: data.email,
-        options: {
-          emailRedirectTo: redirectUrl, 
-        },
+      // ✅ LLAMAR A TU NETLIFY FUNCTION
+      const response = await fetch("/.netlify/functions/send-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email }),
       });
 
-      if (error) {
-        // TRADUCIR ERRORES DE SUPABASE
-        if (error.message === "email rate limit exceeded") {
-          throw new Error("Demasiados intentos. Espera 1 hora para volver a intentar.");
-        }
-        throw error;
+      const result = await response.json();
+
+      // ✅ VERIFICAR SI HUBO ERROR
+      if (!response.ok) {
+        throw new Error(result.error || "Error al enviar el magic link");
       }
 
+      // ✅ SI TODO ESTÁ BIEN
       setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
       reset();
     } catch (err) {
@@ -66,20 +64,22 @@ function Login() {
             {...register("email", {
               required: "El email es obligatorio",
               pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: "Email inválido"
-              }
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Email inválido",
+              },
             })}
           />
-          
+
           {errors.email && (
-            <span className="error-message login-error">{errors.email.message}</span>
+            <span className="error-message login-error">
+              {errors.email.message}
+            </span>
           )}
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading || !isValid || isSubmitting} 
+        <button
+          type="submit"
+          disabled={loading || !isValid || isSubmitting}
           className="login-button"
         >
           {loading ? "Enviando..." : "Enviar Magic Link"}
