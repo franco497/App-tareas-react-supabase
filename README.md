@@ -1,128 +1,125 @@
-App Tareas - Sistema de Gestión y Recordatorios
-Sistema completo de gestión de tareas con recordatorios automáticos por email. Desarrollado con React + Vite + Supabase + Netlify, integra autenticación con Magic Links, envío de emails con Gmail API y un cron job automatizado para recordatorios programados.
+# App Tareas - Sistema de Gestión y Recordatorios
 
-🔗 Demo: https://sistema-tareas-recordatorios.netlify.app
+Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** que permite organizar tareas, programar recordatorios automáticos por correo electrónico y autenticarse mediante **Magic Links**.
 
-✨ Características principales
-📝 Gestión de tareas
-Crear, editar y eliminar tareas
+🔗 **Demo:** https://sistema-tareas-recordatorios.netlify.app
 
-Marcar tareas como completadas/pendientes
+---
 
-Paginación para listas largas de tareas
+## ✨ Características principales
 
-Papelera de reciclaje con restauración y eliminación permanente
+* 📝 **Gestión completa de tareas** – Crear, editar, eliminar y marcar tareas como completadas o pendientes.
+* 📧 **Recordatorios automáticos por email** – Envío inmediato o programado mediante Gmail API y procesamiento automático con un cron job.
+* 🗑️ **Papelera de reciclaje** – Restauración de tareas eliminadas o eliminación permanente.
+* 🔐 **Autenticación con Magic Links** – Inicio de sesión sin contraseñas mediante Netlify Functions.
+* 🛡️ **Protección anti-spam** – Límite de 15 solicitudes de acceso por hora para cada usuario.
+* 📋 **Seguimiento de recordatorios** – Visualización del estado de todas las notificaciones programadas.
+* 📱 **Mobile First** – Diseño optimizado para móviles, tablets y escritorio.
+* 🎨 **Arquitectura CSS escalable** – Organización basada en ITCSS y Atomic Design.
+* ⚡ **Enrutamiento completo** – Navegación fluida con React Router DOM.
 
-📧 Recordatorios por email
-Envío inmediato: Notificaciones instantáneas con Gmail API
+---
 
-Programación de recordatorios: Selecciona fecha y hora para recibir recordatorios
+## 🛠️ Stack Tecnológico
 
-Cron job automatizado: Servicio externo que revisa la base de datos cada minuto
+| Tecnología              | Uso                                      |
+| ----------------------- | ---------------------------------------- |
+| React 19                | UI y componentes                         |
+| Vite                    | Build tool y desarrollo                  |
+| React Router DOM        | Enrutamiento de la aplicación            |
+| React Hook Form         | Manejo de formularios                    |
+| Supabase                | Base de datos PostgreSQL y autenticación |
+| Netlify Functions       | Autenticación mediante Magic Links       |
+| Supabase Edge Functions | Procesamiento de recordatorios           |
+| Gmail API               | Envío de correos electrónicos            |
+| cron-job.org            | Ejecución del cron job                   |
+| SweetAlert2             | Notificaciones y modales                 |
+| CSS3                    | Estilos y diseño responsive              |
 
-Interfaz de seguimiento: Visualiza todas las tareas programadas y su estado
+---
 
-🔐 Autenticación
-Magic Links con Netlify Functions
+## 📊 Base de Datos
 
-Límite de 15 intentos por hora por usuario (protección anti-spam)
+PostgreSQL mediante **Supabase**, utilizando **4 tablas relacionales** y **Row Level Security (RLS)** para garantizar que cada usuario solo pueda acceder a su propia información.
 
-Registro automático de nuevos usuarios
+| Tabla                   | Propósito                          |
+| ----------------------- | ---------------------------------- |
+| tasks                   | Almacenamiento de tareas           |
+| scheduled_notifications | Recordatorios programados          |
+| magic_links             | Tokens temporales de autenticación |
+| users                   | Información de usuarios            |
 
-Experiencia fluida sin necesidad de contraseñas
+---
 
-📱 Diseño y experiencia
-Mobile First: Adaptable a todos los dispositivos
+## 🚀 Flujo del Sistema
 
-Arquitectura CSS: ITCSS + Atomic Design
+### 📧 Recordatorios programados
 
-Tema visual: Acuarela nocturna con fondos degradados
+```text
+Usuario crea una tarea
+        ↓
+Guarda la programación en Supabase
+        ↓
+Cron Job revisa la base de datos cada minuto
+        ↓
+Verifica fecha y hora (UTC-3)
+        ↓
+Envía el correo mediante Gmail API
+        ↓
+Actualiza el estado del recordatorio
+```
 
-Responsive: Optimizado para móviles, tablets y escritorio
+### 🔐 Autenticación mediante Magic Links
 
-🛠️ Stack Tecnológico
-Tecnología	Uso
-React 19	UI y componentes
-Vite	Build tool y desarrollo
-React Router DOM	Enrutamiento de la aplicación
-React Hook Form	Manejo de formularios
-Supabase	Base de datos PostgreSQL + Autenticación
-Netlify Functions	Magic Links (serverless)
-Supabase Edge Functions	Envío de emails programados
-Gmail API	Envío de emails
-cron-job.org	Ejecución del cron job
-SweetAlert2	Notificaciones y modales
-CSS3	Estilos y diseño responsive
-📊 Base de Datos
-PostgreSQL (Supabase) con 4 tablas relacionales y RLS:
+```text
+Usuario ingresa su email
+        ↓
+Netlify Function genera un token
+        ↓
+Guarda el token en Supabase
+        ↓
+Envía el enlace de acceso por email
+        ↓
+El usuario abre el enlace
+        ↓
+Se valida el token e inicia sesión
+```
 
-Tabla	Propósito
-tasks	Almacenamiento de tareas de usuarios
-scheduled_notifications	Recordatorios programados
-magic_links	Tokens de autenticación temporal
-users Tabla de usuarios
-Configuración de seguridad: Row Level Security (RLS) con políticas por usuario.
+---
 
-🚀 Flujo del sistema
-📧 Recordatorios programados
-text
-Usuario programa tarea → Guarda en Supabase → Cron job revisa cada minuto →
-  → Compara fechas (UTC-3 Argentina) → Envía email con Gmail API →
-    → Actualiza estado a "enviado"
-🔐 Magic Links
-text
-Usuario ingresa email → Netlify Function genera token →
-  → Guarda en tabla magic_links → Envía email con enlace →
-    → Usuario hace clic → Verifica token → Inicia sesión
-📂 Estructura del Proyecto
+## 📂 Estructura del Proyecto
+
+```text
 /
 ├── src/
-│   ├── components/          # Componentes reutilizables
-│   │   ├── Footer.jsx
-│   │   ├── Navbar.jsx
-│   │   ├── NotificationForm.jsx
-│   │   ├── RescheduleModal.jsx
-│   │   ├── ScheduledDetailsModal.jsx
-│   │   ├── TaskCard.jsx
-│   │   ├── TaskForm.jsx
-│   │   └── TaskList.jsx
-│   ├── context/             # Context API (estado global)
-│   ├── pages/               # Vistas de la aplicación
-│   │   ├── Dashboard.jsx
-│   │   ├── Login.jsx
-│   │   ├── AuthCallback.jsx
-│   │   ├── ScheduledTasks.jsx
-│   │   └── Trash.jsx
-│   ├── styles/              # CSS modular (ITCSS + Atomic Design)
-│   ├── lib/                 # Configuraciones (Supabase)
-│   └── App.jsx              # Componente principal
+│   ├── components/      # Componentes reutilizables
+│   ├── pages/           # Páginas de la aplicación
+│   ├── hooks/           # Custom Hooks
+│   ├── services/        # Lógica de Supabase y Gmail
+│   ├── styles/          # Arquitectura ITCSS
+│   └── App.jsx
 ├── netlify/
-│   └── functions/           # Serverless Functions
-│       ├── send-magic-link.js
-│       └── verify-magic-link.js
+│   └── functions/       # Magic Links
 ├── supabase/
-│   └── functions/           # Edge Functions
-│       ├── check-notifications/
-│       └── send-email-gmail/
-├── index.html
+│   └── functions/       # Edge Functions
 ├── package.json
 └── netlify.toml
+```
 
-🎨 Arquitectura CSS
-Mobile First con estructura ITCSS + Atomic Design:
+---
 
-styles/
-├── base/           # Variables, reset, globales
-├── components/     # Estilos de componentes (Navbar, TaskCard, etc.)
-├── pages/          # Estilos específicos de páginas
-└── utilities/      # Animaciones, responsive, banners
+## 📖 Referencias bibliográficas
 
-📖 Referencias Bibliográficas
-El gran libro de HTML5, CSS3 y Javascript - Juan Diego Gauchat
+**El gran libro de HTML5, CSS3 y Javascript**
+**Juan Diego Gauchat**
 Guía completa sobre las tecnologías fundamentales del desarrollo web moderno.
 
-Eloquent JavaScript (JavaScript Elocuente) - Marijn Haverbeke
-Libro moderno y práctico que cubre desde fundamentos hasta temas avanzados del lenguaje. Disponible gratuitamente en línea.
+**Eloquent JavaScript (JavaScript Elocuente)**
+**Marijn Haverbeke**
+Libro moderno y práctico que cubre desde fundamentos hasta temas avanzados del lenguaje. Disponible gratuitamente en línea, con enfoque en código claro y eficiente.
 
-📝 Licencia
-Este proyecto es de código abierto para fines educativos y de portafolio.
+---
+
+## 📝 Licencia
+
+Proyecto desarrollado con fines educativos y de portafolio.
