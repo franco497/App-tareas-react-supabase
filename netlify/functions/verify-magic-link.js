@@ -7,6 +7,7 @@ const supabase = createClient(
 );
 
 export const handler = async (event) => {
+  // ✅ CORS
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -21,6 +22,8 @@ export const handler = async (event) => {
 
   try {
     const { token } = JSON.parse(event.body);
+
+    console.log("🔍 Token recibido:", token);
 
     if (!token) {
       return {
@@ -42,7 +45,8 @@ export const handler = async (event) => {
       .gte("expires_at", new Date().toISOString())
       .single();
 
-    if (error || !magicLink) {
+    if (error) {
+      console.error("❌ Error buscando token:", error);
       return {
         statusCode: 400,
         headers: {
@@ -53,11 +57,27 @@ export const handler = async (event) => {
       };
     }
 
+    if (!magicLink) {
+      console.error("❌ Token no encontrado o expirado");
+      return {
+        statusCode: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ error: "Token inválido o expirado" }),
+      };
+    }
+
+    console.log("✅ Token válido para:", magicLink.email);
+
     // ✅ Marcar como usado
     await supabase
       .from("magic_links")
       .update({ is_used: true, used_at: new Date().toISOString() })
       .eq("id", magicLink.id);
+
+    console.log("✅ Token marcado como usado");
 
     // ✅ Crear sesión en Supabase
     const { data: session, error: sessionError } =
@@ -67,13 +87,25 @@ export const handler = async (event) => {
       });
 
     if (sessionError) {
+      console.error("❌ Error iniciando sesión:", sessionError);
+
       // Si el usuario no existe, crearlo
       const { error: signUpError } = await supabase.auth.signUp({
         email: magicLink.email,
         password: token,
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error("❌ Error creando usuario:", signUpError);
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Error creando usuario" }),
+        };
+      }
 
       const { data: newSession, error: loginError } =
         await supabase.auth.signInWithPassword({
@@ -81,7 +113,20 @@ export const handler = async (event) => {
           password: token,
         });
 
-      if (loginError) throw loginError;
+      if (loginError) {
+        console.error(
+          "❌ Error iniciando sesión después de crear usuario:",
+          loginError,
+        );
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Error iniciando sesión" }),
+        };
+      }
 
       return {
         statusCode: 200,
@@ -102,14 +147,17 @@ export const handler = async (event) => {
       body: JSON.stringify({ success: true, session }),
     };
   } catch (error) {
-    console.error("❌ Error:", error);
+    console.error("❌ Error en handler:", error);
     return {
       statusCode: 500,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       },
-      body: JSON.stringify({ error: "Error interno del servidor" }),
+      body: JSON.stringify({
+        error: "Error interno del servidor",
+        details: error.message,
+      }),
     };
   }
 };
