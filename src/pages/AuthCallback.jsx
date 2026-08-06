@@ -10,19 +10,30 @@ function AuthCallback() {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        // ✅ Obtener token de la URL (sin el hash)
+        // ✅ Guardar logs en sessionStorage para verlos después
+        const log = (msg) => {
+          console.log(msg);
+          const logs = JSON.parse(sessionStorage.getItem("authLogs") || "[]");
+          logs.push(msg);
+          sessionStorage.setItem("authLogs", JSON.stringify(logs));
+        };
+
+        log("🔍 Iniciando verificación...");
+        
+        // ✅ Obtener token de la URL
         const params = new URLSearchParams(window.location.search);
         const token = params.get("token");
 
-        console.log("🔍 Token recibido:", token);
+        log(`🔍 Token recibido: ${token}`);
 
         if (!token) {
+          log("❌ Token no encontrado");
           setStatus("❌ Token no encontrado");
           setTimeout(() => navigate("/"), 2000);
           return;
         }
 
-        console.log("📤 Verificando token con Netlify Function...");
+        log("📤 Verificando token con Netlify Function...");
 
         // ✅ LLAMAR A NETLIFY FUNCTION
         const response = await fetch(
@@ -35,12 +46,13 @@ function AuthCallback() {
         );
 
         const data = await response.json();
-        console.log("📨 Respuesta:", data);
+        log(`📨 Respuesta: ${JSON.stringify(data)}`);
 
         if (!response.ok || !data.success) {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
+        log("✅ ¡Acceso concedido!");
         setStatus("✅ ¡Acceso concedido! Redirigiendo...");
 
         let counter = 3;
@@ -50,13 +62,19 @@ function AuthCallback() {
           setCountdown(counter);
           if (counter <= 0) {
             clearInterval(interval);
-            // ✅ Redirigir al dashboard
             navigate("/dashboard");
           }
         }, 1000);
 
       } catch (error) {
         console.error("❌ Error:", error);
+        const log = (msg) => {
+          console.log(msg);
+          const logs = JSON.parse(sessionStorage.getItem("authLogs") || "[]");
+          logs.push(msg);
+          sessionStorage.setItem("authLogs", JSON.stringify(logs));
+        };
+        log(`❌ Error: ${error.message}`);
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => navigate("/"), 3000);
       }
