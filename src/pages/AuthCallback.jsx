@@ -10,21 +10,26 @@ function AuthCallback() {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        // ✅ Guardar logs en sessionStorage para verlos después
-        const log = (msg) => {
-          console.log(msg);
-          const logs = JSON.parse(sessionStorage.getItem("authLogs") || "[]");
-          logs.push(msg);
-          sessionStorage.setItem("authLogs", JSON.stringify(logs));
-        };
+        // ✅ LOG DE LA URL COMPLETA
+        console.log("📍 URL actual:", window.location.href);
+        console.log("📍 Pathname:", window.location.pathname);
+        console.log("📍 Search:", window.location.search);
+        console.log("📍 Hash:", window.location.hash);
 
-        log("🔍 Iniciando verificación...");
-        
-        // ✅ Obtener token de la URL
+        // ✅ INTENTAR OBTENER EL TOKEN DE DIFERENTES FORMAS
         const params = new URLSearchParams(window.location.search);
-        const token = params.get("token");
+        let token = params.get("token");
 
-        log(`🔍 Token recibido: ${token}`);
+        // ✅ SI NO ESTÁ EN search, buscar en hash
+        if (!token && window.location.hash) {
+          const hashParams = new URLSearchParams(
+            window.location.hash.split("?")[1],
+          );
+          token = hashParams.get("token");
+          console.log("🔍 Token desde hash:", token);
+        }
+
+        console.log("🔍 Token final:", token);
 
         if (!token) {
           log("❌ Token no encontrado");
@@ -42,7 +47,7 @@ function AuthCallback() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),
-          }
+          },
         );
 
         const data = await response.json();
@@ -65,7 +70,6 @@ function AuthCallback() {
             navigate("/dashboard");
           }
         }, 1000);
-
       } catch (error) {
         console.error("❌ Error:", error);
         const log = (msg) => {
@@ -86,15 +90,17 @@ function AuthCallback() {
   return (
     <div className="auth-callback-container">
       <div className="auth-callback-content">
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #3498db',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 20px'
-        }} />
+        <div
+          style={{
+            width: "50px",
+            height: "50px",
+            border: "4px solid #f3f3f3",
+            borderTop: "4px solid #3498db",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 20px",
+          }}
+        />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -104,7 +110,7 @@ function AuthCallback() {
 
         <h2 className="auth-callback-status">{status}</h2>
         {status.includes("Redirigiendo") && countdown > 0 && (
-          <p style={{ marginTop: '10px', color: '#666' }}>
+          <p style={{ marginTop: "10px", color: "#666" }}>
             Redirigiendo en {countdown} segundos...
           </p>
         )}
