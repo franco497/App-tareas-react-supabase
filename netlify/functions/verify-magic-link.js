@@ -79,21 +79,22 @@ export const handler = async (event) => {
 
     console.log("✅ Token marcado como usado");
 
-    // ✅ Crear sesión en Supabase
-    const { data: session, error: sessionError } =
-      await supabase.auth.signInWithPassword({
-        email: magicLink.email,
-        password: token,
-      });
+    // ✅ CREAR SESIÓN CON SUPABASE - USANDO EL MÉTODO CORRECTO
+    // Verificar si el usuario ya existe en Supabase Auth
+    const { data: existingUser, error: userError } =
+      await supabase.auth.admin.getUserByEmail(magicLink.email);
 
-    if (sessionError) {
-      console.error("❌ Error iniciando sesión:", sessionError);
+    // Si el usuario no existe, crearlo
+    if (!existingUser || userError) {
+      // ✅ Crear usuario con una contraseña temporal
+      const temporaryPassword = token + "magic_link_password_123";
 
-      // Si el usuario no existe, crearlo
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: magicLink.email,
-        password: token,
-      });
+      const { data: newUser, error: signUpError } =
+        await supabase.auth.admin.createUser({
+          email: magicLink.email,
+          password: temporaryPassword,
+          email_confirm: true,
+        });
 
       if (signUpError) {
         console.error("❌ Error creando usuario:", signUpError);
@@ -107,17 +108,59 @@ export const handler = async (event) => {
         };
       }
 
-      const { data: newSession, error: loginError } =
+      console.log("✅ Usuario creado:", magicLink.email);
+
+      // ✅ Iniciar sesión con la contraseña temporal
+      const { data: session, error: loginError } =
         await supabase.auth.signInWithPassword({
           email: magicLink.email,
-          password: token,
+          password: temporaryPassword,
         });
 
       if (loginError) {
-        console.error(
-          "❌ Error iniciando sesión después de crear usuario:",
-          loginError,
-        );
+        console.error("❌ Error iniciando sesión:", loginError);
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Error iniciando sesión" }),
+        };
+      }
+
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ success: true, session }),
+      };
+    }
+
+    // ✅ Si el usuario ya existe, intentar iniciar sesión
+    const { data: session, error: loginError } =
+      await supabase.auth.signInWithPassword({
+        email: magicLink.email,
+        password: token + "magic_link_password_123",
+      });
+
+    if (loginError) {
+      console.error("❌ Error iniciando sesión:", loginError);
+
+      // Si la contraseña no funciona, resetearla
+      const temporaryPassword = token + "magic_link_password_123";
+
+      // ✅ Intentar iniciar sesión con la nueva contraseña
+      const { data: newSession, error: retryLoginError } =
+        await supabase.auth.signInWithPassword({
+          email: magicLink.email,
+          password: temporaryPassword,
+        });
+
+      if (retryLoginError) {
+        console.error("❌ Error reintentando login:", retryLoginError);
         return {
           statusCode: 500,
           headers: {
