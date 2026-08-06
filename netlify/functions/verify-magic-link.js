@@ -79,19 +79,34 @@ export const handler = async (event) => {
 
     console.log("✅ Token marcado como usado");
 
-    // ✅ CREAR SESIÓN CON SUPABASE - USANDO EL MÉTODO CORRECTO
-    // Verificar si el usuario ya existe en Supabase Auth
-    const { data: existingUser, error: userError } =
-      await supabase.auth.admin.getUserByEmail(magicLink.email);
+    const email = magicLink.email;
+    const temporaryPassword = token + "magic_link_password_123";
 
-    // Si el usuario no existe, crearlo
-    if (!existingUser || userError) {
-      // ✅ Crear usuario con una contraseña temporal
-      const temporaryPassword = token + "magic_link_password_123";
+    // ✅ VERIFICAR SI EL USUARIO YA EXISTE EN SUPABASE AUTH
+    const { data: users, error: listError } =
+      await supabase.auth.admin.listUsers();
+
+    if (listError) {
+      console.error("❌ Error listando usuarios:", listError);
+      return {
+        statusCode: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ error: "Error verificando usuario" }),
+      };
+    }
+
+    const existingUser = users?.users?.find((user) => user.email === email);
+
+    // ✅ SI EL USUARIO NO EXISTE, CREARLO
+    if (!existingUser) {
+      console.log("👤 Usuario no existe, creando...");
 
       const { data: newUser, error: signUpError } =
         await supabase.auth.admin.createUser({
-          email: magicLink.email,
+          email: email,
           password: temporaryPassword,
           email_confirm: true,
         });
@@ -108,78 +123,82 @@ export const handler = async (event) => {
         };
       }
 
-      console.log("✅ Usuario creado:", magicLink.email);
-
-      // ✅ Iniciar sesión con la contraseña temporal
-      const { data: session, error: loginError } =
-        await supabase.auth.signInWithPassword({
-          email: magicLink.email,
-          password: temporaryPassword,
-        });
-
-      if (loginError) {
-        console.error("❌ Error iniciando sesión:", loginError);
-        return {
-          statusCode: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ error: "Error iniciando sesión" }),
-        };
-      }
-
-      return {
-        statusCode: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ success: true, session }),
-      };
+      console.log("✅ Usuario creado:", email);
     }
 
-    // ✅ Si el usuario ya existe, intentar iniciar sesión
+    // ✅ INICIAR SESIÓN
+    console.log("🔑 Iniciando sesión con:", email);
+
     const { data: session, error: loginError } =
       await supabase.auth.signInWithPassword({
-        email: magicLink.email,
-        password: token + "magic_link_password_123",
+        email: email,
+        password: temporaryPassword,
       });
 
     if (loginError) {
       console.error("❌ Error iniciando sesión:", loginError);
 
-      // Si la contraseña no funciona, resetearla
-      const temporaryPassword = token + "magic_link_password_123";
+      // Si el usuario existe pero la contraseña no funciona, actualizarla
+      if (existingUser) {
+        console.log("🔄 Reintentando con actualización de contraseña...");
 
-      // ✅ Intentar iniciar sesión con la nueva contraseña
-      const { data: newSession, error: retryLoginError } =
-        await supabase.auth.signInWithPassword({
-          email: magicLink.email,
-          password: temporaryPassword,
-        });
+        const { error: updateError } = await supabase.auth.admin.updateUserById(
+          existingUser.id,
+          { password: temporaryPassword },
+        );
 
-      if (retryLoginError) {
-        console.error("❌ Error reintentando login:", retryLoginError);
+        if (updateError) {
+          console.error("❌ Error actualizando contraseña:", updateError);
+          return {
+            statusCode: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({ error: "Error actualizando contraseña" }),
+          };
+        }
+
+        // Reintentar login
+        const { data: retrySession, error: retryError } =
+          await supabase.auth.signInWithPassword({
+            email: email,
+            password: temporaryPassword,
+          });
+
+        if (retryError) {
+          console.error("❌ Error reintentando login:", retryError);
+          return {
+            statusCode: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({ error: "Error iniciando sesión" }),
+          };
+        }
+
         return {
-          statusCode: 500,
+          statusCode: 200,
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
           },
-          body: JSON.stringify({ error: "Error iniciando sesión" }),
+          body: JSON.stringify({ success: true, session: retrySession }),
         };
       }
 
       return {
-        statusCode: 200,
+        statusCode: 500,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ success: true, session: newSession }),
+        body: JSON.stringify({ error: "Error iniciando sesión" }),
       };
     }
+
+    console.log("✅ Sesión iniciada correctamente");
 
     return {
       statusCode: 200,
