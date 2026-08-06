@@ -8,7 +8,6 @@ function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ✅ DEFINIR LOG AQUÍ (fuera del try)
     const log = (msg) => {
       console.log(msg);
       const logs = JSON.parse(sessionStorage.getItem("authLogs") || "[]");
@@ -19,23 +18,19 @@ function AuthCallback() {
     const verifyToken = async () => {
       try {
         log("🔍 Iniciando verificación...");
-        
-        // ✅ LOG DE LA URL COMPLETA
         log(`📍 URL actual: ${window.location.href}`);
         log(`📍 Search: ${window.location.search}`);
         log(`📍 Hash: ${window.location.hash}`);
-        
-        // ✅ Obtener token de la URL
+
         const params = new URLSearchParams(window.location.search);
         let token = params.get("token");
-        
-        // ✅ Si no está en search, buscar en hash
+
         if (!token && window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
           token = hashParams.get("token");
           log(`🔍 Token desde hash: ${token}`);
         }
-        
+
         log(`🔍 Token final: ${token}`);
 
         if (!token) {
@@ -73,7 +68,8 @@ function AuthCallback() {
           setCountdown(counter);
           if (counter <= 0) {
             clearInterval(interval);
-            navigate("/dashboard");
+            // ✅ FORZAR REDIRECCIÓN CON RECARGA
+            window.location.href = "/#/dashboard";
           }
         }, 1000);
 

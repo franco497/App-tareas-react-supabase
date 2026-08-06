@@ -37,6 +37,7 @@ function App() {
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
+          color:"#fff",
         }}
       >
         <h2>Cargando...</h2>
