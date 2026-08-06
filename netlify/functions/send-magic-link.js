@@ -109,6 +109,9 @@ async function sendMagicLinkEmail(email, token) {
 }
 
 export const handler = async (event) => {
+  console.log("📨 === VERIFY-MAGIC-LINK INVOCADA ===");
+  console.log("📋 Método:", event.httpMethod);
+  console.log("📋 Body:", event.body);
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
