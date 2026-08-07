@@ -12,7 +12,7 @@ import Trash from "./pages/Trash";
 
 function App() {
   // ✅ INICIALIZAR CON sessionStorage
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
   const [session, setSession] = useState(() => {
     const stored = sessionStorage.getItem("supabaseSession");
     if (stored) {
@@ -32,36 +32,6 @@ function App() {
   });
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      // ✅ Si ya hay sesión, no esperar a Supabase
-      if (session) {
-        console.log("📌 Sesión ya existe, saltando Supabase");
-        setAuthLoading(false);
-        return;
-      }
-
-      // ✅ Obtener sesión de Supabase
-      const {
-        data: { session: supabaseSession },
-      } = await supabase.auth.getSession();
-      console.log(
-        "📌 Sesión desde Supabase:",
-        supabaseSession?.user?.email || "No hay sesión",
-      );
-
-      if (supabaseSession) {
-        setSession(supabaseSession);
-        sessionStorage.setItem(
-          "supabaseSession",
-          JSON.stringify(supabaseSession),
-        );
-      }
-
-      setAuthLoading(false);
-    };
-
-    initializeAuth();
-
     // ✅ Escuchar cambios en autenticación
     const {
       data: { subscription },
@@ -79,27 +49,12 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, [session]);
+  }, []);
 
   console.log(
     "📊 Estado de sesión en App:",
     session?.user?.email || "No autenticado",
   );
-
-  if (authLoading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <h2>Cargando...</h2>
-      </div>
-    );
-  }
 
   return (
     <HashRouter>

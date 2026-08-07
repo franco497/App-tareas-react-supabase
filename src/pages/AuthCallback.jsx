@@ -1,9 +1,10 @@
 // src/pages/AuthCallback.jsx
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
-  const [countdown, setCountdown] = useState(3);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
     const log = (msg) => {
@@ -22,7 +23,9 @@ function AuthCallback() {
         let token = params.get("token");
 
         if (!token && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+          const hashParams = new URLSearchParams(
+            window.location.hash.split("?")[1],
+          );
           token = hashParams.get("token");
           log(`🔍 Token desde hash: ${token}`);
         }
@@ -33,7 +36,7 @@ function AuthCallback() {
           log("❌ Token no encontrado");
           setStatus("❌ Token no encontrado");
           setTimeout(() => {
-            window.location.replace("/");
+            window.location.href = "/";
           }, 2000);
           return;
         }
@@ -46,7 +49,7 @@ function AuthCallback() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),
-          }
+          },
         );
 
         const data = await response.json();
@@ -58,7 +61,10 @@ function AuthCallback() {
 
         // ✅ GUARDAR SESIÓN EN SESSIONSTORAGE
         if (data.session) {
-          sessionStorage.setItem("supabaseSession", JSON.stringify(data.session));
+          sessionStorage.setItem(
+            "supabaseSession",
+            JSON.stringify(data.session),
+          );
           log("✅ Sesión guardada en sessionStorage");
           log(`👤 Usuario: ${data.session.user.email}`);
         } else {
@@ -67,27 +73,16 @@ function AuthCallback() {
         }
 
         log("✅ ¡Acceso concedido!");
-        setStatus("✅ ¡Acceso concedido! Redirigiendo...");
+        setStatus("✅ ¡Acceso concedido!");
 
-        let counter = 3;
-        setCountdown(counter);
-        const interval = setInterval(() => {
-          counter -= 1;
-          setCountdown(counter);
-          if (counter <= 0) {
-            clearInterval(interval);
-            // ✅ USAR window.location.replace PARA FORZAR RECARGA COMPLETA
-            log("🔄 Redirigiendo a dashboard con replace...");
-            window.location.replace("/#/dashboard");
-          }
-        }, 1000);
-
+        // ✅ ACTIVAR REDIRECCIÓN CON NAVIGATE
+        setShouldRedirect(true);
       } catch (error) {
         console.error("❌ Error:", error);
         log(`❌ Error: ${error.message}`);
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => {
-          window.location.replace("/");
+          window.location.href = "/";
         }, 3000);
       }
     };
@@ -95,18 +90,25 @@ function AuthCallback() {
     verifyToken();
   }, []);
 
+  // ✅ SI DEBE REDIRIGIR, USAR NAVIGATE DE REACT ROUTER
+  if (shouldRedirect) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="auth-callback-container">
       <div className="auth-callback-content">
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #3498db',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 20px'
-        }} />
+        <div
+          style={{
+            width: "50px",
+            height: "50px",
+            border: "4px solid #f3f3f3",
+            borderTop: "4px solid #3498db",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 20px",
+          }}
+        />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -115,11 +117,6 @@ function AuthCallback() {
         `}</style>
 
         <h2 className="auth-callback-status">{status}</h2>
-        {status.includes("Redirigiendo") && countdown > 0 && (
-          <p style={{ marginTop: '10px', color: '#fff' }}>
-            Redirigiendo en {countdown} segundos...
-          </p>
-        )}
       </div>
     </div>
   );
