@@ -11,50 +11,77 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ INICIALIZAR CON sessionStorage
-  const [authLoading, setAuthLoading] = useState(false);
-  const [session, setSession] = useState(() => {
-    const stored = sessionStorage.getItem("supabaseSession");
+  // ✅ LEER LOCALSTORAGE EN CADA RENDERIZADO
+  const getSession = () => {
+    const stored = localStorage.getItem("supabaseSession");
     if (stored) {
       try {
-        const parsed = JSON.parse(stored);
-        console.log(
-          "📌 Sesión inicial desde sessionStorage:",
-          parsed?.user?.email || "No hay usuario",
-        );
-        return parsed;
+        return JSON.parse(stored);
       } catch (e) {
-        sessionStorage.removeItem("supabaseSession");
+        localStorage.removeItem("supabaseSession");
         return null;
       }
     }
     return null;
-  });
+  };
+
+  const [session, setSession] = useState(getSession());
+  const [authLoading, setAuthLoading] = useState(!getSession());
 
   useEffect(() => {
-    // ✅ Escuchar cambios en autenticación
+    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("🔄 Evento de autenticación:", event);
       console.log("👤 Usuario:", session?.user?.email || "No hay usuario");
-
+      
       setSession(session);
-
+      
       if (session) {
-        sessionStorage.setItem("supabaseSession", JSON.stringify(session));
+        localStorage.setItem("supabaseSession", JSON.stringify(session));
       } else {
-        sessionStorage.removeItem("supabaseSession");
+        localStorage.removeItem("supabaseSession");
       }
+      setAuthLoading(false);
     });
+
+    // ✅ SI HAY SESIÓN EN LOCALSTORAGE, ACTUALIZAR ESTADO
+    const stored = getSession();
+    if (stored && !session) {
+      setSession(stored);
+      setAuthLoading(false);
+    }
+
+    // ✅ SINCROINZAR CON SUPABASE
+    const syncSession = async () => {
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+      if (supabaseSession) {
+        setSession(supabaseSession);
+        localStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
+      }
+      setAuthLoading(false);
+    };
+
+    syncSession();
 
     return () => subscription.unsubscribe();
   }, []);
 
-  console.log(
-    "📊 Estado de sesión en App:",
-    session?.user?.email || "No autenticado",
-  );
+  console.log("📊 Estado de sesión en App:", session?.user?.email || "No autenticado");
+
+  if (authLoading) {
+    return (
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+      }}>
+        <h2>Cargando...</h2>
+      </div>
+    );
+  }
 
   return (
     <HashRouter>
