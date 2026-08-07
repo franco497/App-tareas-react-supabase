@@ -11,57 +11,66 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ 1. INICIALIZAR session DIRECTAMENTE desde sessionStorage
-  const getInitialSession = () => {
+  // ✅ INICIALIZAR CON sessionStorage
+  const [authLoading, setAuthLoading] = useState(true);
+  const [session, setSession] = useState(() => {
     const stored = sessionStorage.getItem("supabaseSession");
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        console.log(
+          "📌 Sesión inicial desde sessionStorage:",
+          parsed?.user?.email || "No hay usuario",
+        );
+        return parsed;
       } catch (e) {
         sessionStorage.removeItem("supabaseSession");
         return null;
       }
     }
     return null;
-  };
-
-  const [authLoading, setAuthLoading] = useState(true);
-  const [session, setSession] = useState(getInitialSession);
+  });
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // ✅ 2. Si ya hay sesión en sessionStorage, usarla
-      const storedSession = getInitialSession();
-      if (storedSession) {
-        console.log("📌 Sesión inicial desde sessionStorage:", storedSession?.user?.email);
-        setSession(storedSession);
+      // ✅ Si ya hay sesión, no esperar a Supabase
+      if (session) {
+        console.log("📌 Sesión ya existe, saltando Supabase");
         setAuthLoading(false);
-        return; // ✅ No esperar a Supabase
+        return;
       }
 
-      // ✅ 3. Si no hay sesión, obtener de Supabase
-      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
-      console.log("📌 Sesión desde Supabase:", supabaseSession?.user?.email || "No hay sesión");
-      
+      // ✅ Obtener sesión de Supabase
+      const {
+        data: { session: supabaseSession },
+      } = await supabase.auth.getSession();
+      console.log(
+        "📌 Sesión desde Supabase:",
+        supabaseSession?.user?.email || "No hay sesión",
+      );
+
       if (supabaseSession) {
         setSession(supabaseSession);
-        sessionStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
+        sessionStorage.setItem(
+          "supabaseSession",
+          JSON.stringify(supabaseSession),
+        );
       }
-      
+
       setAuthLoading(false);
     };
 
     initializeAuth();
 
-    // ✅ 4. Escuchar cambios en autenticación
+    // ✅ Escuchar cambios en autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("🔄 Evento de autenticación:", event);
       console.log("👤 Usuario:", session?.user?.email || "No hay usuario");
-      
+
       setSession(session);
-      
+
       if (session) {
         sessionStorage.setItem("supabaseSession", JSON.stringify(session));
       } else {
@@ -70,18 +79,23 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [session]);
 
-  console.log("📊 Estado de sesión en App:", session?.user?.email || "No autenticado");
+  console.log(
+    "📊 Estado de sesión en App:",
+    session?.user?.email || "No autenticado",
+  );
 
   if (authLoading) {
     return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <h2>Cargando...</h2>
       </div>
     );

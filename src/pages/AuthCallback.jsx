@@ -1,4 +1,3 @@
-
 // src/pages/AuthCallback.jsx
 import { useEffect, useState } from "react";
 
@@ -34,7 +33,7 @@ function AuthCallback() {
           log("❌ Token no encontrado");
           setStatus("❌ Token no encontrado");
           setTimeout(() => {
-            window.location.href = "/";
+            window.location.replace("/");
           }, 2000);
           return;
         }
@@ -57,19 +56,11 @@ function AuthCallback() {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
-        // ✅ GUARDAR SESIÓN EN SESSIONSTORAGE (FORZADO)
+        // ✅ GUARDAR SESIÓN EN SESSIONSTORAGE
         if (data.session) {
           sessionStorage.setItem("supabaseSession", JSON.stringify(data.session));
           log("✅ Sesión guardada en sessionStorage");
           log(`👤 Usuario: ${data.session.user.email}`);
-          
-          // ✅ VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
-          const verifyStored = sessionStorage.getItem("supabaseSession");
-          if (verifyStored) {
-            log("✅ Verificación: sesión guardada correctamente");
-          } else {
-            log("⚠️ ADVERTENCIA: La sesión no se guardó correctamente");
-          }
         } else {
           log("⚠️ No se recibió sesión de verify-magic-link");
           throw new Error("No se recibió sesión del servidor");
@@ -85,9 +76,9 @@ function AuthCallback() {
           setCountdown(counter);
           if (counter <= 0) {
             clearInterval(interval);
-            // ✅ FORZAR RECARGA COMPLETA
-            log("🔄 Redirigiendo a dashboard...");
-            window.location.href = "/#/dashboard";
+            // ✅ USAR window.location.replace PARA FORZAR RECARGA COMPLETA
+            log("🔄 Redirigiendo a dashboard con replace...");
+            window.location.replace("/#/dashboard");
           }
         }, 1000);
 
@@ -96,7 +87,7 @@ function AuthCallback() {
         log(`❌ Error: ${error.message}`);
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => {
-          window.location.href = "/";
+          window.location.replace("/");
         }, 3000);
       }
     };
@@ -125,7 +116,7 @@ function AuthCallback() {
 
         <h2 className="auth-callback-status">{status}</h2>
         {status.includes("Redirigiendo") && countdown > 0 && (
-          <p style={{ marginTop: '10px', color: '#666' }}>
+          <p style={{ marginTop: '10px', color: '#fff' }}>
             Redirigiendo en {countdown} segundos...
           </p>
         )}
