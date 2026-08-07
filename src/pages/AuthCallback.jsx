@@ -1,6 +1,6 @@
+
 // src/pages/AuthCallback.jsx
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
 
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
@@ -23,9 +23,7 @@ function AuthCallback() {
         let token = params.get("token");
 
         if (!token && window.location.hash) {
-          const hashParams = new URLSearchParams(
-            window.location.hash.split("?")[1],
-          );
+          const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
           token = hashParams.get("token");
           log(`🔍 Token desde hash: ${token}`);
         }
@@ -49,7 +47,7 @@ function AuthCallback() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),
-          },
+          }
         );
 
         const data = await response.json();
@@ -59,13 +57,22 @@ function AuthCallback() {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
-        // ✅ Guardar sesión en sessionStorage antes de redirigir
+        // ✅ GUARDAR SESIÓN EN SESSIONSTORAGE (FORZADO)
         if (data.session) {
-          sessionStorage.setItem(
-            "supabaseSession",
-            JSON.stringify(data.session),
-          );
+          sessionStorage.setItem("supabaseSession", JSON.stringify(data.session));
           log("✅ Sesión guardada en sessionStorage");
+          log(`👤 Usuario: ${data.session.user.email}`);
+          
+          // ✅ VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
+          const verifyStored = sessionStorage.getItem("supabaseSession");
+          if (verifyStored) {
+            log("✅ Verificación: sesión guardada correctamente");
+          } else {
+            log("⚠️ ADVERTENCIA: La sesión no se guardó correctamente");
+          }
+        } else {
+          log("⚠️ No se recibió sesión de verify-magic-link");
+          throw new Error("No se recibió sesión del servidor");
         }
 
         log("✅ ¡Acceso concedido!");
@@ -79,9 +86,11 @@ function AuthCallback() {
           if (counter <= 0) {
             clearInterval(interval);
             // ✅ FORZAR RECARGA COMPLETA
+            log("🔄 Redirigiendo a dashboard...");
             window.location.href = "/#/dashboard";
           }
         }, 1000);
+
       } catch (error) {
         console.error("❌ Error:", error);
         log(`❌ Error: ${error.message}`);
@@ -98,17 +107,15 @@ function AuthCallback() {
   return (
     <div className="auth-callback-container">
       <div className="auth-callback-content">
-        <div
-          style={{
-            width: "50px",
-            height: "50px",
-            border: "4px solid #f3f3f3",
-            borderTop: "4px solid #3498db",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-            margin: "0 auto 20px",
-          }}
-        />
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto 20px'
+        }} />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -118,7 +125,7 @@ function AuthCallback() {
 
         <h2 className="auth-callback-status">{status}</h2>
         {status.includes("Redirigiendo") && countdown > 0 && (
-          <p style={{ marginTop: "10px", color: "#666" }}>
+          <p style={{ marginTop: '10px', color: '#666' }}>
             Redirigiendo en {countdown} segundos...
           </p>
         )}
