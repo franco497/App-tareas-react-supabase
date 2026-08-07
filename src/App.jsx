@@ -11,41 +11,49 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  const [authLoading, setAuthLoading] = useState(true);
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    // ✅ 1. RESTAURAR SESIÓN DESDE SESSIONSTORAGE
-    const storedSession = sessionStorage.getItem("supabaseSession");
-    if (storedSession) {
+  // ✅ 1. INICIALIZAR session DIRECTAMENTE desde sessionStorage
+  const getInitialSession = () => {
+    const stored = sessionStorage.getItem("supabaseSession");
+    if (stored) {
       try {
-        const parsedSession = JSON.parse(storedSession);
-        console.log("📌 Sesión restaurada desde sessionStorage:", parsedSession?.user?.email);
-        setSession(parsedSession);
+        return JSON.parse(stored);
       } catch (e) {
-        console.error("❌ Error restaurando sesión:", e);
         sessionStorage.removeItem("supabaseSession");
+        return null;
       }
     }
+    return null;
+  };
 
-    // ✅ 2. OBTENER SESIÓN DE SUPABASE
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("📌 Sesión desde Supabase:", session?.user?.email || "No hay sesión");
+  const [authLoading, setAuthLoading] = useState(true);
+  const [session, setSession] = useState(getInitialSession);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      // ✅ 2. Si ya hay sesión en sessionStorage, usarla
+      const storedSession = getInitialSession();
+      if (storedSession) {
+        console.log("📌 Sesión inicial desde sessionStorage:", storedSession?.user?.email);
+        setSession(storedSession);
+        setAuthLoading(false);
+        return; // ✅ No esperar a Supabase
+      }
+
+      // ✅ 3. Si no hay sesión, obtener de Supabase
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+      console.log("📌 Sesión desde Supabase:", supabaseSession?.user?.email || "No hay sesión");
       
-      if (session) {
-        setSession(session);
-        sessionStorage.setItem("supabaseSession", JSON.stringify(session));
-      } else {
-        sessionStorage.removeItem("supabaseSession");
+      if (supabaseSession) {
+        setSession(supabaseSession);
+        sessionStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
       }
       
       setAuthLoading(false);
     };
 
-    getSession();
+    initializeAuth();
 
-    // ✅ 3. ESCUCHAR CAMBIOS EN AUTENTICACIÓN
+    // ✅ 4. Escuchar cambios en autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -54,7 +62,6 @@ function App() {
       
       setSession(session);
       
-      // ✅ Guardar o eliminar sesión en sessionStorage
       if (session) {
         sessionStorage.setItem("supabaseSession", JSON.stringify(session));
       } else {
@@ -65,7 +72,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // ✅ LOG DEL ESTADO DE SESIÓN
   console.log("📊 Estado de sesión en App:", session?.user?.email || "No autenticado");
 
   if (authLoading) {
