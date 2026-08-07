@@ -1,11 +1,10 @@
 // src/pages/AuthCallback.jsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [countdown, setCountdown] = useState(3);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const log = (msg) => {
@@ -19,8 +18,6 @@ function AuthCallback() {
       try {
         log("🔍 Iniciando verificación...");
         log(`📍 URL actual: ${window.location.href}`);
-        log(`📍 Search: ${window.location.search}`);
-        log(`📍 Hash: ${window.location.hash}`);
 
         const params = new URLSearchParams(window.location.search);
         let token = params.get("token");
@@ -38,7 +35,9 @@ function AuthCallback() {
         if (!token) {
           log("❌ Token no encontrado");
           setStatus("❌ Token no encontrado");
-          setTimeout(() => navigate("/"), 2000);
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 2000);
           return;
         }
 
@@ -60,6 +59,15 @@ function AuthCallback() {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
+        // ✅ Guardar sesión en sessionStorage antes de redirigir
+        if (data.session) {
+          sessionStorage.setItem(
+            "supabaseSession",
+            JSON.stringify(data.session),
+          );
+          log("✅ Sesión guardada en sessionStorage");
+        }
+
         log("✅ ¡Acceso concedido!");
         setStatus("✅ ¡Acceso concedido! Redirigiendo...");
 
@@ -70,7 +78,7 @@ function AuthCallback() {
           setCountdown(counter);
           if (counter <= 0) {
             clearInterval(interval);
-            // ✅ FORZAR REDIRECCIÓN CON RECARGA
+            // ✅ FORZAR RECARGA COMPLETA
             window.location.href = "/#/dashboard";
           }
         }, 1000);
@@ -78,12 +86,14 @@ function AuthCallback() {
         console.error("❌ Error:", error);
         log(`❌ Error: ${error.message}`);
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
-        setTimeout(() => navigate("/"), 3000);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 3000);
       }
     };
 
     verifyToken();
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="auth-callback-container">
@@ -108,7 +118,7 @@ function AuthCallback() {
 
         <h2 className="auth-callback-status">{status}</h2>
         {status.includes("Redirigiendo") && countdown > 0 && (
-          <p style={{ marginTop: "10px", color: "#fff" }}>
+          <p style={{ marginTop: "10px", color: "#666" }}>
             Redirigiendo en {countdown} segundos...
           </p>
         )}

@@ -15,31 +15,67 @@ function App() {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setAuthLoading(false);
-    });
+    // ✅ 1. RESTAURAR SESIÓN DESDE SESSIONSTORAGE
+    const storedSession = sessionStorage.getItem("supabaseSession");
+    if (storedSession) {
+      try {
+        const parsedSession = JSON.parse(storedSession);
+        console.log("📌 Sesión restaurada desde sessionStorage:", parsedSession?.user?.email);
+        setSession(parsedSession);
+      } catch (e) {
+        console.error("❌ Error restaurando sesión:", e);
+        sessionStorage.removeItem("supabaseSession");
+      }
+    }
 
+    // ✅ 2. OBTENER SESIÓN DE SUPABASE
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("📌 Sesión desde Supabase:", session?.user?.email || "No hay sesión");
+      
+      if (session) {
+        setSession(session);
+        sessionStorage.setItem("supabaseSession", JSON.stringify(session));
+      } else {
+        sessionStorage.removeItem("supabaseSession");
+      }
+      
+      setAuthLoading(false);
+    };
+
+    getSession();
+
+    // ✅ 3. ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔄 Evento de autenticación:", event);
+      console.log("👤 Usuario:", session?.user?.email || "No hay usuario");
+      
       setSession(session);
+      
+      // ✅ Guardar o eliminar sesión en sessionStorage
+      if (session) {
+        sessionStorage.setItem("supabaseSession", JSON.stringify(session));
+      } else {
+        sessionStorage.removeItem("supabaseSession");
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // ✅ LOG DEL ESTADO DE SESIÓN
+  console.log("📊 Estado de sesión en App:", session?.user?.email || "No autenticado");
+
   if (authLoading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          color:"#fff",
-        }}
-      >
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+      }}>
         <h2>Cargando...</h2>
       </div>
     );
