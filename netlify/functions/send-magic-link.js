@@ -52,7 +52,7 @@ async function sendMagicLinkEmail(email, token) {
       tls: { rejectUnauthorized: false },
     });
 
-    const magicLinkUrl = `${SITE_URL}/#/auth/callback?token=${token}`;
+    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}`;
 
     const htmlContent = `
       <!DOCTYPE html>
