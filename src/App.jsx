@@ -1,5 +1,5 @@
 // src/App.jsx
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import Login from "./pages/login";
@@ -17,7 +17,10 @@ function App() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log("📌 Leyendo localStorage:", parsed?.user?.email || "No hay usuario");
+        console.log(
+          "📌 Leyendo localStorage:",
+          parsed?.user?.email || "No hay usuario",
+        );
         return parsed;
       } catch (e) {
         localStorage.removeItem("supabaseSession");
@@ -40,7 +43,7 @@ function App() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("🔄 Evento de autenticación:", event);
       console.log("👤 Usuario:", session?.user?.email || "No hay usuario");
-      
+
       if (session) {
         localStorage.setItem("supabaseSession", JSON.stringify(session));
         setSession(session);
@@ -52,9 +55,14 @@ function App() {
 
     // ✅ SINCROINZAR CON SUPABASE
     const syncSession = async () => {
-      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+      const {
+        data: { session: supabaseSession },
+      } = await supabase.auth.getSession();
       if (supabaseSession) {
-        localStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
+        localStorage.setItem(
+          "supabaseSession",
+          JSON.stringify(supabaseSession),
+        );
         setSession(supabaseSession);
       } else {
         // ✅ SI NO HAY SESIÓN EN SUPABASE, PERO HAY EN LOCALSTORAGE, USAR LOCALSTORAGE
@@ -70,10 +78,13 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  console.log("📊 Estado de sesión en App:", session?.user?.email || "No autenticado");
+  console.log(
+    "📊 Estado de sesión en App:",
+    session?.user?.email || "No autenticado",
+  );
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <TaskContextProvider>
         <Routes>
           <Route
@@ -96,7 +107,7 @@ function App() {
           />
         </Routes>
       </TaskContextProvider>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
