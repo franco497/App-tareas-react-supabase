@@ -1,4 +1,5 @@
-// src/App.jsx
+// src/App.jsx - VERSIÓN CORREGIDA
+
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
@@ -11,24 +12,28 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ LEER localStorage DIRECTAMENTE EN EL ESTADO INICIAL
-  const [session, setSession] = useState(() => {
+  // ✅ FUNCIÓN QUE LEE localStorage CADA VEZ QUE SE LLAMA
+  const getSessionFromStorage = () => {
     const stored = localStorage.getItem("supabaseSession");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log("📌 Sesión inicial desde localStorage:", parsed?.user?.email);
+        console.log("📌 Leyendo localStorage:", parsed?.user?.email || "No hay usuario");
         return parsed;
       } catch (e) {
         localStorage.removeItem("supabaseSession");
         return null;
       }
     }
+    console.log("📌 localStorage vacío");
     return null;
-  });
+  };
 
+  // ✅ INICIALIZAR CON localStorage
+  const [session, setSession] = useState(getSessionFromStorage());
   const [authLoading, setAuthLoading] = useState(false);
 
+  // ✅ EFECTO PARA SINCORNIZAR CON SUPABASE
   useEffect(() => {
     // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
@@ -46,12 +51,18 @@ function App() {
       }
     });
 
-    // ✅ SINCROINZAR CON SUPABASE (si hay sesión activa)
+    // ✅ SINCROINZAR CON SUPABASE
     const syncSession = async () => {
       const { data: { session: supabaseSession } } = await supabase.auth.getSession();
       if (supabaseSession) {
         localStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
         setSession(supabaseSession);
+      } else {
+        // ✅ SI NO HAY SESIÓN EN SUPABASE, PERO HAY EN LOCALSTORAGE, USAR LOCALSTORAGE
+        const storedSession = getSessionFromStorage();
+        if (storedSession) {
+          setSession(storedSession);
+        }
       }
     };
 
