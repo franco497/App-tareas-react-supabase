@@ -11,22 +11,23 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ LEER LOCALSTORAGE EN CADA RENDERIZADO
-  const getSession = () => {
+  // ✅ LEER localStorage DIRECTAMENTE EN EL ESTADO INICIAL
+  const [session, setSession] = useState(() => {
     const stored = localStorage.getItem("supabaseSession");
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        console.log("📌 Sesión inicial desde localStorage:", parsed?.user?.email);
+        return parsed;
       } catch (e) {
         localStorage.removeItem("supabaseSession");
         return null;
       }
     }
     return null;
-  };
+  });
 
-  const [session, setSession] = useState(getSession());
-  const [authLoading, setAuthLoading] = useState(!getSession());
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
@@ -36,31 +37,22 @@ function App() {
       console.log("🔄 Evento de autenticación:", event);
       console.log("👤 Usuario:", session?.user?.email || "No hay usuario");
       
-      setSession(session);
-      
       if (session) {
         localStorage.setItem("supabaseSession", JSON.stringify(session));
+        setSession(session);
       } else {
         localStorage.removeItem("supabaseSession");
+        setSession(null);
       }
-      setAuthLoading(false);
     });
 
-    // ✅ SI HAY SESIÓN EN LOCALSTORAGE, ACTUALIZAR ESTADO
-    const stored = getSession();
-    if (stored && !session) {
-      setSession(stored);
-      setAuthLoading(false);
-    }
-
-    // ✅ SINCROINZAR CON SUPABASE
+    // ✅ SINCROINZAR CON SUPABASE (si hay sesión activa)
     const syncSession = async () => {
       const { data: { session: supabaseSession } } = await supabase.auth.getSession();
       if (supabaseSession) {
-        setSession(supabaseSession);
         localStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
+        setSession(supabaseSession);
       }
-      setAuthLoading(false);
     };
 
     syncSession();
@@ -69,19 +61,6 @@ function App() {
   }, []);
 
   console.log("📊 Estado de sesión en App:", session?.user?.email || "No autenticado");
-
-  if (authLoading) {
-    return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}>
-        <h2>Cargando...</h2>
-      </div>
-    );
-  }
 
   return (
     <HashRouter>
