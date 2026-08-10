@@ -40,12 +40,12 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  color: var(--white)!important ;
+  color: var(--white) !important; 
   font-size: 1.2rem;
 }
 
 .loading-container-text {
-  color: var(--white) !important ;
+  color: var(--white) !important; 
 }
 
 .loading-container-btn {
