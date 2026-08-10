@@ -11,59 +11,51 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ IGUAL QUE CollapsibleAside: leer localStorage al iniciar
+  // ✅ LEER localStorage INMEDIATAMENTE (antes del renderizado)
   const [session, setSession] = useState(() => {
     const stored = localStorage.getItem("supabaseSession");
+    console.log("📌 App: Leyendo localStorage al iniciar...");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log("📌 Sesión restaurada:", parsed?.email || "No hay usuario");
+        console.log("📌 App: Sesión encontrada:", parsed?.email || "No hay usuario");
         return parsed;
       } catch (e) {
         localStorage.removeItem("supabaseSession");
         return null;
       }
     }
+    console.log("📌 App: localStorage vacío");
     return null;
   });
 
-  const [authLoading, setAuthLoading] = useState(!session);
+  const [authLoading, setAuthLoading] = useState(false);
 
-  // ✅ IGUAL QUE CollapsibleAside: guardar en localStorage cuando cambia
-  useEffect(() => {
-    if (session) {
-      localStorage.setItem("supabaseSession", JSON.stringify(session));
-    } else {
-      localStorage.removeItem("supabaseSession");
-    }
-  }, [session]);
-
-  // ✅ IGUAL QUE CollapsibleAside: sincronizar con Supabase
+  // ✅ Escuchar cambios en autenticación (para mantener sesión sincronizada)
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔄 Evento:", event);
-
+      console.log("🔄 Evento de autenticación:", event);
+      
       if (session) {
-        // ✅ Guardar solo lo necesario (como en AuthCallback)
         const sessionData = {
           email: session.user.email,
           access_token: session.session.access_token,
           refresh_token: session.session.refresh_token,
           expires_at: session.session.expires_at,
         };
+        localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
         setSession(sessionData);
       } else {
+        localStorage.removeItem("supabaseSession");
         setSession(null);
       }
     });
 
     // ✅ Sincronizar con Supabase al inicio
     const syncSession = async () => {
-      const {
-        data: { session: supabaseSession },
-      } = await supabase.auth.getSession();
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
       if (supabaseSession) {
         const sessionData = {
           email: supabaseSession.user.email,
@@ -71,10 +63,8 @@ function App() {
           refresh_token: supabaseSession.session.refresh_token,
           expires_at: supabaseSession.session.expires_at,
         };
+        localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
         setSession(sessionData);
-        setAuthLoading(false);
-      } else {
-        setAuthLoading(false);
       }
     };
 
@@ -83,11 +73,7 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  console.log("📊 Estado:", session?.email || "No autenticado");
-
-  if (authLoading) {
-    return <div>Cargando...</div>;
-  }
+  console.log("📊 App: Estado de sesión final:", session?.email || "No autenticado");
 
   return (
     <BrowserRouter>
