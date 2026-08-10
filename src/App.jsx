@@ -13,56 +13,66 @@ import Trash from "./pages/Trash";
 function App() {
   // ✅ LEER localStorage INMEDIATAMENTE
   const [session, setSession] = useState(() => {
-    console.log("📌 App: Leyendo localStorage al iniciar...");
-    
-    // 🔍 VERIFICAR TODAS LAS CLAVES EN LOCALSTORAGE
-    console.log("📌 App: Todas las claves en localStorage:");
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      console.log(`   - ${key}: ${localStorage.getItem(key)?.substring(0, 50)}...`);
-    }
-    
     const stored = localStorage.getItem("supabaseSession");
-    console.log("📌 App: Valor de supabaseSession:", stored ? "✅ Encontrado" : "❌ No encontrado");
-    
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log("📌 App: Sesión encontrada:", parsed?.email || "No hay usuario");
+        console.log("📌 App: Sesión encontrada:", parsed?.email);
         return parsed;
       } catch (e) {
-        console.error("📌 App: Error parseando:", e);
         localStorage.removeItem("supabaseSession");
         return null;
       }
     }
-    console.log("📌 App: localStorage vacío para supabaseSession");
     return null;
   });
 
   const [authLoading, setAuthLoading] = useState(false);
 
-  // ✅ Escuchar cambios en autenticación
   useEffect(() => {
+    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN (PERO SIN BORRAR LOCALSTORAGE EN INITIAL_SESSION)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("🔄 Evento de autenticación:", event);
+      console.log("👤 Sesión en evento:", session?.user?.email || "No hay usuario");
       
-      if (session) {
-        const sessionData = {
-          email: session.user.email,
-          access_token: session.session.access_token,
-          refresh_token: session.session.refresh_token,
-          expires_at: session.session.expires_at,
-        };
-        localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
-        setSession(sessionData);
-        console.log("✅ App: Sesión guardada en localStorage");
-      } else {
-        localStorage.removeItem("supabaseSession");
-        setSession(null);
-        console.log("❌ App: Sesión eliminada de localStorage");
+      // ✅ SOLO ACTUALIZAR SI ES UN EVENTO DE AUTENTICACIÓN REAL
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+        if (session) {
+          const sessionData = {
+            email: session.user.email,
+            access_token: session.session.access_token,
+            refresh_token: session.session.refresh_token,
+            expires_at: session.session.expires_at,
+          };
+          localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
+          setSession(sessionData);
+          console.log("✅ App: Sesión guardada/actualizada en localStorage");
+        } else {
+          // ✅ SOLO BORRAR EN SIGNED_OUT
+          if (event === "SIGNED_OUT") {
+            localStorage.removeItem("supabaseSession");
+            setSession(null);
+            console.log("❌ App: Sesión eliminada de localStorage (SIGNED_OUT)");
+          }
+        }
+      } else if (event === "INITIAL_SESSION") {
+        // ✅ EN INITIAL_SESSION, NO BORRAR localStorage
+        console.log("📌 App: INITIAL_SESSION - Manteniendo sesión existente");
+        // Si hay sesión en localStorage y el evento no tiene sesión, mantener la de localStorage
+        if (!session) {
+          const stored = localStorage.getItem("supabaseSession");
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              setSession(parsed);
+              console.log("✅ App: Sesión restaurada desde localStorage en INITIAL_SESSION");
+            } catch (e) {
+              localStorage.removeItem("supabaseSession");
+            }
+          }
+        }
       }
     });
 
@@ -85,7 +95,7 @@ function App() {
     syncSession();
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [session]);
 
   console.log("📊 App: Estado de sesión final:", session?.email || "No autenticado");
 
