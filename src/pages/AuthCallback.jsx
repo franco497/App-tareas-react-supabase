@@ -39,7 +39,8 @@ function AuthCallback() {
         }
 
         if (data.session) {
-          // ✅ GUARDAR LA SESIÓN COMPLETA (no simplificada)
+          // ✅ GUARDAR LA SESIÓN COMPLETA (tal como viene de Supabase)
+          // No simplificamos nada, guardamos todo el objeto
           localStorage.setItem("supabaseSession", JSON.stringify(data.session));
           console.log("✅ Sesión guardada en localStorage");
           console.log("👤 Usuario:", data.session.user.email);
