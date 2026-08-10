@@ -480,7 +480,7 @@ export const TaskContextProvider = ({ children }) => {
   }, []);
 
   // ============================================
-  // SUSCRIPCIÓN EN TIEMPO REAL
+  // 1. SUSCRIPCIÓN EN TIEMPO REAL (PRINCIPAL)
   // ============================================
 
   useEffect(() => {
@@ -491,7 +491,7 @@ export const TaskContextProvider = ({ children }) => {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE", // ✅ Cambiar de "*" a "UPDATE" para ser más específico
+          event: "UPDATE",
           schema: "public",
           table: "scheduled_notifications",
         },
@@ -499,9 +499,7 @@ export const TaskContextProvider = ({ children }) => {
           console.log("🔄 Cambio detectado en scheduled_notifications:");
           console.log("  📋 Evento:", payload.eventType);
           console.log("  📋 Nuevo estado:", payload.new);
-          console.log("  📋 Viejo estado:", payload.old);
 
-          // ✅ ACTUALIZAR EL ESTADO LOCAL
           if (payload.eventType === "UPDATE") {
             const updatedTask = payload.new;
             setScheduledTasks((prevTasks) =>
@@ -519,7 +517,6 @@ export const TaskContextProvider = ({ children }) => {
           console.log("✅ ¡Suscripción a scheduled_notifications ACTIVA!");
         } else if (status === "CHANNEL_ERROR") {
           console.error("❌ Error en la suscripción, reintentando...");
-          // ✅ Reintentar después de 5 segundos
           setTimeout(() => {
             console.log("🔄 Reintentando suscripción...");
             channel.subscribe();
@@ -532,6 +529,58 @@ export const TaskContextProvider = ({ children }) => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // ============================================
+  // 2. POLLING DE RESPALDO (cada 10 segundos)
+  // ============================================
+
+  useEffect(() => {
+    const hasPendingTasks = scheduledTasks.some(
+      (task) => task.status === "pending",
+    );
+
+    if (!hasPendingTasks) return;
+
+    console.log("🔄 Iniciando polling de respaldo (cada 10 segundos)...");
+
+    const interval = setInterval(async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from("scheduled_notifications")
+          .select("*")
+          .eq("user_email", user.email)
+          .in("status", ["pending", "sent", "failed"]);
+
+        if (error) throw error;
+
+        // ✅ Verificar si hay cambios
+        const currentStatuses = scheduledTasks.map((t) => ({
+          id: t.id,
+          status: t.status,
+        }));
+        const newStatuses = data.map((t) => ({ id: t.id, status: t.status }));
+
+        const hasChanges =
+          JSON.stringify(currentStatuses) !== JSON.stringify(newStatuses);
+
+        if (hasChanges) {
+          console.log("🔄 Polling detectó cambios, actualizando...");
+          setScheduledTasks(data);
+        }
+      } catch (error) {
+        console.error("Error en polling:", error);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [scheduledTasks]);
+
   // ============================================
   // INICIALIZAR USUARIO
   // ============================================
