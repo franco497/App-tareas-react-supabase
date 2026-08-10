@@ -11,27 +11,38 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ LEER localStorage INMEDIATAMENTE (antes del renderizado)
+  // ✅ LEER localStorage INMEDIATAMENTE
   const [session, setSession] = useState(() => {
-    const stored = localStorage.getItem("supabaseSession");
     console.log("📌 App: Leyendo localStorage al iniciar...");
+    
+    // 🔍 VERIFICAR TODAS LAS CLAVES EN LOCALSTORAGE
+    console.log("📌 App: Todas las claves en localStorage:");
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      console.log(`   - ${key}: ${localStorage.getItem(key)?.substring(0, 50)}...`);
+    }
+    
+    const stored = localStorage.getItem("supabaseSession");
+    console.log("📌 App: Valor de supabaseSession:", stored ? "✅ Encontrado" : "❌ No encontrado");
+    
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         console.log("📌 App: Sesión encontrada:", parsed?.email || "No hay usuario");
         return parsed;
       } catch (e) {
+        console.error("📌 App: Error parseando:", e);
         localStorage.removeItem("supabaseSession");
         return null;
       }
     }
-    console.log("📌 App: localStorage vacío");
+    console.log("📌 App: localStorage vacío para supabaseSession");
     return null;
   });
 
   const [authLoading, setAuthLoading] = useState(false);
 
-  // ✅ Escuchar cambios en autenticación (para mantener sesión sincronizada)
+  // ✅ Escuchar cambios en autenticación
   useEffect(() => {
     const {
       data: { subscription },
@@ -47,13 +58,15 @@ function App() {
         };
         localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
         setSession(sessionData);
+        console.log("✅ App: Sesión guardada en localStorage");
       } else {
         localStorage.removeItem("supabaseSession");
         setSession(null);
+        console.log("❌ App: Sesión eliminada de localStorage");
       }
     });
 
-    // ✅ Sincronizar con Supabase al inicio
+    // ✅ Sincronizar con Supabase
     const syncSession = async () => {
       const { data: { session: supabaseSession } } = await supabase.auth.getSession();
       if (supabaseSession) {
@@ -65,6 +78,7 @@ function App() {
         };
         localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
         setSession(sessionData);
+        console.log("✅ App: Sesión sincronizada con Supabase");
       }
     };
 
@@ -74,6 +88,10 @@ function App() {
   }, []);
 
   console.log("📊 App: Estado de sesión final:", session?.email || "No autenticado");
+
+  if (authLoading) {
+    return <div>Cargando...</div>;
+  }
 
   return (
     <BrowserRouter>
