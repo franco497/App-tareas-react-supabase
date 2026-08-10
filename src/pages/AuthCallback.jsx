@@ -13,7 +13,9 @@ function AuthCallback() {
         let token = params.get("token");
 
         if (!token && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+          const hashParams = new URLSearchParams(
+            window.location.hash.split("?")[1],
+          );
           token = hashParams.get("token");
         }
 
@@ -34,7 +36,7 @@ function AuthCallback() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),
-          }
+          },
         );
 
         const data = await response.json();
@@ -43,18 +45,23 @@ function AuthCallback() {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
-        // ✅ Guardar sesión en localStorage
         if (data.session) {
-          localStorage.setItem("supabaseSession", JSON.stringify(data.session));
+          // ✅ Guardar en el mismo formato que App.jsx
+          const sessionData = {
+            email: data.session.user.email,
+            access_token: data.session.session.access_token,
+            refresh_token: data.session.session.refresh_token,
+            expires_at: data.session.session.expires_at,
+          };
+
+          localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
           console.log("✅ Sesión guardada en localStorage");
-          console.log("👤 Usuario:", data.session.user.email);
-          
-          // ✅ FORZAR RECARGA COMPLETA
-          window.location.replace("/#/dashboard");
+
+          // ✅ Redirigir
+          window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión");
         }
-
       } catch (error) {
         console.error("❌ Error:", error);
         setError(error.message);
@@ -70,15 +77,17 @@ function AuthCallback() {
   return (
     <div className="auth-callback-container">
       <div className="auth-callback-content">
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #3498db',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 20px'
-        }} />
+        <div
+          style={{
+            width: "50px",
+            height: "50px",
+            border: "4px solid #f3f3f3",
+            borderTop: "4px solid #3498db",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 20px",
+          }}
+        />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
