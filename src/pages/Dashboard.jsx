@@ -1,6 +1,6 @@
 // src/pages/Dashboard.jsx
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { useEffect } from "react";
+import { useTasks } from "../context"; // ✅ Importar el contexto
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import Navbar from "../components/Navbar";
@@ -8,20 +8,8 @@ import Footer from "../components/Footer";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-  }, []);
+  // ✅ OBTENER USUARIO DEL CONTEXTO
+  const { user, loading } = useTasks();
 
   const handleToggleView = () => {
     setShowTaskDone(!showTaskDone);
@@ -45,7 +33,6 @@ function Dashboard() {
       
       <main className="main-content">
         <div className="dashboard-container">
-          {/* ✅ SECCIÓN DE PENDIENTES - Solo visible en tareas pendientes */}
           {!showTaskDone && (
             <>
               <p className="welcome-text">

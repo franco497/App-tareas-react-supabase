@@ -11,13 +11,14 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ LEER localStorage INMEDIATAMENTE
+  // ✅ RESTAURAR SESIÓN COMPLETA DE SUPABASE
   const [session, setSession] = useState(() => {
     const stored = localStorage.getItem("supabaseSession");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         console.log("📌 App: Sesión encontrada:", parsed?.email);
+        // ✅ Devolver el objeto completo para que sea compatible con Supabase
         return parsed;
       } catch (e) {
         localStorage.removeItem("supabaseSession");
@@ -30,44 +31,32 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
-    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN (PERO SIN BORRAR LOCALSTORAGE EN INITIAL_SESSION)
+    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("🔄 Evento de autenticación:", event);
-      console.log("👤 Sesión en evento:", session?.user?.email || "No hay usuario");
       
-      // ✅ SOLO ACTUALIZAR SI ES UN EVENTO DE AUTENTICACIÓN REAL
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session) {
-          const sessionData = {
-            email: session.user.email,
-            access_token: session.session.access_token,
-            refresh_token: session.session.refresh_token,
-            expires_at: session.session.expires_at,
-          };
-          localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
-          setSession(sessionData);
-          console.log("✅ App: Sesión guardada/actualizada en localStorage");
-        } else {
-          // ✅ SOLO BORRAR EN SIGNED_OUT
-          if (event === "SIGNED_OUT") {
-            localStorage.removeItem("supabaseSession");
-            setSession(null);
-            console.log("❌ App: Sesión eliminada de localStorage (SIGNED_OUT)");
-          }
+          // ✅ Guardar la sesión COMPLETA
+          localStorage.setItem("supabaseSession", JSON.stringify(session));
+          setSession(session);
+          console.log("✅ App: Sesión guardada");
         }
+      } else if (event === "SIGNED_OUT") {
+        localStorage.removeItem("supabaseSession");
+        setSession(null);
+        console.log("❌ App: Sesión eliminada");
       } else if (event === "INITIAL_SESSION") {
-        // ✅ EN INITIAL_SESSION, NO BORRAR localStorage
-        console.log("📌 App: INITIAL_SESSION - Manteniendo sesión existente");
-        // Si hay sesión en localStorage y el evento no tiene sesión, mantener la de localStorage
+        // ✅ En INITIAL_SESSION, mantener la sesión existente
         if (!session) {
           const stored = localStorage.getItem("supabaseSession");
           if (stored) {
             try {
               const parsed = JSON.parse(stored);
               setSession(parsed);
-              console.log("✅ App: Sesión restaurada desde localStorage en INITIAL_SESSION");
+              console.log("✅ App: Sesión restaurada desde localStorage");
             } catch (e) {
               localStorage.removeItem("supabaseSession");
             }
@@ -80,14 +69,8 @@ function App() {
     const syncSession = async () => {
       const { data: { session: supabaseSession } } = await supabase.auth.getSession();
       if (supabaseSession) {
-        const sessionData = {
-          email: supabaseSession.user.email,
-          access_token: supabaseSession.session.access_token,
-          refresh_token: supabaseSession.session.refresh_token,
-          expires_at: supabaseSession.session.expires_at,
-        };
-        localStorage.setItem("supabaseSession", JSON.stringify(sessionData));
-        setSession(sessionData);
+        localStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
+        setSession(supabaseSession);
         console.log("✅ App: Sesión sincronizada con Supabase");
       }
     };
@@ -95,9 +78,9 @@ function App() {
     syncSession();
 
     return () => subscription.unsubscribe();
-  }, [session]);
+  }, []);
 
-  console.log("📊 App: Estado de sesión final:", session?.email || "No autenticado");
+  console.log("📊 App: Estado de sesión:", session?.user?.email || "No autenticado");
 
   if (authLoading) {
     return <div>Cargando...</div>;
