@@ -484,20 +484,24 @@ export const TaskContextProvider = ({ children }) => {
   // ============================================
 
   useEffect(() => {
+    console.log("🔄 Iniciando suscripción a scheduled_notifications...");
+
     const channel = supabase
       .channel("scheduled_notifications_changes")
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "UPDATE", // ✅ Cambiar de "*" a "UPDATE" para ser más específico
           schema: "public",
           table: "scheduled_notifications",
         },
         (payload) => {
-          console.log(
-            "🔄 Cambio detectado en scheduled_notifications:",
-            payload.eventType,
-          );
+          console.log("🔄 Cambio detectado en scheduled_notifications:");
+          console.log("  📋 Evento:", payload.eventType);
+          console.log("  📋 Nuevo estado:", payload.new);
+          console.log("  📋 Viejo estado:", payload.old);
+
+          // ✅ ACTUALIZAR EL ESTADO LOCAL
           if (payload.eventType === "UPDATE") {
             const updatedTask = payload.new;
             setScheduledTasks((prevTasks) =>
@@ -505,22 +509,29 @@ export const TaskContextProvider = ({ children }) => {
                 task.id === updatedTask.id ? updatedTask : task,
               ),
             );
-          } else if (payload.eventType === "INSERT") {
-            setScheduledTasks((prevTasks) => [payload.new, ...prevTasks]);
-          } else if (payload.eventType === "DELETE") {
-            setScheduledTasks((prevTasks) =>
-              prevTasks.filter((task) => task.id !== payload.old.id),
-            );
+            console.log("✅ Tarea actualizada localmente:", updatedTask.status);
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("📡 Estado de la suscripción:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("✅ ¡Suscripción a scheduled_notifications ACTIVA!");
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("❌ Error en la suscripción, reintentando...");
+          // ✅ Reintentar después de 5 segundos
+          setTimeout(() => {
+            console.log("🔄 Reintentando suscripción...");
+            channel.subscribe();
+          }, 5000);
+        }
+      });
 
     return () => {
+      console.log("🔄 Limpiando suscripción...");
       supabase.removeChannel(channel);
     };
   }, []);
-
   // ============================================
   // INICIALIZAR USUARIO
   // ============================================
