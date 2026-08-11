@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 export const handler = async (event) => {
-  // ✅ CORS
+  // CORS
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -23,7 +23,6 @@ export const handler = async (event) => {
   try {
     const { token } = JSON.parse(event.body);
 
-    console.log("🔍 Token recibido:", token);
 
     if (!token) {
       return {
@@ -36,7 +35,7 @@ export const handler = async (event) => {
       };
     }
 
-    // ✅ Buscar token válido
+    // Buscar token válido
     const { data: magicLink, error } = await supabase
       .from("magic_links")
       .select("*")
@@ -69,20 +68,17 @@ export const handler = async (event) => {
       };
     }
 
-    console.log("✅ Token válido para:", magicLink.email);
-
-    // ✅ Marcar como usado
+    //  Marcar como usado
     await supabase
       .from("magic_links")
       .update({ is_used: true, used_at: new Date().toISOString() })
       .eq("id", magicLink.id);
 
-    console.log("✅ Token marcado como usado");
 
     const email = magicLink.email;
     const temporaryPassword = token + "magic_link_password_123";
 
-    // ✅ VERIFICAR SI EL USUARIO YA EXISTE EN SUPABASE AUTH
+    // VERIFICAR SI EL USUARIO YA EXISTE EN SUPABASE AUTH
     const { data: users, error: listError } =
       await supabase.auth.admin.listUsers();
 
@@ -100,9 +96,8 @@ export const handler = async (event) => {
 
     const existingUser = users?.users?.find((user) => user.email === email);
 
-    // ✅ SI EL USUARIO NO EXISTE, CREARLO
+    // SI EL USUARIO NO EXISTE, CREARLO
     if (!existingUser) {
-      console.log("👤 Usuario no existe, creando...");
 
       const { data: newUser, error: signUpError } =
         await supabase.auth.admin.createUser({
@@ -123,11 +118,9 @@ export const handler = async (event) => {
         };
       }
 
-      console.log("✅ Usuario creado:", email);
     }
 
-    // ✅ INICIAR SESIÓN
-    console.log("🔑 Iniciando sesión con:", email);
+    // INICIAR SESIÓN
 
     const { data: session, error: loginError } =
       await supabase.auth.signInWithPassword({
@@ -197,8 +190,6 @@ export const handler = async (event) => {
         body: JSON.stringify({ error: "Error iniciando sesión" }),
       };
     }
-
-    console.log("✅ Sesión iniciada correctamente");
 
     return {
       statusCode: 200,

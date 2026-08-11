@@ -19,7 +19,7 @@ export const getRedirectUrl = () => {
     return `${protocol}//${hostname}:${port}/auth/callback`;
   }
 
-  // ✅ Para producción (Netlify) - SIN el hash (#)
+  // Para producción (Netlify)
   // Supabase redirects necesitan la URL exacta SIN el hash
   return "https://sistema-tareas-recordatorios.netlify.app/auth/callback";
 };

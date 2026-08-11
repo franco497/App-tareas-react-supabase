@@ -54,7 +54,7 @@ function TaskList({ done = false }) {
         ))}
       </div>
 
-      {/* ✅ PAGINACIÓN - Solo visible si hay más de 1 página */}
+      {/*  PAGINACIÓN - Solo visible si hay más de 1 página */}
       {totalPages > 1 && (
         <div className="pagination">
           <button

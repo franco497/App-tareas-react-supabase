@@ -7,13 +7,13 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
 );
 
-// ✅ FUNCIÓN PARA OBTENER HORA ACTUAL EN ARGENTINA
+// FUNCIÓN PARA OBTENER HORA ACTUAL EN ARGENTINA
 function getNowInArgentina() {
   const now = new Date();
   return new Date(now.getTime() - 3 * 60 * 60 * 1000);
 }
 
-// ✅ FUNCIÓN PARA PARSEAR FECHA EN ARGENTINA
+// FUNCIÓN PARA PARSEAR FECHA EN ARGENTINA
 function parseLocalDate(dateString) {
   if (!dateString) return null;
   if (dateString.includes("T")) return new Date(dateString);
@@ -29,15 +29,10 @@ function parseLocalDate(dateString) {
 }
 
 async function processEmails() {
-  console.log("🔄 Verificando emails programados...");
 
   try {
-    // ✅ USAR HORA ARGENTINA PARA LA COMPARACIÓN
+    // USAR HORA ARGENTINA PARA LA COMPARACIÓN
     const now = getNowInArgentina();
-    console.log(
-      `⏰ Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`,
-    );
-    console.log(`⏰ Hora actual UTC: ${new Date().toISOString()}`);
 
     const { data: pending, error } = await supabase
       .from("scheduled_notifications")
@@ -50,8 +45,6 @@ async function processEmails() {
       return;
     }
 
-    console.log(`📋 Total pendientes: ${pending.length}`);
-
     const toSend = pending.filter((notif) => {
       const scheduledDate = parseLocalDate(notif.scheduled_for);
       if (!scheduledDate) {
@@ -61,16 +54,6 @@ async function processEmails() {
 
       const diffMs = scheduledDate.getTime() - now.getTime();
       const diffMinutes = diffMs / 60000;
-
-      console.log(`📅 "${notif.task_name}":`);
-      console.log(`   Programado: ${notif.scheduled_for}`);
-      console.log(
-        `   Parseado: ${scheduledDate.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`,
-      );
-      console.log(
-        `   Hora actual Argentina: ${now.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`,
-      );
-      console.log(`   Diferencia: ${diffMinutes.toFixed(1)} minutos`);
 
       const shouldSend = scheduledDate <= now;
       console.log(`   ¿Enviar ahora?: ${shouldSend ? "✅ SI" : "❌ NO"}`);
@@ -82,8 +65,6 @@ async function processEmails() {
       console.log("⏳ No hay emails para enviar en este momento");
       return;
     }
-
-    console.log(`📧 Enviando ${toSend.length} emails...`);
 
     let sent = 0;
     let failed = 0;
@@ -126,9 +107,6 @@ async function processEmails() {
           formattedDate: formattedDate,
         };
 
-        console.log(`📨 Enviando a: ${requestBody.userEmail}`);
-        console.log(`📋 Fecha programada: ${formattedDate}`);
-
         const response = await fetch(
           `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email-gmail`,
           {
@@ -153,7 +131,6 @@ async function processEmails() {
             .eq("id", notification.id);
 
           sent++;
-          console.log(`✅ Enviado: ${notification.task_name}`);
         } else {
           console.error(
             `❌ Error enviando ${notification.task_name}:`,
@@ -167,14 +144,12 @@ async function processEmails() {
       }
     }
 
-    console.log(`📊 Resumen: ${sent} enviados, ${failed} fallidos`);
   } catch (error) {
     console.error("❌ Error en cron:", error);
   }
 }
 
 serve(async (req) => {
-  console.log("📨 === NUEVA PETICIÓN RECIBIDA ===");
 
   try {
     await processEmails();

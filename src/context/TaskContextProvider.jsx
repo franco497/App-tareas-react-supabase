@@ -4,16 +4,16 @@ import { supabase } from "../lib/supabase";
 import { TaskContext } from "./TaskContext";
 
 export const TaskContextProvider = ({ children }) => {
-  // ✅ ESTADO DEL USUARIO (centralizado)
+  //  ESTADO DEL USUARIO (centralizado)
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ ESTADO DE TAREAS NORMALES
+  //  ESTADO DE TAREAS NORMALES
   const [tasks, setTasks] = useState([]);
   const [adding, setAdding] = useState(false);
   const [currentDoneFilter, setCurrentDoneFilter] = useState(false);
 
-  // ✅ ESTADO DE TAREAS PROGRAMADAS
+  //  ESTADO DE TAREAS PROGRAMADAS
   const [scheduledTasks, setScheduledTasks] = useState([]);
   const [scheduledLoading, setScheduledLoading] = useState(false);
 
@@ -25,13 +25,12 @@ export const TaskContextProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      // ✅ PRIMERO: Intentar obtener de localStorage
+      //  PRIMERO: Intentar obtener de localStorage
       const stored = localStorage.getItem("supabaseSession");
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
           if (parsed?.user) {
-            console.log("👤 Usuario desde localStorage:", parsed.user.email);
             setUser(parsed.user);
             setLoading(false);
             return parsed.user;
@@ -41,7 +40,7 @@ export const TaskContextProvider = ({ children }) => {
         }
       }
 
-      // ✅ SEGUNDO: Intentar con Supabase
+      //  SEGUNDO: Intentar con Supabase
       const {
         data: { user },
         error,
@@ -49,7 +48,6 @@ export const TaskContextProvider = ({ children }) => {
       if (error) throw error;
 
       if (user) {
-        console.log("👤 Usuario desde Supabase:", user.email);
         setUser(user);
       }
     } catch (error) {
@@ -308,7 +306,6 @@ export const TaskContextProvider = ({ children }) => {
 
       if (error) throw error;
 
-      console.log("📋 Tareas programadas cargadas:", data?.length || 0);
       setScheduledTasks(data || []);
     } catch (error) {
       console.error("Error fetching scheduled tasks:", error);
@@ -484,8 +481,6 @@ export const TaskContextProvider = ({ children }) => {
   // ============================================
 
   useEffect(() => {
-    console.log("🔄 Iniciando suscripción a scheduled_notifications...");
-
     const channel = supabase
       .channel("scheduled_notifications_changes")
       .on(
@@ -496,10 +491,6 @@ export const TaskContextProvider = ({ children }) => {
           table: "scheduled_notifications",
         },
         (payload) => {
-          console.log("🔄 Cambio detectado en scheduled_notifications:");
-          console.log("  📋 Evento:", payload.eventType);
-          console.log("  📋 Nuevo estado:", payload.new);
-
           if (payload.eventType === "UPDATE") {
             const updatedTask = payload.new;
             setScheduledTasks((prevTasks) =>
@@ -507,25 +498,21 @@ export const TaskContextProvider = ({ children }) => {
                 task.id === updatedTask.id ? updatedTask : task,
               ),
             );
-            console.log("✅ Tarea actualizada localmente:", updatedTask.status);
           }
         },
       )
       .subscribe((status) => {
-        console.log("📡 Estado de la suscripción:", status);
         if (status === "SUBSCRIBED") {
-          console.log("✅ ¡Suscripción a scheduled_notifications ACTIVA!");
+          console.log("¡Suscripción a scheduled_notifications ACTIVA!");
         } else if (status === "CHANNEL_ERROR") {
           console.error("❌ Error en la suscripción, reintentando...");
           setTimeout(() => {
-            console.log("🔄 Reintentando suscripción...");
             channel.subscribe();
           }, 5000);
         }
       });
 
     return () => {
-      console.log("🔄 Limpiando suscripción...");
       supabase.removeChannel(channel);
     };
   }, []);
@@ -540,8 +527,6 @@ export const TaskContextProvider = ({ children }) => {
     );
 
     if (!hasPendingTasks) return;
-
-    console.log("🔄 Iniciando polling de respaldo (cada 10 segundos)...");
 
     const interval = setInterval(async () => {
       try {
@@ -559,7 +544,7 @@ export const TaskContextProvider = ({ children }) => {
 
         if (error) throw error;
 
-        // ✅ Verificar si hay cambios
+        // Verificar si hay cambios
         const currentStatuses = scheduledTasks.map((t) => ({
           id: t.id,
           status: t.status,
@@ -570,7 +555,6 @@ export const TaskContextProvider = ({ children }) => {
           JSON.stringify(currentStatuses) !== JSON.stringify(newStatuses);
 
         if (hasChanges) {
-          console.log("🔄 Polling detectó cambios, actualizando...");
           setScheduledTasks(data);
         }
       } catch (error) {
@@ -594,7 +578,7 @@ export const TaskContextProvider = ({ children }) => {
   // ============================================
 
   const value = {
-    // ✅ Usuario
+    // Usuario
     user,
     loading,
     getUser,

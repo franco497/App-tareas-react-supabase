@@ -26,20 +26,13 @@ function Login() {
     setError("");
 
     try {
-      console.log("📤 Enviando solicitud a Netlify Function...");
-      console.log("📧 Email:", data.email);
-
       const response = await fetch("/.netlify/functions/send-magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.email }),
       });
 
-      console.log("📨 Respuesta status:", response.status);
-      console.log("📨 Respuesta ok:", response.ok);
-
       const result = await response.json();
-      console.log("📨 Datos de respuesta:", result);
 
       if (!response.ok) {
         throw new Error(result.error || "Error al enviar el magic link");

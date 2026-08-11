@@ -13,7 +13,7 @@ function ScheduledDetailsModal({ task, onClose }) {
     });
   };
 
-  // ✅ NUEVA FUNCIÓN: Restar 3 horas a la fecha
+  //  NUEVA FUNCIÓN: Restar 3 horas a la fecha
   const formatSentDate = (dateString) => {
     if (!dateString) return "No especificada";
     const date = new Date(dateString);

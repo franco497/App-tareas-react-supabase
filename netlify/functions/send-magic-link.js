@@ -67,7 +67,7 @@ async function sendMagicLinkEmail(email, token) {
       .button { 
         display: inline-block; 
         background: #28a745; 
-        color: #ffffff !important; /* ✅ FORZAR BLANCO (con !important) */
+        color: #ffffff !important; /*  FORZAR BLANCO (con !important) */
         padding: 12px 30px; 
         text-decoration: none; 
         border-radius: 5px; 
@@ -77,9 +77,9 @@ async function sendMagicLinkEmail(email, token) {
         font-size: 16px;
       }
       .button:hover {
-        background: #218838; /* ✅ Verde más oscuro al pasar el mouse */
+        background: #218838; /*  Verde más oscuro al pasar el mouse */
       }
-      /* ✅ También forzar color para el enlace dentro del botón */
+      /* También forzar color para el enlace dentro del botón */
       .button {
         color: #ffffff !important;
       }
@@ -131,9 +131,6 @@ async function sendMagicLinkEmail(email, token) {
 }
 
 export const handler = async (event) => {
-  console.log("📨 === VERIFY-MAGIC-LINK INVOCADA ===");
-  console.log("📋 Método:", event.httpMethod);
-  console.log("📋 Body:", event.body);
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -172,7 +169,7 @@ export const handler = async (event) => {
       };
     }
 
-    // ✅ Configuración para DEMO (más permisivo)
+    // Configuración para DEMO (más permisivo)
     const RATE_LIMIT = 15; // 15 intentos por hora
     const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
 

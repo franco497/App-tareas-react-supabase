@@ -15,16 +15,15 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ RESTAURAR SESIÓN DESDE LOCALSTORAGE
+    //  RESTAURAR SESIÓN DESDE LOCALSTORAGE
     const restoreSession = async () => {
       const stored = localStorage.getItem("supabaseSession");
       
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          console.log("📌 App: Sesión encontrada en localStorage:", parsed?.user?.email);
           
-          // ✅ ESTABLECER LA SESIÓN EN SUPABASE
+          // ESTABLECER LA SESIÓN EN SUPABASE
           // Supabase necesita que la sesión se establezca correctamente
           const { data, error } = await supabase.auth.setSession({
             access_token: parsed.session?.access_token || parsed.access_token,
@@ -36,7 +35,6 @@ function App() {
             localStorage.removeItem("supabaseSession");
             setSession(null);
           } else {
-            console.log("✅ Sesión restaurada correctamente");
             setSession(parsed);
           }
         } catch (e) {
@@ -51,14 +49,13 @@ function App() {
 
     restoreSession();
 
-    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
+    // ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("🔄 Evento de autenticación:", event);
       
       if (session) {
-        console.log("👤 Usuario autenticado:", session.user.email);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
         setSession(session);
       } else if (event === "SIGNED_OUT") {
@@ -70,7 +67,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  console.log("📊 App: Estado de sesión:", session?.user?.email || "No autenticado");
 
   if (authLoading) {
     return (

@@ -4,10 +4,10 @@ import { useTasks } from "../context";
 import Swal from "sweetalert2";
 
 function RescheduleModal({ task, onClose }) {
-  // ✅ USAR EL CONTEXTO (igual que NotificationForm)
+  //  USAR EL CONTEXTO (igual que NotificationForm)
   const { rescheduleScheduledTask } = useTasks();
 
-  // ✅ ESTADOS IGUALES QUE NotificationForm
+  //  ESTADOS IGUALES QUE NotificationForm
   const [scheduledDate, setScheduledDate] = useState(
     task.scheduled_for ? task.scheduled_for.split(" ")[0] : ""
   );
@@ -16,7 +16,7 @@ function RescheduleModal({ task, onClose }) {
   );
   const [loading, setLoading] = useState(false);
 
-  // ✅ FUNCIÓN PARA FECHA ACTUAL (igual que NotificationForm)
+  //  FUNCIÓN PARA FECHA ACTUAL (igual que NotificationForm)
   const getArgentinaDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -25,13 +25,13 @@ function RescheduleModal({ task, onClose }) {
     return `${year}-${month}-${day}`;
   };
 
-  // ✅ handleSubmit (igual que NotificationForm)
+  //  handleSubmit (igual que NotificationForm)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // ✅ LLAMAR AL CONTEXTO (igual que NotificationForm)
+      //  LLAMAR AL CONTEXTO (igual que NotificationForm)
       await rescheduleScheduledTask(task.id, scheduledDate, scheduledTime);
 
       setScheduledDate("");

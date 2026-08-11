@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
-  // ✅ OBTENER USUARIO DEL CONTEXTO
+  //  OBTENER USUARIO DEL CONTEXTO
   const { user, loading } = useTasks();
 
   const handleToggleView = () => {

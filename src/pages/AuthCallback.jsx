@@ -39,13 +39,9 @@ function AuthCallback() {
         }
 
         if (data.session) {
-          // ✅ GUARDAR LA SESIÓN COMPLETA (tal como viene de Supabase)
-          // No simplificamos nada, guardamos todo el objeto
+          // GUARDAR LA SESIÓN COMPLETA (tal como viene de Supabase)
           localStorage.setItem("supabaseSession", JSON.stringify(data.session));
-          console.log("✅ Sesión guardada en localStorage");
-          console.log("👤 Usuario:", data.session.user.email);
-          
-          // ✅ Redirigir
+          // Redirigir
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");

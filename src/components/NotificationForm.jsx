@@ -12,7 +12,7 @@ function NotificationForm({ task, onClose }) {
   const [sendType, setSendType] = useState("now");
   const [userEmail, setUserEmail] = useState("");
 
-  // ✅ USAR EL CONTEXTO
+  //  USAR EL CONTEXTO
   const { scheduleTaskLater } = useTasks();
 
   const getArgentinaDate = () => {
@@ -57,7 +57,7 @@ function NotificationForm({ task, onClose }) {
       const currentDate = now.toISOString().split("T")[0];
       const currentTime = now.toTimeString().slice(0, 5);
 
-      // ✅ USAR FETCH DIRECTO (como probaste en PowerShell)
+      //  USAR FETCH DIRECTO (como probaste en PowerShell)
       const response = await fetch(
         "https://vjywpkrncmsijpggdfwf.supabase.co/functions/v1/send-email-gmail",
         {
@@ -83,9 +83,7 @@ function NotificationForm({ task, onClose }) {
         throw new Error(data.error || "Error al enviar el correo");
       }
 
-      console.log("✅ Correo enviado:", data);
-
-      // ✅ CERRAR MODAL Y MOSTRAR SWEETALERT
+      //  CERRAR MODAL Y MOSTRAR SWEETALERT
       onClose();
       await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -124,7 +122,7 @@ function NotificationForm({ task, onClose }) {
     }
   };
 
-  // ✅ Programar para más tarde - AHORA USA EL CONTEXTO
+  //  Programar para más tarde - AHORA USA EL CONTEXTO
   const handleScheduleLater = async (e) => {
     e.preventDefault();
     setLoading(true);

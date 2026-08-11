@@ -61,7 +61,7 @@ function TaskCard({ task }) {
     setShowNotificationForm(false);
   };
 
-  // ✅ Validaciones para el contador y error
+  // Validaciones para el contador y error
   const charCount = editName.length;
   const isNearLimit = charCount > MAX_CHARS * 0.8;
   const isOverLimit = charCount > MAX_CHARS;
@@ -96,7 +96,7 @@ function TaskCard({ task }) {
         </label>
 
         {isEditing ? (
-          // ✅ Modo edición con contador y error
+          //  Modo edición con contador y error
           <div className="task-edit-wrapper">
             <input
               type="text"
@@ -107,14 +107,14 @@ function TaskCard({ task }) {
               className={`task-edit-input ${errorMessage ? "error" : ""}`}
             />
             
-            {/* ✅ Contador de caracteres */}
+            {/*  Contador de caracteres */}
             {charCount > 0 && (
               <small className={`char-counter ${isOverLimit ? "danger" : isNearLimit ? "warning" : ""}`}>
                 {charCount}/{MAX_CHARS}
               </small>
             )}
 
-            {/* ✅ Mensaje de error */}
+            {/*  Mensaje de error */}
             {errorMessage && (
               <span className="error-message">{errorMessage}</span>
             )}
@@ -125,7 +125,7 @@ function TaskCard({ task }) {
           </span>
         )}
 
-        {/* ✅ Botón Enviar notificación - Bloqueado en modo edición */}
+        {/*  Botón Enviar notificación - Bloqueado en modo edición */}
         <button 
           onClick={handleNotify} 
           className={`notify-button ${isEditing ? "disabled" : ""}`}
@@ -142,7 +142,7 @@ function TaskCard({ task }) {
           {isEditing ? "Guardar" : "Editar"}
         </button>
 
-        {/* ✅ Botón Eliminar - Bloqueado en modo edición */}
+        {/*  Botón Eliminar - Bloqueado en modo edición */}
         <button 
           onClick={handleDelete} 
           className={`delete-button ${isEditing ? "disabled" : ""}`}

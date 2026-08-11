@@ -53,19 +53,19 @@ function ScheduledTasks() {
     });
   };
 
-  // ✅ VER DETALLES - Abre modal con detalles
+  // VER DETALLES - Abre modal con detalles
   const handleViewDetails = (task) => {
     setSelectedTask(task);
     setShowDetailsModal(true);
   };
 
-  // ✅ REPROGRAMAR (abrir modal)
+  // REPROGRAMAR (abrir modal)
   const handleReschedule = (task) => {
     setSelectedTask(task);
     setShowRescheduleModal(true);
   };
 
-  // ✅ ELIMINAR (permanente)
+  // ELIMINAR (permanente)
   const handleDelete = async (id, taskName) => {
     const result = await Swal.fire({
       title: "¿Eliminar permanentemente?",
@@ -163,7 +163,7 @@ function ScheduledTasks() {
                   </div>
                 </div>
                 <div className="scheduled-item-actions">
-                  {/* ✅ Ver detalles - SIEMPRE visible */}
+                  {/* Ver detalles - SIEMPRE visible */}
                   <button
                     onClick={() => handleViewDetails(task)}
                     className="details-btn"
@@ -171,7 +171,7 @@ function ScheduledTasks() {
                     📋 Ver detalles
                   </button>
 
-                  {/* ✅ Reprogramar - Solo para pending, sent, failed */}
+                  {/* Reprogramar - Solo para pending, sent, failed */}
                   {task.status !== "cancelled" && (
                     <button
                       onClick={() => handleReschedule(task)}
@@ -181,7 +181,7 @@ function ScheduledTasks() {
                     </button>
                   )}
 
-                  {/* ✅ Eliminar - SIEMPRE visible */}
+                  {/* Eliminar - SIEMPRE visible */}
                   <button
                     onClick={() => handleDelete(task.id, task.task_name)}
                     className="delete-btn-scheduled-card"

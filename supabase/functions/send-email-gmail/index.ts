@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       scheduledTime,
       userEmail,
       toEmail,
-      formattedDate, // ✅ RECIBE DE check-notifications
+      formattedDate, // RECIBE DE check-notifications
     } = await req.json();
 
     // Validar datos requeridos
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     );
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
-    // ✅ USAR formattedDate SI EXISTE
+    // USAR formattedDate SI EXISTE
     const displayDate =
       formattedDate ||
       new Date(`${scheduledDate}T${scheduledTime}`).toLocaleString("es-ES", {
@@ -151,8 +151,6 @@ Deno.serve(async (req) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-
-    console.log("Email enviado:", result.messageId);
 
     return new Response(
       JSON.stringify({
