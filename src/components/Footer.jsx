@@ -79,7 +79,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="footer-copyright">Copyright © 2026</div>
+        <div className="footer-copyright">App Tareas - Sistema de Gestión y Recordatorios - Copyright © 2026</div>
       </div>
     </footer>
   );

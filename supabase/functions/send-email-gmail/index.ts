@@ -117,8 +117,8 @@ Deno.serve(async (req) => {
             <p>¡Éxito con tus actividades! 🚀</p>
           </div>
           <div class="footer">
-            <p>Este es un recordatorio automático de tu app de tareas.</p>
-            <p>© 2026 - App de Tareas</p>
+            <p>Este es un recordatorio automático de App de Tareas.</p>
+            <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
           </div>
         </div>
       </body>

@@ -110,7 +110,7 @@ async function sendMagicLinkEmail(email, token) {
         <p>Si no solicitaste este enlace, ignora este correo.</p>
       </div>
       <div class="footer">
-        <p>© 2026 - Mi App de Tareas</p>
+        <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
       </div>
     </div>
   </body>

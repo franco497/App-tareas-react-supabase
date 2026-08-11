@@ -57,7 +57,10 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2 className="login-title">Inicia Sesión con tu email</h2>
+      <h2 className="login-title">
+        App Tareas - Sistema de Gestión y Recordatorios - Inicia Sesión con tu
+        email
+      </h2>
       <form onSubmit={handleSubmit(onSubmit)} className="login-form">
         <div className="login-form-group">
           <input
