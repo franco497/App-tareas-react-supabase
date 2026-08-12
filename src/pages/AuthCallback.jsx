@@ -1,5 +1,6 @@
 // src/pages/AuthCallback.jsx
 import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
@@ -15,33 +16,60 @@ function AuthCallback() {
           token = hashParams.get("token");
         }
 
-        if (!token) {
-          setStatus("❌ Token no encontrado");
-          setTimeout(() => {
-            window.location.replace("/");
-          }, 2000);
-          return;
+        // ✅ DETECTAR SI ESTÁ EN LOCAL
+        const isLocal = window.location.hostname === "localhost" || 
+                        window.location.hostname === "127.0.0.1" ||
+                        window.location.hostname === "5173";
+
+        let data;
+        let responseOk;
+
+        if (isLocal) {
+          // ✅ EN LOCAL: Usar sesión de Supabase directamente
+          console.log("🔧 Modo local: verificando sesión de Supabase");
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (!session) throw new Error("No hay sesión");
+          
+          data = { success: true, session };
+          responseOk = true;
+          localStorage.setItem("supabaseSession", JSON.stringify(session));
+          console.log("✅ Sesión guardada en localStorage (local)");
+        } else {
+          // ✅ EN PRODUCCIÓN: Usar Netlify Function
+          console.log("🚀 Modo producción: verificando con Netlify Function");
+          
+          if (!token) {
+            setStatus("❌ Token no encontrado");
+            setTimeout(() => {
+              window.location.replace("/");
+            }, 2000);
+            return;
+          }
+
+          const response = await fetch(
+            "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            }
+          );
+
+          data = await response.json();
+          responseOk = response.ok;
+
+          if (responseOk && data.session) {
+            localStorage.setItem("supabaseSession", JSON.stringify(data.session));
+            console.log("✅ Sesión guardada en localStorage (producción)");
+          }
         }
 
-        const response = await fetch(
-          "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
+        if (!responseOk || !data.success) {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
         if (data.session) {
-          // GUARDAR LA SESIÓN COMPLETA (tal como viene de Supabase)
-          localStorage.setItem("supabaseSession", JSON.stringify(data.session));
-          // Redirigir
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");

@@ -20,26 +20,65 @@ function Login() {
     mode: "onChange",
   });
 
+  // ✅ DETECTAR SI ESTÁ EN LOCAL
+  const isLocal =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.port === "5175" ||
+    window.location.hostname === "5175";
+
+  console.log("🔍 Entorno:", isLocal ? "LOCAL" : "PRODUCCIÓN");
+  console.log("📍 Puerto:", window.location.port);
+
   const onSubmit = async (data) => {
     setLoading(true);
     setMessage("");
     setError("");
 
     try {
-      const response = await fetch("/.netlify/functions/send-magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email }),
-      });
+      if (isLocal) {
+        // ✅ EN LOCAL: Usar Supabase directamente (Magic Link de Supabase)
+        console.log("🔧 Modo local: usando Supabase directamente");
+        const redirectUrl = getRedirectUrl();
 
-      const result = await response.json();
+        const { error } = await supabase.auth.signInWithOtp({
+          email: data.email,
+          options: {
+            emailRedirectTo: redirectUrl,
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(result.error || "Error al enviar el magic link");
+        if (error) {
+          // ✅ Traducir error de límite de Supabase
+          if (error.message === "email rate limit exceeded") {
+            throw new Error(
+              "Demasiados intentos. Espera 1 hora para volver a intentar.",
+            );
+          }
+          throw error;
+        }
+
+        setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
+        reset();
+      } else {
+        // ✅ EN PRODUCCIÓN: Usar Netlify Function (con Gmail API)
+        console.log("🚀 Modo producción: usando Netlify Function");
+
+        const response = await fetch("/.netlify/functions/send-magic-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: data.email }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Error al enviar el magic link");
+        }
+
+        setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
+        reset();
       }
-
-      setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
-      reset();
     } catch (err) {
       console.error("❌ Error:", err);
       setError(err.message || "Error al enviar el magic link");
