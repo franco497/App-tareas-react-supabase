@@ -1,6 +1,8 @@
+// src/components/Navbar.jsx
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import Swal from "sweetalert2"; // ✅ Importar SweetAlert
 
 function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,9 +55,58 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     setIsOpen(false);
   };
 
+  // ✅ HANDLE LOGOUT CON SWEETALERT (FONDO BLANCO)
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    // ✅ Mostrar confirmación antes de cerrar sesión
+    const result = await Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "¿Estás seguro de que quieres cerrar sesión?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#e76f51",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+      background: "#ffffff", // ✅ FONDO BLANCO
+      color: "#1a1a2e", // ✅ TEXTO OSCURO
+      iconColor: "#e9c46a",
+    });
+
+    // ✅ Si el usuario confirma, cerrar sesión
+    if (result.isConfirmed) {
+      try {
+        await supabase.auth.signOut();
+        
+        // ✅ Mostrar mensaje de éxito
+        await Swal.fire({
+          title: "✅ Sesión cerrada",
+          text: "Has cerrado sesión correctamente.",
+          icon: "success",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          background: "#ffffff", // ✅ FONDO BLANCO
+          color: "#1a1a2e", // ✅ TEXTO OSCURO
+          iconColor: "#2d6a4f",
+        });
+        
+        navigate("/");
+      } catch (error) {
+        console.error("❌ Error al cerrar sesión:", error);
+        
+        // ✅ Mostrar mensaje de error
+        await Swal.fire({
+          title: "❌ Error",
+          text: "No se pudo cerrar la sesión. Intenta nuevamente.",
+          icon: "error",
+          confirmButtonColor: "#e76f51",
+          confirmButtonText: "Entendido",
+          background: "#ffffff", // ✅ FONDO BLANCO
+          color: "#1a1a2e", // ✅ TEXTO OSCURO
+          iconColor: "#e76f51",
+        });
+      }
+    }
   };
 
   const isActiveLink = (path) => {
