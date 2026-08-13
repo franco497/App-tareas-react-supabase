@@ -203,7 +203,7 @@ function NotificationForm({ task, onClose }) {
             className={`send-type-btn ${sendType === "now" ? "active" : ""}`}
             onClick={() => handleTypeChange("now")}
           >
-            🚀 Enviar ahora
+            🚀 Envío instantáneo
           </button>
           <button
             type="button"

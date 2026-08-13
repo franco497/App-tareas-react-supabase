@@ -20,7 +20,7 @@ function Login() {
     mode: "onChange",
   });
 
-  // ✅ DETECTAR SI ESTÁ EN LOCAL
+  //  DETECTAR SI ESTÁ EN LOCAL
   const isLocal =
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1" ||
@@ -37,7 +37,7 @@ function Login() {
 
     try {
       if (isLocal) {
-        // ✅ EN LOCAL: Usar Supabase directamente (Magic Link de Supabase)
+        //  EN LOCAL: Usar Supabase directamente (Magic Link de Supabase)
         console.log("🔧 Modo local: usando Supabase directamente");
         const redirectUrl = getRedirectUrl();
 
@@ -49,7 +49,7 @@ function Login() {
         });
 
         if (error) {
-          // ✅ Traducir error de límite de Supabase
+          //  Traducir error de límite de Supabase
           if (error.message === "email rate limit exceeded") {
             throw new Error(
               "Demasiados intentos. Espera 1 hora para volver a intentar.",
@@ -61,7 +61,7 @@ function Login() {
         setMessage(`✨ ¡Magic link enviado a ${data.email}! Revisa tu correo.`);
         reset();
       } else {
-        // ✅ EN PRODUCCIÓN: Usar Netlify Function (con Gmail API)
+        //  EN PRODUCCIÓN: Usar Netlify Function (con Gmail API)
         console.log("🚀 Modo producción: usando Netlify Function");
 
         const response = await fetch("/.netlify/functions/send-magic-link", {
@@ -90,8 +90,8 @@ function Login() {
   return (
     <div className="login-container">
       <h2 className="login-title">
-        App Tareas - Sistema de Gestión y Recordatorios - Inicia Sesión con tu
-        email
+        App Tareas - Inicia Sesión con tu
+        Correo electronico
       </h2>
       <form onSubmit={handleSubmit(onSubmit)} className="login-form">
         <div className="login-form-group">
