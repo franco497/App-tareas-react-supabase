@@ -82,7 +82,7 @@ function Trash() {
           <p>📭 La papelera está vacía</p>
           <p>Las tareas que borres aparecerán aquí.</p>
           <button onClick={() => navigate("/dashboard")} className="go-back-btn">
-            🏠 Ir al Dashboard
+            🏠 Ir al Panel Principal
           </button>
         </div>
       ) : (

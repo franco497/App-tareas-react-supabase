@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import Swal from "sweetalert2"; // ✅ Importar SweetAlert
+import Swal from "sweetalert2"; 
 
 function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,9 +55,9 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     setIsOpen(false);
   };
 
-  // ✅ HANDLE LOGOUT CON SWEETALERT (FONDO BLANCO)
+  //  HANDLE LOGOUT CON SWEETALERT 
   const handleLogout = async () => {
-    // ✅ Mostrar confirmación antes de cerrar sesión
+    //  Mostrar confirmación antes de cerrar sesión
     const result = await Swal.fire({
       title: "¿Cerrar sesión?",
       text: "¿Estás seguro de que quieres cerrar sesión?",
@@ -67,17 +67,17 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, cerrar sesión",
       cancelButtonText: "Cancelar",
-      background: "#ffffff", // ✅ FONDO BLANCO
-      color: "#1a1a2e", // ✅ TEXTO OSCURO
+      background: "#ffffff", 
+      color: "#1a1a2e", 
       iconColor: "#e9c46a",
     });
 
-    // ✅ Si el usuario confirma, cerrar sesión
+    //  Si el usuario confirma, cerrar sesión
     if (result.isConfirmed) {
       try {
         await supabase.auth.signOut();
         
-        // ✅ Mostrar mensaje de éxito
+        //  Mostrar mensaje de éxito
         await Swal.fire({
           title: "✅ Sesión cerrada",
           text: "Has cerrado sesión correctamente.",
@@ -85,8 +85,8 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
           timer: 2000,
           timerProgressBar: true,
           showConfirmButton: false,
-          background: "#ffffff", // ✅ FONDO BLANCO
-          color: "#1a1a2e", // ✅ TEXTO OSCURO
+          background: "#ffffff", 
+          color: "#1a1a2e", 
           iconColor: "#2d6a4f",
         });
         
@@ -94,15 +94,15 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
       } catch (error) {
         console.error("❌ Error al cerrar sesión:", error);
         
-        // ✅ Mostrar mensaje de error
+        //  Mostrar mensaje de error
         await Swal.fire({
           title: "❌ Error",
           text: "No se pudo cerrar la sesión. Intenta nuevamente.",
           icon: "error",
           confirmButtonColor: "#e76f51",
           confirmButtonText: "Entendido",
-          background: "#ffffff", // ✅ FONDO BLANCO
-          color: "#1a1a2e", // ✅ TEXTO OSCURO
+          background: "#ffffff", 
+          color: "#1a1a2e", 
           iconColor: "#e76f51",
         });
       }

@@ -136,9 +136,9 @@ function ScheduledTasks() {
       {scheduledTasks.length === 0 ? (
         <div className="no-tasks-message">
           <p>📭 No hay tareas programadas</p>
-          <p>Ve al dashboard y programa un recordatorio para verlo aquí.</p>
+          <p>Ve al Panel Principal y programa un recordatorio para verlo aquí.</p>
           <button onClick={handleGoBack} className="go-back-btn">
-            🏠 Ir al Dashboard
+            🏠 Ir al Panel Principal
           </button>
         </div>
       ) : (
