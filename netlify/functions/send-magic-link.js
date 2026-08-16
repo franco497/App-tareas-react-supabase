@@ -139,7 +139,7 @@ Si no solicitaste este enlace, ignora este correo.
 `;
 
     await transporter.sendMail({
-      from: `"App de Tareas" <${FROM_EMAIL}>`,
+      from: `"Franco De Vincentis - App Tareas" <${FROM_EMAIL}>`,
       to: email,
       subject: "🔐 Tu enlace de acceso a App de Tareas",
       text: textContent,
