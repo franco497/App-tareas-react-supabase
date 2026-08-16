@@ -19,7 +19,9 @@ function generateToken() {
   const crypto = globalThis.crypto;
   const array = new Uint8Array(16);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 function getClientIP(event) {
@@ -75,6 +77,7 @@ Si no solicitaste este enlace, ignora este correo.
     <html>
     <head>
       <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -118,9 +121,16 @@ Si no solicitaste este enlace, ignora este correo.
           </p>
           <p>El enlace expirará en <strong>15 minutos</strong>.</p>
           <p>Si no solicitaste este enlace, ignora este correo.</p>
+                  <p style="font-size: 13px; color: #888888; text-align: center; margin-top: 15px;">
+          💡 Agrega <strong style="color: #667eea;">${FROM_EMAIL}</strong> a tus contactos para asegurar la entrega.
+        </p>
+        <p style="font-size: 11px; color: #aaaaaa; text-align: center; margin-top: 10px;">
+          Si no deseas recibir más correos de este tipo, 
+          <a href="#" style="color: #aaaaaa; text-decoration: underline;">haz clic aquí</a>
+        </p>
         </div>
         <div class="footer">
-          <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
+          <p>© 2026 - App Tareas </p>
         </div>
       </div>
     </body>
@@ -128,10 +138,10 @@ Si no solicitaste este enlace, ignora este correo.
   `;
 
     await transporter.sendMail({
-      from: `"App Tareas" <${FROM_EMAIL}>`,
+      from: `"Franco De Vincentis - App Tareas" <${FROM_EMAIL}>`,
       to: email,
-      subject: "🔐 Tu enlace de acceso",
-      text: textContent,   
+      subject: "🔐 Tu enlace de acceso a App de Tareas",
+      text: textContent,
       html: htmlContent,
     });
 
