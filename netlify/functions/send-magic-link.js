@@ -24,11 +24,6 @@ function generateToken() {
   );
 }
 
-function getClientIP(event) {
-  const forwarded = event.headers["x-forwarded-for"];
-  return forwarded ? forwarded.split(",")[0] : "unknown";
-}
-
 async function sendMagicLinkEmail(email, token) {
   try {
     const oAuth2Client = new google.auth.OAuth2(
@@ -52,74 +47,102 @@ async function sendMagicLinkEmail(email, token) {
       tls: { rejectUnauthorized: false },
     });
 
-    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}`;
+    const magicLinkUrl = `${SITE_URL}/#/auth/callback?token=${token}`;
 
-    const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-      .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
-      .button { 
-        display: inline-block; 
-        background: #28a745; 
-        color: #ffffff !important; /*  FORZAR BLANCO (con !important) */
-        padding: 12px 30px; 
-        text-decoration: none; 
-        border-radius: 5px; 
-        font-weight: bold; 
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      .button:hover {
-        background: #218838; /*  Verde más oscuro al pasar el mouse */
-      }
-      /* También forzar color para el enlace dentro del botón */
-      .button {
-        color: #ffffff !important;
-      }
-      .button:visited {
-        color: #ffffff !important;
-      }
-      .button:active {
-        color: #ffffff !important;
-      }
-      .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h2>🔐 Enlace de acceso</h2>
-      </div>
-      <div class="content">
-        <p>Has solicitado un enlace de acceso para tu cuenta.</p>
-        <p style="text-align: center; margin: 30px 0;">
-          <a href="${magicLinkUrl}" class="button">Iniciar sesión</a>
-        </p>
-        <p>O copia este enlace en tu navegador:</p>
-        <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
-          ${magicLinkUrl}
-        </p>
-        <p>El enlace expirará en <strong>15 minutos</strong>.</p>
-        <p>Si no solicitaste este enlace, ignora este correo.</p>
-      </div>
-      <div class="footer">
-        <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
-      </div>
-    </div>
-  </body>
-  </html>
+    // ✅ VERSIÓN TEXTO PLANO
+    const textContent = `
+Hola,
+
+Has solicitado un enlace de acceso para tu cuenta en App de Tareas.
+
+Inicia sesión aquí: ${magicLinkUrl}
+
+Si el enlace no funciona, cópialo y pégalo en tu navegador.
+
+Este enlace expirará en 15 minutos.
+
+Si no solicitaste este enlace, ignora este correo.
+
+© 2026 App de Tareas
 `;
+
+    // ✅ VERSIÓN HTML MEJORADA
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; margin: 20px auto; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <tr>
+      <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🔐 Enlace de acceso</h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 30px 20px;">
+        <p style="font-size: 16px; line-height: 1.6; color: #333333;">Hola,</p>
+        <p style="font-size: 16px; line-height: 1.6; color: #333333;">
+          Has solicitado un enlace de acceso para tu cuenta en 
+          <strong style="color: #667eea;">App de Tareas</strong>.
+        </p>
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td style="background-color: #2d6a4f; border-radius: 8px; text-align: center;">
+              <a href="${magicLinkUrl}" 
+                 style="display: inline-block; padding: 14px 35px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 16px; border-radius: 8px; background-color: #2d6a4f;">
+                Iniciar sesión
+              </a>
+            </td>
+          </tr>
+        </table>
+        
+        <p style="font-size: 14px; color: #666666; text-align: center;">
+          Si el botón no funciona, copia este enlace en tu navegador:
+        </p>
+        <p style="word-break: break-all; background-color: #f0f0f0; padding: 12px; border-radius: 5px; font-size: 13px; color: #333333; text-align: center;">
+          <a href="${magicLinkUrl}" style="color: #667eea; text-decoration: none;">${magicLinkUrl}</a>
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 25px 0;">
+        <p style="font-size: 13px; color: #888888; text-align: center;">
+          ⏰ Este enlace expirará en <strong>15 minutos</strong>.
+        </p>
+        <p style="font-size: 13px; color: #888888; text-align: center;">
+          🔒 Si no solicitaste este enlace, ignora este correo.
+        </p>
+        <p style="font-size: 13px; color: #888888; text-align: center; margin-top: 15px;">
+          💡 Agrega <strong style="color: #667eea;">${FROM_EMAIL}</strong> a tus contactos para asegurar la entrega.
+        </p>
+        <p style="font-size: 11px; color: #aaaaaa; text-align: center; margin-top: 10px;">
+         Si no deseas recibir más correos de este tipo, 
+        <a href="#" style="color: #aaaaaa; text-decoration: underline;">haz clic aquí</a>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color: #f8f8f8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px;">
+        <p style="margin: 0; font-size: 12px; color: #aaaaaa;">
+          © 2026 App de Tareas
+        </p>
+        <p style="margin: 5px 0 0; font-size: 12px; color: #cccccc;">
+          Este es un correo automático, no responder a esta dirección.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
     await transporter.sendMail({
       from: `"App de Tareas" <${FROM_EMAIL}>`,
       to: email,
-      subject: "🔐 Tu enlace de acceso",
+      subject: "🔐 Tu enlace de acceso a App de Tareas",
+      text: textContent,
       html: htmlContent,
     });
 
