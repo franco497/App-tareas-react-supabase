@@ -19,9 +19,7 @@ function generateToken() {
   const crypto = globalThis.crypto;
   const array = new Uint8Array(16);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function getClientIP(event) {
@@ -54,72 +52,86 @@ async function sendMagicLinkEmail(email, token) {
 
     const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}`;
 
-    const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-      .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
-      .button { 
-        display: inline-block; 
-        background: #28a745; 
-        color: #ffffff !important; /*  FORZAR BLANCO (con !important) */
-        padding: 12px 30px; 
-        text-decoration: none; 
-        border-radius: 5px; 
-        font-weight: bold; 
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      .button:hover {
-        background: #218838; /*  Verde más oscuro al pasar el mouse */
-      }
-      /* También forzar color para el enlace dentro del botón */
-      .button {
-        color: #ffffff !important;
-      }
-      .button:visited {
-        color: #ffffff !important;
-      }
-      .button:active {
-        color: #ffffff !important;
-      }
-      .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h2>🔐 Enlace de acceso</h2>
-      </div>
-      <div class="content">
-        <p>Has solicitado un enlace de acceso para tu cuenta.</p>
-        <p style="text-align: center; margin: 30px 0;">
-          <a href="${magicLinkUrl}" class="button">Iniciar sesión</a>
-        </p>
-        <p>O copia este enlace en tu navegador:</p>
-        <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
-          ${magicLinkUrl}
-        </p>
-        <p>El enlace expirará en <strong>15 minutos</strong>.</p>
-        <p>Si no solicitaste este enlace, ignora este correo.</p>
-      </div>
-      <div class="footer">
-        <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
-      </div>
-    </div>
-  </body>
-  </html>
+    //  TEXTO PLANO
+    const textContent = `
+Hola,
+
+Has solicitado un enlace de acceso para tu cuenta en App de Tareas.
+
+Inicia sesión aquí: ${magicLinkUrl}
+
+Si el enlace no funciona, cópialo y pégalo en tu navegador.
+
+Este enlace expirará en 15 minutos.
+
+Si no solicitaste este enlace, ignora este correo.
+
+© 2026 - App Tareas - Sistema de Gestión y Recordatorios
 `;
+
+    // HTML
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button {
+          display: inline-block;
+          background: #28a745;
+          color: #ffffff !important;
+          padding: 12px 30px;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: bold;
+          border: none;
+          cursor: pointer;
+          font-size: 16px;
+        }
+        .button:hover {
+          background: #218838;
+        }
+        .button:visited,
+        .button:active {
+          color: #ffffff !important;
+        }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2>🔐 Enlace de acceso</h2>
+        </div>
+        <div class="content">
+          <p>Has solicitado un enlace de acceso para tu cuenta.</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${magicLinkUrl}" class="button">Iniciar sesión</a>
+          </p>
+          <p>O copia este enlace en tu navegador:</p>
+          <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
+            ${magicLinkUrl}
+          </p>
+          <p>El enlace expirará en <strong>15 minutos</strong>.</p>
+          <p>Si no solicitaste este enlace, ignora este correo.</p>
+        </div>
+        <div class="footer">
+          <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
     await transporter.sendMail({
-      from: `"App de Tareas" <${FROM_EMAIL}>`,
+      from: `"App Tareas" <${FROM_EMAIL}>`,
       to: email,
       subject: "🔐 Tu enlace de acceso",
+      text: textContent,   
       html: htmlContent,
     });
 
@@ -169,11 +181,9 @@ export const handler = async (event) => {
       };
     }
 
-    // Configuración para DEMO (más permisivo)
-    const RATE_LIMIT = 15; // 15 intentos por hora
-    const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
+    const RATE_LIMIT = 15;
+    const TIME_WINDOW = 60 * 60 * 1000;
 
-    // Verificar límite
     const timeAgo = new Date(Date.now() - TIME_WINDOW);
     const { count, error: countError } = await supabase
       .from("magic_links")
