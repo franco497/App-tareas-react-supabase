@@ -19,9 +19,16 @@ function generateToken() {
   const crypto = globalThis.crypto;
   const array = new Uint8Array(16);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+// ✅ FUNCIÓN AGREGADA
+function getClientIP(event) {
+  const forwarded = event.headers["x-forwarded-for"];
+  if (forwarded) {
+    return forwarded.split(",")[0];
+  }
+  return event.headers["client-ip"] || "unknown";
 }
 
 async function sendMagicLinkEmail(email, token) {
@@ -49,7 +56,6 @@ async function sendMagicLinkEmail(email, token) {
 
     const magicLinkUrl = `${SITE_URL}/#/auth/callback?token=${token}`;
 
-    // ✅ VERSIÓN TEXTO PLANO
     const textContent = `
 Hola,
 
@@ -66,7 +72,6 @@ Si no solicitaste este enlace, ignora este correo.
 © 2026 App de Tareas
 `;
 
-    // ✅ VERSIÓN HTML MEJORADA
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -118,8 +123,8 @@ Si no solicitaste este enlace, ignora este correo.
           💡 Agrega <strong style="color: #667eea;">${FROM_EMAIL}</strong> a tus contactos para asegurar la entrega.
         </p>
         <p style="font-size: 11px; color: #aaaaaa; text-align: center; margin-top: 10px;">
-         Si no deseas recibir más correos de este tipo, 
-        <a href="#" style="color: #aaaaaa; text-decoration: underline;">haz clic aquí</a>
+          Si no deseas recibir más correos de este tipo, 
+          <a href="#" style="color: #aaaaaa; text-decoration: underline;">haz clic aquí</a>
         </p>
       </td>
     </tr>
@@ -192,11 +197,9 @@ export const handler = async (event) => {
       };
     }
 
-    // Configuración para DEMO (más permisivo)
-    const RATE_LIMIT = 15; // 15 intentos por hora
-    const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
+    const RATE_LIMIT = 15;
+    const TIME_WINDOW = 60 * 60 * 1000;
 
-    // Verificar límite
     const timeAgo = new Date(Date.now() - TIME_WINDOW);
     const { count, error: countError } = await supabase
       .from("magic_links")
@@ -226,7 +229,7 @@ export const handler = async (event) => {
       email,
       token,
       expires_at: expiresAt.toISOString(),
-      ip_address: getClientIP(event),
+      ip_address: getClientIP(event), // ← AHORA LA FUNCIÓN EXISTE
       user_agent: event.headers["user-agent"] || "unknown",
     });
 
