@@ -133,6 +133,25 @@ function ScheduledTasks() {
         <h1 className="scheduled-tasks-title">📅 Tareas Programadas</h1>
       </div>
 
+      {/* ✅ Mensaje informativo sobre emails */}
+      <div style={{
+        background: "rgba(233, 196, 106, 0.1)",
+        border: "1px solid rgba(233, 196, 106, 0.2)",
+        borderRadius: "8px",
+        padding: "10px 16px",
+        marginBottom: "16px",
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        fontSize: "0.85rem",
+        color: "rgba(255, 255, 255, 0.8)",
+      }}>
+        <span style={{ fontSize: "1.2rem" }}>📬</span>
+        <span>
+          Los recordatorios se envían desde <strong style={{ color: "#e9c46a" }}>devincentisf35@gmail.com</strong>
+        </span>
+      </div>
+
       {scheduledTasks.length === 0 ? (
         <div className="no-tasks-message">
           <p>📭 No hay tareas programadas</p>

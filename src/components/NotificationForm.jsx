@@ -266,6 +266,17 @@ function NotificationForm({ task, onClose }) {
                 {message.text}
               </div>
             )}
+            {/* ✅ Mensaje adicional */}
+            <p
+              style={{
+                fontSize: "1rem",
+                color: "rgba(255, 255, 255, 0.5)",
+                textAlign: "center",
+                margin: "0 0 8px 0",
+              }}
+            >
+              💡 Revisa tu carpeta de "Spam" si no lo recibes
+            </p>
             <button
               type="button"
               className="send-now-button"
