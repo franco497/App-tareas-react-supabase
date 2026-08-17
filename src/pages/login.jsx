@@ -22,9 +22,10 @@ function Login() {
   });
 
   // ✅ DETECTAR SI ESTÁ EN LOCAL
-  const isLocal = window.location.hostname === "localhost" || 
-                  window.location.hostname === "127.0.0.1" ||
-                  window.location.port === "5175";
+  const isLocal =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.port === "5175";
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -51,7 +52,7 @@ function Login() {
           body: JSON.stringify({ email: data.email }),
         });
 
-        // ✅ INTENTAR LEER EL JSON, PERO CON MANEJO DE ERRORES
+        //  INTENTAR LEER EL JSON, PERO CON MANEJO DE ERRORES
         let responseData;
         try {
           const text = await response.text();
@@ -69,7 +70,7 @@ function Login() {
         result = responseData;
       }
 
-      // ✅ SI TODO ESTÁ BIEN, MOSTRAR SWEETALERT
+      //  SI TODO ESTÁ BIEN, MOSTRAR SWEETALERT
       console.log("✅ Envío exitoso:", result);
 
       await Swal.fire({
@@ -84,9 +85,6 @@ function Login() {
             </p>
             <p style="margin: 5px 0 0; font-size: 0.85rem; color: #856404;">
               📁 Si no lo encuentras, revisa la carpeta de <strong>"Spam"</strong> o <strong>"Correo no deseado"</strong>
-            </p>
-            <p style="margin: 5px 0 0; font-size: 0.85rem; color: #856404;">
-              ⭐ Agrega <strong>devincentisf35@gmail.com</strong> a tus contactos para futuros envíos
             </p>
           </div>
           <p style="font-size: 0.85rem; color: #6c757d; margin-top: 10px;">
@@ -108,8 +106,8 @@ function Login() {
     } catch (err) {
       console.error("❌ Error:", err);
       setError(err.message || "Error al enviar el magic link");
-      
-      // ✅ MOSTRAR ERROR CON SWEETALERT
+
+      //  MOSTRAR ERROR CON SWEETALERT
       await Swal.fire({
         title: "❌ Error",
         text: err.message || "No se pudo enviar el enlace. Intenta nuevamente.",
@@ -127,10 +125,9 @@ function Login() {
   return (
     <div className="login-container">
       <h2 className="login-title">
-        App Tareas - Sistema de Gestión y Recordatorios - Inicia Sesión con tu
-        email
+        App Tareas - Inicia Sesión con tu Correo Electronico
       </h2>
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="login-form">
         <div className="login-form-group">
           <input
@@ -166,20 +163,23 @@ function Login() {
       </form>
 
       {/* ✅ Mensaje informativo fijo en la pantalla */}
-      <div style={{
-        marginTop: "20px",
-        padding: "12px 20px",
-        background: "rgba(255, 255, 255, 0.05)",
-        borderRadius: "8px",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
-        maxWidth: "400px",
-        width: "100%",
-        textAlign: "center",
-        color: "rgba(255, 255, 255, 0.7)",
-        fontSize: "0.85rem",
-      }}>
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "12px 20px",
+          background: "rgba(255, 255, 255, 0.05)",
+          borderRadius: "8px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          maxWidth: "400px",
+          width: "100%",
+          textAlign: "center",
+          color: "rgba(255, 255, 255, 0.7)",
+          fontSize: "0.85rem",
+        }}
+      >
         <p style={{ margin: "0" }}>
-          📬 Si no recibes el correo, revisa tu carpeta de <strong style={{ color: "#fff" }}>"Spam"</strong>
+          📬 Si no recibes el correo, revisa tu carpeta de{" "}
+          <strong style={{ color: "#fff" }}>"Spam"</strong>
         </p>
       </div>
     </div>
