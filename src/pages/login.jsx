@@ -21,7 +21,7 @@ function Login() {
     mode: "onChange",
   });
 
-  // ✅ DETECTAR SI ESTÁ EN LOCAL
+  //  DETECTAR SI ESTÁ EN LOCAL
   const isLocal =
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1" ||
@@ -71,7 +71,6 @@ function Login() {
       }
 
       //  SI TODO ESTÁ BIEN, MOSTRAR SWEETALERT
-      console.log("✅ Envío exitoso:", result);
 
       await Swal.fire({
         title: "📧 ¡Correo enviado!",
@@ -87,9 +86,6 @@ function Login() {
               📁 Si no lo encuentras, revisa la carpeta de <strong>"Spam"</strong> o <strong>"Correo no deseado"</strong>
             </p>
           </div>
-          <p style="font-size: 0.85rem; color: #6c757d; margin-top: 10px;">
-            ⏰ El enlace expira en <strong>15 minutos</strong>
-          </p>
         `,
         icon: "success",
         confirmButtonColor: "#2d6a4f",
@@ -162,7 +158,7 @@ function Login() {
         {error && <div className="login-message error">❌ {error}</div>}
       </form>
 
-      {/* ✅ Mensaje informativo fijo en la pantalla */}
+      {/*  Mensaje informativo fijo en la pantalla */}
       <div
         style={{
           marginTop: "20px",
