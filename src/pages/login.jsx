@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase, getRedirectUrl } from "../lib/supabase";
-import Swal from "sweetalert2"; // ← Importar SweetAlert
+import Swal from "sweetalert2";
 
 function Login() {
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,8 @@ function Login() {
     setError("");
 
     try {
+      let result = null;
+
       if (isLocal) {
         // EN LOCAL: Usar Supabase directamente
         const redirectUrl = getRedirectUrl();
@@ -40,6 +42,7 @@ function Login() {
           options: { emailRedirectTo: redirectUrl },
         });
         if (error) throw error;
+        result = { success: true };
       } else {
         // EN PRODUCCIÓN: Usar Netlify Function
         const response = await fetch("/.netlify/functions/send-magic-link", {
@@ -47,11 +50,28 @@ function Login() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: data.email }),
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error);
+
+        // ✅ INTENTAR LEER EL JSON, PERO CON MANEJO DE ERRORES
+        let responseData;
+        try {
+          const text = await response.text();
+          console.log("📨 Respuesta texto:", text);
+          responseData = text ? JSON.parse(text) : {};
+        } catch (parseError) {
+          console.error("❌ Error parseando respuesta:", parseError);
+          throw new Error("El servidor no respondió correctamente");
+        }
+
+        if (!response.ok) {
+          throw new Error(responseData.error || `Error ${response.status}`);
+        }
+
+        result = responseData;
       }
 
-      // ✅ MOSTRAR SWEETALERT CON INSTRUCCIONES
+      // ✅ SI TODO ESTÁ BIEN, MOSTRAR SWEETALERT
+      console.log("✅ Envío exitoso:", result);
+
       await Swal.fire({
         title: "📧 ¡Correo enviado!",
         html: `
@@ -89,6 +109,7 @@ function Login() {
       console.error("❌ Error:", err);
       setError(err.message || "Error al enviar el magic link");
       
+      // ✅ MOSTRAR ERROR CON SWEETALERT
       await Swal.fire({
         title: "❌ Error",
         text: err.message || "No se pudo enviar el enlace. Intenta nuevamente.",
