@@ -19,7 +19,7 @@ function ScheduledTasks() {
 
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null); 
 
   useEffect(() => {
     getScheduledTasks();
@@ -53,15 +53,15 @@ function ScheduledTasks() {
     });
   };
 
-  // VER DETALLES - Abre modal con detalles
+  //  VER DETALLES - Guarda el ID, no el objeto
   const handleViewDetails = (task) => {
-    setSelectedTask(task);
+    setSelectedTaskId(task.id);
     setShowDetailsModal(true);
   };
 
   // REPROGRAMAR (abrir modal)
   const handleReschedule = (task) => {
-    setSelectedTask(task);
+    setSelectedTaskId(task.id);
     setShowRescheduleModal(true);
   };
 
@@ -106,13 +106,16 @@ function ScheduledTasks() {
 
   const handleRescheduleClose = () => {
     setShowRescheduleModal(false);
-    setSelectedTask(null);
+    setSelectedTaskId(null);
   };
 
   const handleDetailsClose = () => {
     setShowDetailsModal(false);
-    setSelectedTask(null);
+    setSelectedTaskId(null);
   };
+
+  //  Obtener la tarea actualizada desde scheduledTasks
+  const selectedTask = scheduledTasks.find(task => task.id === selectedTaskId);
 
   if (scheduledLoading) {
     return (
@@ -133,7 +136,7 @@ function ScheduledTasks() {
         <h1 className="scheduled-tasks-title">📅 Tareas Programadas</h1>
       </div>
 
-      {/* ✅ Mensaje informativo sobre emails */}
+      {/* Mensaje informativo sobre emails */}
       <div style={{
         background: "rgba(233, 196, 106, 0.1)",
         border: "1px solid rgba(233, 196, 106, 0.2)",
@@ -214,12 +217,12 @@ function ScheduledTasks() {
         </>
       )}
 
-      {/* Modal de reprogramación */}
+      {/*  Modal de reprogramación - pasa el objeto actualizado */}
       {showRescheduleModal && selectedTask && (
         <RescheduleModal task={selectedTask} onClose={handleRescheduleClose} />
       )}
 
-      {/* Modal de detalles */}
+      {/*  Modal de detalles - pasa el objeto actualizado */}
       {showDetailsModal && selectedTask && (
         <ScheduledDetailsModal task={selectedTask} onClose={handleDetailsClose} />
       )}
