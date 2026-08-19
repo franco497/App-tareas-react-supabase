@@ -7,12 +7,6 @@
     <meta name="google" content="notranslate" />
     <title>App Tareas - Sistema de Gestión y Recordatorios</title>
     <style>
-      /*  Reset básico */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
 
       body {
         background: #1a1a2e;
@@ -36,46 +30,10 @@
         padding: 20px;
       }
 
-      /*  Fallback para navegadores que NO soportan flexbox */
-      @supports not (display: flex) {
-        #root {
-          display: block;
-          padding-top: 40vh;
-        }
-      }
-
-      /*  Fallback para navegadores que NO soportan linear-gradient */
-      @supports not (background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)) {
-        #root {
-          background: #1a1a2e;
-        }
-      }
-
-      /*  Fallback para navegadores que NO soportan display: flex */
-      #root {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 20px;
-      }
-
-      /*  Texto de carga centrado (fallback) */
-      .loading-fallback {
-        color: #ffffff;
-        font-size: 1.2rem;
-        text-align: center;
-        margin: 0 auto;
-        padding: 20px;
-        max-width: 100%;
-      }
     </style>
   </head>
   <body>
     <div id="root">
-      <!--  Texto de carga visible mientras React carga -->
-      <div class="loading-fallback">Cargando...</div>
-    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

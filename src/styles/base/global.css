@@ -34,78 +34,20 @@ body {
   color: var(--primary-dark);
 }
 
-/* ============================================
-   LOADING CONTAINER - COMPATIBLE CON NAVEGADORES ANTIGUOS
-   ============================================ */
-
+/* Loading container global */
 .loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  color: var(--white) !important;
+  color: var(--white) !important; 
   font-size: 1.2rem;
-  /*  Fallback para navegadores antiguos */
-  text-align: center;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 20px;
 }
 
 .loading-container-text {
-  color: var(--white) !important;
-  /*  Centrado con margin (fallback) */
-  margin: 0 auto;
-  max-width: 100%;
-  padding: 10px;
+  color: var(--white) !important; 
 }
 
 .loading-container-btn {
   color: var(--white);
-  margin: 0 auto;
-  max-width: 100%;
-  padding: 10px;
-}
-
-/*  Fallback para navegadores que NO soportan flexbox */
-@supports not (display: flex) {
-  .loading-container {
-    display: block;
-    text-align: center;
-    padding-top: 40vh;
-  }
-  
-  .loading-container-text {
-    display: inline-block;
-    margin: 0 auto;
-  }
-  
-  .loading-container-btn {
-    display: inline-block;
-    margin: 0 auto;
-  }
-}
-
-/*  Fallback para navegadores que NO soportan backdrop-filter */
-@supports not (backdrop-filter: blur(10px)) {
-  .loading-container {
-    background: var(--primary-gradient);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-/*  Fallback para navegadores que NO soportan var() */
-@supports not (--custom: property) {
-  .loading-container {
-    color: #ffffff !important;
-  }
-  
-  .loading-container-text {
-    color: #ffffff !important;
-  }
-  
-  .loading-container-btn {
-    color: #ffffff;
-  }
 }
