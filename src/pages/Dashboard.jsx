@@ -8,8 +8,7 @@ import Footer from "../components/Footer";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
-  //  OBTENER USUARIO DEL CONTEXTO
-  const { user, loading } = useTasks();
+  const { user, loading, updateCounter } = useTasks(); 
 
   const handleToggleView = () => {
     setShowTaskDone(!showTaskDone);
@@ -53,7 +52,8 @@ function Dashboard() {
             </>
           )}
 
-          <TaskList done={showTaskDone} />
+          {/*  key con updateCounter para forzar re-render */}
+          <TaskList key={`task-list-${showTaskDone}-${updateCounter}`} done={showTaskDone} />
         </div>
       </main>
       

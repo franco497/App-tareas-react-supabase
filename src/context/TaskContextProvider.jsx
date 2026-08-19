@@ -17,6 +17,9 @@ export const TaskContextProvider = ({ children }) => {
   const [scheduledTasks, setScheduledTasks] = useState([]);
   const [scheduledLoading, setScheduledLoading] = useState(false);
 
+  //ESTADO DE ACTUALIZACION TOGGLETASKDONE
+  const [updateCounter, setUpdateCounter] = useState(0);
+
   // ============================================
   // OBTENER USUARIO - Centralizado
   // ============================================
@@ -254,22 +257,32 @@ export const TaskContextProvider = ({ children }) => {
     }
   };
 
+  // ============================================
+  // TOGGLE TASK DONE - CORREGIDO
+  // ============================================
+
   const toggleTaskDone = async (id, currentDone) => {
     const newDoneState = !currentDone;
 
     try {
+      //  Actualizar el estado local primero
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === id ? { ...task, done: newDoneState } : task,
         ),
       );
 
+      //  Actualizar en Supabase
       await updateTask(id, { done: newDoneState });
 
-      if (currentDoneFilter !== newDoneState) {
-        await getTasks(currentDoneFilter);
-      }
+      //  Incrementar contador para forzar actualización
+      setUpdateCounter((prev) => prev + 1);
+
+      //  DESPUÉS de actualizar, RECARGAR la vista actual
+      // Esto hace que la tarea desaparezca de la vista si cambió de estado
+      await getTasks(currentDoneFilter);
     } catch (error) {
+      //  Si hay error, revertir el cambio
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === id ? { ...task, done: currentDone } : task,
@@ -605,6 +618,7 @@ export const TaskContextProvider = ({ children }) => {
     rescheduleScheduledTask,
     deleteScheduledTask,
     cancelScheduledTask,
+    updateCounter,
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
