@@ -385,3 +385,21 @@ footer.footer-component {
   display: flex;
   flex-direction: column;
 }
+
+/*  Transiciones ultra suaves */
+.task-list-wrapper {
+  transition: opacity 0.1s ease-in-out;
+}
+
+.task-list {
+  animation: listAppear 0.12s ease;
+}
+
+.task-card {
+  animation: cardAppear 0.12s ease backwards;
+}
+
+/*  Para tarjetas individuales con delays mínimos */
+.task-card:nth-child(1) { animation-delay: 0.01s; }
+.task-card:nth-child(2) { animation-delay: 0.02s; }
+/* ... hasta 10 */

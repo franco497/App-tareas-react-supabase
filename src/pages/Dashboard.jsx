@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTasks } from "../context";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
@@ -8,7 +8,8 @@ import Footer from "../components/Footer";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
-  const { user, loading, updateCounter } = useTasks(); 
+  const { user, loading, updateCounter, tasks } = useTasks();
+  const [isPending, startTransition] = useTransition(); 
 
   const handleToggleView = () => {
     setShowTaskDone(!showTaskDone);
@@ -29,7 +30,7 @@ function Dashboard() {
         onToggleView={handleToggleView}
         userEmail={user?.email}
       />
-      
+
       <main className="main-content">
         <div className="dashboard-container">
           {!showTaskDone && (
@@ -42,21 +43,32 @@ function Dashboard() {
                 <div className="supabase-info-content">
                   <p className="supabase-info-text">
                     <span className="info-icon">ℹ️</span>
-                    El sistema está conectado a un back-end de Supabase con una base
-                    de datos PostgreSQL, puedes probar la integración de la API de
-                    Gmail enviando una notificación a tu correo electrónico. Como es solo con fines 
-                    demostrativos revisa tu carpeta de Spam en caso de no recibirlo
+                    El sistema está conectado a un back-end de Supabase con una
+                    base de datos PostgreSQL, puedes probar la integración de la
+                    API de Gmail enviando una notificación a tu correo
+                    electrónico. Como es solo con fines demostrativos revisa tu
+                    carpeta de Spam en caso de no recibirlo
                   </p>
                 </div>
               </div>
             </>
           )}
 
-          {/*  key con updateCounter para forzar re-render */}
-          <TaskList key={`task-list-${showTaskDone}-${updateCounter}`} done={showTaskDone} />
+          {/*  CON useTransition - transición suave */}
+          <div
+            style={{
+              opacity: isPending ? 0.92 : 1,
+              transition: "opacity 0.1s ease-in-out",
+            }}
+          >
+            <TaskList
+              key={`task-list-${showTaskDone}-${updateCounter}`}
+              done={showTaskDone}
+            />
+          </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
