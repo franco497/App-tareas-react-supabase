@@ -16,7 +16,7 @@ function AuthCallback() {
           token = hashParams.get("token");
         }
 
-        // ✅ DETECTAR SI ESTÁ EN LOCAL
+        //  DETECTAR SI ESTÁ EN LOCAL
         const isLocal = window.location.hostname === "localhost" || 
                         window.location.hostname === "127.0.0.1" ||
                         window.location.hostname === "5173";
@@ -25,8 +25,7 @@ function AuthCallback() {
         let responseOk;
 
         if (isLocal) {
-          // ✅ EN LOCAL: Usar sesión de Supabase directamente
-          console.log("🔧 Modo local: verificando sesión de Supabase");
+          //  EN LOCAL: Usar sesión de Supabase directamente
           const { data: { session }, error } = await supabase.auth.getSession();
           if (error) throw error;
           if (!session) throw new Error("No hay sesión");
@@ -34,10 +33,8 @@ function AuthCallback() {
           data = { success: true, session };
           responseOk = true;
           localStorage.setItem("supabaseSession", JSON.stringify(session));
-          console.log("✅ Sesión guardada en localStorage (local)");
         } else {
-          // ✅ EN PRODUCCIÓN: Usar Netlify Function
-          console.log("🚀 Modo producción: verificando con Netlify Function");
+          //  EN PRODUCCIÓN: Usar Netlify Function
           
           if (!token) {
             setStatus("❌ Token no encontrado");
@@ -61,7 +58,6 @@ function AuthCallback() {
 
           if (responseOk && data.session) {
             localStorage.setItem("supabaseSession", JSON.stringify(data.session));
-            console.log("✅ Sesión guardada en localStorage (producción)");
           }
         }
 

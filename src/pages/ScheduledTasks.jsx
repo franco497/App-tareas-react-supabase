@@ -121,7 +121,7 @@ function ScheduledTasks() {
     return (
       <div className="loading-container">
         <h2 className="loading-container-btn">
-          Cargando tareas programadas...
+          Cargando...
         </h2>
       </div>
     );

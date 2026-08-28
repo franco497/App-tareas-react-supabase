@@ -63,7 +63,7 @@ function Trash() {
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Cargando tareas borradas...</h2>
+        <h2>Cargando...</h2>
       </div>
     );
   }
