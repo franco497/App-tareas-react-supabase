@@ -42,8 +42,34 @@ export const handler = async (event) => {
       .gte("expires_at", new Date().toISOString())
       .single();
 
+    // ✅ Si no encuentra el token, verificar si fue invalidado
     if (error || !magicLink) {
-      console.error("❌ Token inválido o expirado:", { error, magicLink });
+      console.log("⚠️ Token no encontrado o expirado, verificando si fue invalidado...");
+
+      // Verificar si hay un token con el mismo valor marcado como usado
+      const { data: usedTokens, error: usedError } = await supabase
+        .from("magic_links")
+        .select("*")
+        .eq("token", token)
+        .eq("is_used", true)
+        .order("used_at", { ascending: false })
+        .limit(1);
+
+      if (usedError) {
+        console.error("❌ Error verificando tokens usados:", usedError);
+      }
+
+      if (usedTokens && usedTokens.length > 0) {
+        console.log(`⚠️ Token ya fue usado o invalidado para ${usedTokens[0].email}`);
+        return {
+          statusCode: 400,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+          body: JSON.stringify({ 
+            error: "Este enlace ya fue utilizado o ha sido reemplazado por uno nuevo. Solicita un nuevo enlace." 
+          }),
+        };
+      }
+
       return {
         statusCode: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },

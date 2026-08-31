@@ -153,6 +153,7 @@ Si no solicitaste este enlace, ignora este correo.
 }
 
 export const handler = async (event) => {
+  // CORS
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -214,6 +215,23 @@ export const handler = async (event) => {
           error: `Demasiados intentos. Espera una hora. (Límite: ${RATE_LIMIT} intentos por hora)`,
         }),
       };
+    }
+
+    // ✅ INVALIDAR TOKENS ANTERIORES DEL MISMO EMAIL
+    const { error: invalidateError } = await supabase
+      .from("magic_links")
+      .update({
+        is_used: true, // Marcarlos como usados
+        used_at: new Date().toISOString(),
+      })
+      .eq("email", email)
+      .eq("is_used", false); // Solo los no usados
+
+    if (invalidateError) {
+      console.error("⚠️ Error invalidando tokens anteriores:", invalidateError);
+      // No detenemos el flujo, solo logueamos
+    } else {
+      console.log(`✅ Tokens anteriores invalidados para ${email}`);
     }
 
     const token = generateToken();
