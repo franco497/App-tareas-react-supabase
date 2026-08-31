@@ -23,19 +23,17 @@ export const handler = async (event) => {
   try {
     const { token } = JSON.parse(event.body);
 
+    console.log("🔍 Token recibido:", token);
 
     if (!token) {
       return {
         statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         body: JSON.stringify({ error: "Token es requerido" }),
       };
     }
 
-    // Buscar token válido
+    // ✅ Buscar token válido
     const { data: magicLink, error } = await supabase
       .from("magic_links")
       .select("*")
@@ -44,172 +42,132 @@ export const handler = async (event) => {
       .gte("expires_at", new Date().toISOString())
       .single();
 
-    if (error) {
-      console.error("❌ Error buscando token:", error);
+    if (error || !magicLink) {
+      console.error("❌ Token inválido o expirado:", { error, magicLink });
       return {
         statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         body: JSON.stringify({ error: "Token inválido o expirado" }),
       };
     }
 
-    if (!magicLink) {
-      console.error("❌ Token no encontrado o expirado");
-      return {
-        statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ error: "Token inválido o expirado" }),
-      };
-    }
+    console.log("✅ Token válido para:", magicLink.email);
 
-    //  Marcar como usado
-    await supabase
-      .from("magic_links")
-      .update({ is_used: true, used_at: new Date().toISOString() })
-      .eq("id", magicLink.id);
-
-
+    // ✅ CREAR SESIÓN PRIMERO
     const email = magicLink.email;
     const temporaryPassword = token + "magic_link_password_123";
 
-    // VERIFICAR SI EL USUARIO YA EXISTE EN SUPABASE AUTH
-    const { data: users, error: listError } =
-      await supabase.auth.admin.listUsers();
-
-    if (listError) {
-      console.error("❌ Error listando usuarios:", listError);
-      return {
-        statusCode: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ error: "Error verificando usuario" }),
-      };
-    }
-
+    // Verificar si el usuario existe
+    const { data: users, error: listError } = await supabase.auth.admin.listUsers();
     const existingUser = users?.users?.find((user) => user.email === email);
 
-    // SI EL USUARIO NO EXISTE, CREARLO
+    // Si no existe, crearlo
     if (!existingUser) {
-
-      const { data: newUser, error: signUpError } =
-        await supabase.auth.admin.createUser({
-          email: email,
-          password: temporaryPassword,
-          email_confirm: true,
-        });
+      console.log("👤 Usuario no existe, creando...");
+      const { error: signUpError } = await supabase.auth.admin.createUser({
+        email: email,
+        password: temporaryPassword,
+        email_confirm: true,
+      });
 
       if (signUpError) {
         console.error("❌ Error creando usuario:", signUpError);
         return {
           statusCode: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
           body: JSON.stringify({ error: "Error creando usuario" }),
         };
       }
-
+      console.log("✅ Usuario creado:", email);
     }
 
-    // INICIAR SESIÓN
-
-    const { data: session, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email: email,
-        password: temporaryPassword,
-      });
+    // ✅ Iniciar sesión
+    console.log("🔑 Iniciando sesión con:", email);
+    const { data: session, error: loginError } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: temporaryPassword,
+    });
 
     if (loginError) {
       console.error("❌ Error iniciando sesión:", loginError);
-
+      
       // Si el usuario existe pero la contraseña no funciona, actualizarla
       if (existingUser) {
         console.log("🔄 Reintentando con actualización de contraseña...");
-
         const { error: updateError } = await supabase.auth.admin.updateUserById(
           existingUser.id,
-          { password: temporaryPassword },
+          { password: temporaryPassword }
         );
 
         if (updateError) {
           console.error("❌ Error actualizando contraseña:", updateError);
           return {
             statusCode: 500,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
+            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
             body: JSON.stringify({ error: "Error actualizando contraseña" }),
           };
         }
 
         // Reintentar login
-        const { data: retrySession, error: retryError } =
-          await supabase.auth.signInWithPassword({
-            email: email,
-            password: temporaryPassword,
-          });
+        const { data: retrySession, error: retryError } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: temporaryPassword,
+        });
 
         if (retryError) {
           console.error("❌ Error reintentando login:", retryError);
           return {
             statusCode: 500,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
+            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
             body: JSON.stringify({ error: "Error iniciando sesión" }),
           };
         }
 
+        // ✅ MARCAR COMO USADO SOLO DESPUÉS DEL LOGIN EXITOSO
+        await supabase
+          .from("magic_links")
+          .update({ is_used: true, used_at: new Date().toISOString() })
+          .eq("id", magicLink.id);
+
+        console.log("✅ Token marcado como usado (después del login)");
+        console.log("✅ Sesión iniciada correctamente");
+
         return {
           statusCode: 200,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
           body: JSON.stringify({ success: true, session: retrySession }),
         };
       }
 
       return {
         statusCode: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         body: JSON.stringify({ error: "Error iniciando sesión" }),
       };
     }
 
+    // ✅ MARCAR COMO USADO SOLO DESPUÉS DEL LOGIN EXITOSO
+    await supabase
+      .from("magic_links")
+      .update({ is_used: true, used_at: new Date().toISOString() })
+      .eq("id", magicLink.id);
+
+    console.log("✅ Token marcado como usado (después del login)");
+    console.log("✅ Sesión iniciada correctamente");
+
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ success: true, session }),
     };
   } catch (error) {
     console.error("❌ Error en handler:", error);
     return {
       statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        error: "Error interno del servidor",
-        details: error.message,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ 
+        error: "Error interno del servidor", 
+        details: error.message 
       }),
     };
   }

@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -16,56 +17,51 @@ function AuthCallback() {
           token = hashParams.get("token");
         }
 
-        //  DETECTAR SI ESTÁ EN LOCAL
-        const isLocal = window.location.hostname === "localhost" || 
-                        window.location.hostname === "127.0.0.1" ||
-                        window.location.hostname === "5173";
-
-        let data;
-        let responseOk;
-
-        if (isLocal) {
-          //  EN LOCAL: Usar sesión de Supabase directamente
-          const { data: { session }, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          if (!session) throw new Error("No hay sesión");
-          
-          data = { success: true, session };
-          responseOk = true;
-          localStorage.setItem("supabaseSession", JSON.stringify(session));
-        } else {
-          //  EN PRODUCCIÓN: Usar Netlify Function
-          
-          if (!token) {
-            setStatus("❌ Token no encontrado");
-            setTimeout(() => {
-              window.location.replace("/");
-            }, 2000);
-            return;
-          }
-
-          const response = await fetch(
-            "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token }),
-            }
-          );
-
-          data = await response.json();
-          responseOk = response.ok;
-
-          if (responseOk && data.session) {
-            localStorage.setItem("supabaseSession", JSON.stringify(data.session));
-          }
+        if (!token) {
+          setStatus("❌ Token no encontrado");
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 2000);
+          return;
         }
 
-        if (!responseOk || !data.success) {
+        console.log("🔍 Token recibido:", token);
+
+        // ✅ Si ya hubo un reintento, esperar 1 segundo antes de intentar de nuevo
+        if (retryCount > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        const response = await fetch(
+          "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          // ✅ Si el error es "Token inválido o expirado" y es el primer intento, reintentar
+          if (data.error === "Token inválido o expirado" && retryCount === 0) {
+            console.log("🔄 Reintentando verificación del token...");
+            setRetryCount(1);
+            await verifyToken(); // Reintentar
+            return;
+          }
           throw new Error(data.error || "Token inválido o expirado");
         }
 
         if (data.session) {
+          // ✅ Guardar sesión en localStorage
+          localStorage.setItem("supabaseSession", JSON.stringify(data.session));
+          console.log("✅ Sesión guardada en localStorage");
+          
+          // ✅ Esperar un momento para que la sesión se propague
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");
@@ -81,7 +77,7 @@ function AuthCallback() {
     };
 
     verifyToken();
-  }, []);
+  }, [retryCount]);
 
   return (
     <div className="auth-callback-container">
@@ -103,6 +99,11 @@ function AuthCallback() {
         `}</style>
 
         <h2 className="auth-callback-status">{status}</h2>
+        {retryCount > 0 && (
+          <p style={{ marginTop: '10px', color: '#ffc107' }}>
+            Reintentando verificación...
+          </p>
+        )}
       </div>
     </div>
   );
