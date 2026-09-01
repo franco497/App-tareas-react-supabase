@@ -4,101 +4,73 @@ import { supabase } from "../lib/supabase";
 
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        // 🔍 LOG 1: URL completa que llega
-        console.log("📍 URL COMPLETA:", window.location.href);
-        console.log("📍 Pathname:", window.location.pathname);
-        console.log("📍 Search:", window.location.search);
-        console.log("📍 Hash:", window.location.hash);
-
-        // 🔍 LOG 2: Intentar obtener token de diferentes formas
         const params = new URLSearchParams(window.location.search);
         let token = params.get("token");
-        console.log("🔍 Token desde search:", token);
 
         if (!token && window.location.hash) {
-          const hashParams = new URLSearchParams(
-            window.location.hash.split("?")[1],
-          );
+          const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
           token = hashParams.get("token");
-          console.log("🔍 Token desde hash:", token);
         }
 
-        console.log("🔍 TOKEN FINAL:", token);
+        //  DETECTAR SI ESTÁ EN LOCAL
+        const isLocal = window.location.hostname === "localhost" || 
+                        window.location.hostname === "127.0.0.1" ||
+                        window.location.hostname === "5173";
 
-        if (!token) {
-          console.log("❌ No se encontró token en la URL");
-          setStatus("❌ Token no encontrado");
-          setTimeout(() => {
-            window.location.replace("/");
-          }, 2000);
-          return;
-        }
+        let data;
+        let responseOk;
 
-        // 🔍 LOG 3: Token que se va a enviar a verify-magic-link
-        console.log("📤 Enviando token a verify-magic-link:", token);
-
-        // ✅ Si ya hubo un reintento, esperar 1 segundo antes de intentar de nuevo
-        if (retryCount > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        const response = await fetch(
-          "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token }),
-          },
-        );
-
-        const data = await response.json();
-        console.log("📨 Respuesta de verify-magic-link:", {
-          status: response.status,
-          ok: response.ok,
-          data: data
-        });
-
-        if (!response.ok || !data.success) {
-          // ✅ Mensajes más específicos
-          if (
-            data.error ===
-            "Este enlace ya fue utilizado o ha sido reemplazado por uno nuevo. Solicita un nuevo enlace."
-          ) {
-            setStatus("⚠️ Este enlace ya fue reemplazado por uno nuevo");
+        if (isLocal) {
+          //  EN LOCAL: Usar sesión de Supabase directamente
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (!session) throw new Error("No hay sesión");
+          
+          data = { success: true, session };
+          responseOk = true;
+          localStorage.setItem("supabaseSession", JSON.stringify(session));
+        } else {
+          //  EN PRODUCCIÓN: Usar Netlify Function
+          
+          if (!token) {
+            setStatus("❌ Token no encontrado");
             setTimeout(() => {
               window.location.replace("/");
             }, 2000);
             return;
           }
 
-          // ✅ Si el error es "Token inválido o expirado" y es el primer intento, reintentar
-          if (data.error === "Token inválido o expirado" && retryCount === 0) {
-            console.log("🔄 Reintentando verificación del token...");
-            setRetryCount(1);
-            await verifyToken();
-            return;
+          const response = await fetch(
+            "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            }
+          );
+
+          data = await response.json();
+          responseOk = response.ok;
+
+          if (responseOk && data.session) {
+            localStorage.setItem("supabaseSession", JSON.stringify(data.session));
           }
+        }
+
+        if (!responseOk || !data.success) {
           throw new Error(data.error || "Token inválido o expirado");
         }
 
         if (data.session) {
-          // ✅ Guardar sesión en localStorage
-          localStorage.setItem("supabaseSession", JSON.stringify(data.session));
-          console.log("✅ Sesión guardada en localStorage");
-
-          // ✅ Esperar un momento para que la sesión se propague
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          console.log("🚀 Redirigiendo a /dashboard");
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");
         }
+
       } catch (error) {
         console.error("❌ Error:", error);
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
@@ -109,22 +81,20 @@ function AuthCallback() {
     };
 
     verifyToken();
-  }, [retryCount]);
+  }, []);
 
   return (
     <div className="auth-callback-container">
       <div className="auth-callback-content">
-        <div
-          style={{
-            width: "50px",
-            height: "50px",
-            border: "4px solid #f3f3f3",
-            borderTop: "4px solid #3498db",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-            margin: "0 auto 20px",
-          }}
-        />
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto 20px'
+        }} />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -133,11 +103,6 @@ function AuthCallback() {
         `}</style>
 
         <h2 className="auth-callback-status">{status}</h2>
-        {retryCount > 0 && (
-          <p style={{ marginTop: "10px", color: "#ffc107" }}>
-            Reintentando verificación...
-          </p>
-        )}
       </div>
     </div>
   );
