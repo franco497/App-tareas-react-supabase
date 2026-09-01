@@ -28,36 +28,53 @@ export const TaskContextProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      //  PRIMERO: Intentar obtener de localStorage
-      const stored = localStorage.getItem("supabaseSession");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed?.user) {
-            setUser(parsed.user);
-            setLoading(false);
-            return parsed.user;
-          }
-        } catch (e) {
-          console.error("Error parseando sesión:", e);
-        }
-      }
-
-      //  SEGUNDO: Intentar con Supabase
+      // ✅ Intentar obtener usuario de Supabase
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser();
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error obteniendo usuario de Supabase:", error);
+
+        // ✅ Si falla, intentar restaurar desde localStorage
+        const stored = localStorage.getItem("supabaseSession");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed?.user) {
+              console.log(
+                "👤 Usuario restaurado desde localStorage:",
+                parsed.user.email,
+              );
+              setUser(parsed.user);
+              setLoading(false);
+              return parsed.user;
+            }
+          } catch (e) {
+            console.error("Error parseando sesión:", e);
+          }
+        }
+
+        setUser(null);
+        setLoading(false);
+        return null;
+      }
 
       if (user) {
+        console.log("👤 Usuario desde Supabase:", user.email);
         setUser(user);
+        setLoading(false);
+        return user;
       }
+
+      setUser(null);
+      setLoading(false);
+      return null;
     } catch (error) {
       console.error("❌ Error obteniendo usuario:", error);
       setUser(null);
-    } finally {
       setLoading(false);
+      return null;
     }
   }, []);
 
