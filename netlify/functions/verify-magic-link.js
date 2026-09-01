@@ -21,9 +21,16 @@ export const handler = async (event) => {
   }
 
   try {
+    // 🔍 LOG 1: Verificar que la función se está ejecutando
+    console.log("📨 === VERIFY-MAGIC-LINK INVOCADA ===");
+    console.log("📋 Método HTTP:", event.httpMethod);
+    console.log("📋 Headers:", JSON.stringify(event.headers, null, 2));
+    console.log("📋 Body recibido:", event.body);
+
     const { token } = JSON.parse(event.body);
 
     console.log("🔍 Token recibido:", token);
+    console.log("📏 Longitud del token:", token?.length);
 
     if (!token) {
       return {
@@ -33,18 +40,44 @@ export const handler = async (event) => {
       };
     }
 
+    // 🔍 LOG 2: Buscar el token en la base de datos SIN filtros
+    console.log("🔍 Buscando token en la base de datos...");
+    const { data: allTokens, error: allError } = await supabase
+      .from("magic_links")
+      .select("*")
+      .eq("token", token);
+
+    console.log("📊 Tokens encontrados (sin filtros):", allTokens?.length || 0);
+    if (allTokens && allTokens.length > 0) {
+      console.log("📋 Detalles del primer token encontrado:", {
+        email: allTokens[0].email,
+        is_used: allTokens[0].is_used,
+        expires_at: allTokens[0].expires_at,
+        created_at: allTokens[0].created_at,
+        used_at: allTokens[0].used_at
+      });
+    }
+
     // ✅ Buscar token válido
+    const now = new Date();
+    console.log("🕒 Hora actual (UTC):", now.toISOString());
+    console.log("🕒 Hora actual (Argentina):", now.toLocaleString("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires"
+    }));
+
     const { data: magicLink, error } = await supabase
       .from("magic_links")
       .select("*")
       .eq("token", token)
       .eq("is_used", false)
-      .gte("expires_at", new Date().toISOString())
+      .gte("expires_at", now.toISOString())
       .single();
 
     // ✅ Si no encuentra el token, verificar si fue invalidado
     if (error || !magicLink) {
       console.log("⚠️ Token no encontrado o expirado, verificando si fue invalidado...");
+      console.log("🔍 Error de Supabase:", error);
+      console.log("🔍 Token buscado:", token);
 
       // Verificar si hay un token con el mismo valor marcado como usado
       const { data: usedTokens, error: usedError } = await supabase
@@ -70,6 +103,7 @@ export const handler = async (event) => {
         };
       }
 
+      console.log("❌ Token no encontrado en la base de datos");
       return {
         statusCode: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -78,12 +112,16 @@ export const handler = async (event) => {
     }
 
     console.log("✅ Token válido para:", magicLink.email);
+    console.log("📋 is_used:", magicLink.is_used);
+    console.log("📋 expires_at:", magicLink.expires_at);
+    console.log("📋 created_at:", magicLink.created_at);
 
     // ✅ CREAR SESIÓN PRIMERO
     const email = magicLink.email;
     const temporaryPassword = token + "magic_link_password_123";
 
     // Verificar si el usuario existe
+    console.log("🔍 Verificando si el usuario existe:", email);
     const { data: users, error: listError } = await supabase.auth.admin.listUsers();
     const existingUser = users?.users?.find((user) => user.email === email);
 

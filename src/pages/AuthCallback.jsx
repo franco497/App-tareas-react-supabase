@@ -9,17 +9,29 @@ function AuthCallback() {
   useEffect(() => {
     const verifyToken = async () => {
       try {
+        // 🔍 LOG 1: URL completa que llega
+        console.log("📍 URL COMPLETA:", window.location.href);
+        console.log("📍 Pathname:", window.location.pathname);
+        console.log("📍 Search:", window.location.search);
+        console.log("📍 Hash:", window.location.hash);
+
+        // 🔍 LOG 2: Intentar obtener token de diferentes formas
         const params = new URLSearchParams(window.location.search);
         let token = params.get("token");
+        console.log("🔍 Token desde search:", token);
 
         if (!token && window.location.hash) {
           const hashParams = new URLSearchParams(
             window.location.hash.split("?")[1],
           );
           token = hashParams.get("token");
+          console.log("🔍 Token desde hash:", token);
         }
 
+        console.log("🔍 TOKEN FINAL:", token);
+
         if (!token) {
+          console.log("❌ No se encontró token en la URL");
           setStatus("❌ Token no encontrado");
           setTimeout(() => {
             window.location.replace("/");
@@ -27,7 +39,8 @@ function AuthCallback() {
           return;
         }
 
-        console.log("🔍 Token recibido:", token);
+        // 🔍 LOG 3: Token que se va a enviar a verify-magic-link
+        console.log("📤 Enviando token a verify-magic-link:", token);
 
         // ✅ Si ya hubo un reintento, esperar 1 segundo antes de intentar de nuevo
         if (retryCount > 0) {
@@ -44,6 +57,11 @@ function AuthCallback() {
         );
 
         const data = await response.json();
+        console.log("📨 Respuesta de verify-magic-link:", {
+          status: response.status,
+          ok: response.ok,
+          data: data
+        });
 
         if (!response.ok || !data.success) {
           // ✅ Mensajes más específicos
@@ -52,7 +70,6 @@ function AuthCallback() {
             "Este enlace ya fue utilizado o ha sido reemplazado por uno nuevo. Solicita un nuevo enlace."
           ) {
             setStatus("⚠️ Este enlace ya fue reemplazado por uno nuevo");
-            // No reintentar, redirigir directamente a login
             setTimeout(() => {
               window.location.replace("/");
             }, 2000);
@@ -77,6 +94,7 @@ function AuthCallback() {
           // ✅ Esperar un momento para que la sesión se propague
           await new Promise((resolve) => setTimeout(resolve, 500));
 
+          console.log("🚀 Redirigiendo a /dashboard");
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");
