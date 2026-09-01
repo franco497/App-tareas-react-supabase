@@ -11,20 +11,35 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  // ✅ INICIALIZAR session DIRECTAMENTE desde localStorage
+  const getInitialSession = () => {
+    const stored = localStorage.getItem("supabaseSession");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        console.log("📌 Sesión inicial desde localStorage:", parsed?.user?.email);
+        return parsed;
+      } catch (e) {
+        localStorage.removeItem("supabaseSession");
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const [session, setSession] = useState(getInitialSession());
+  const [authLoading, setAuthLoading] = useState(!getInitialSession());
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // ✅ 1. PRIMERO: Intentar restaurar sesión desde localStorage
+      // ✅ Si ya hay sesión en localStorage, restaurarla en Supabase
       const stored = localStorage.getItem("supabaseSession");
       
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          console.log("📌 Sesión encontrada en localStorage:", parsed?.user?.email);
+          console.log("📌 Restaurando sesión desde localStorage:", parsed?.user?.email);
           
-          // ✅ 2. ESTABLECER LA SESIÓN EN SUPABASE
           const { data, error } = await supabase.auth.setSession({
             access_token: parsed.session?.access_token || parsed.access_token,
             refresh_token: parsed.session?.refresh_token || parsed.refresh_token,
@@ -45,7 +60,7 @@ function App() {
         }
       }
 
-      // ✅ 3. Si no hay sesión en localStorage, intentar con Supabase
+      // ✅ Si no hay sesión, intentar con Supabase
       if (!stored) {
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         if (supabaseSession) {
@@ -60,7 +75,7 @@ function App() {
 
     initializeAuth();
 
-    // ✅ 4. ESCUCHAR CAMBIOS EN AUTENTICACIÓN
+    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {

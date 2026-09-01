@@ -28,7 +28,7 @@ export const TaskContextProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      // ✅ Intentar obtener usuario de Supabase
+      // ✅ PRIMERO: Intentar obtener usuario de Supabase
       const {
         data: { user },
         error,
