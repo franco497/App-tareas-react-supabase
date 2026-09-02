@@ -85,7 +85,10 @@ function AuthCallback() {
 
           if (responseOk && data.session) {
             // ✅ Guardar sesión en localStorage
-            localStorage.setItem("supabaseSession", JSON.stringify(data.session));
+            localStorage.setItem(
+              "supabaseSession",
+              JSON.stringify(data.session),
+            );
             console.log("✅ Sesión guardada en localStorage (producción)");
             console.log("👤 Usuario:", data.session.user.email);
 
@@ -96,14 +99,19 @@ function AuthCallback() {
             });
 
             if (setSessionError) {
-              console.error("❌ Error restaurando sesión en Supabase:", setSessionError);
-              throw new Error("Error al restaurar la sesión");
+              console.error(
+                "❌ Error restaurando sesión en Supabase:",
+                setSessionError,
+              );
+            } else {
+              console.log("✅ Sesión restaurada en Supabase");
             }
 
             console.log("✅ Sesión restaurada en Supabase (producción)");
 
             // ✅ Esperar un momento para que la sesión se propague
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            window.location.replace("/dashboard");
           }
         }
 

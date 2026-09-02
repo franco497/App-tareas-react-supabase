@@ -6,16 +6,21 @@ import { TaskContext } from "./TaskContext";
 export const TaskContextProvider = ({ children, initialSession }) => {
   // ✅ ESTADO DEL USUARIO
   const [user, setUser] = useState(initialSession?.user || null);
-  
+
   // ✅ LOADING - Inicialización clara
   const [loading, setLoading] = useState(() => {
     if (initialSession?.user) {
-      console.log("📌 Usuario inicial desde App.jsx:", initialSession.user.email);
+      console.log(
+        "📌 Usuario inicial desde App.jsx:",
+        initialSession.user.email,
+      );
       return false;
     }
     return true;
   });
 
+  // ✅ NUEVO: Estado para saber si la sesión está lista
+  const [sessionReady, setSessionReady] = useState(false);
   // ✅ ESTADO DE TAREAS NORMALES
   const [tasks, setTasks] = useState([]);
   const [adding, setAdding] = useState(false);
@@ -29,107 +34,133 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   // ============================================
   // OBTENER USUARIO
   // ============================================
-
   const getUser = useCallback(async () => {
     try {
-      // ✅ Si ya tenemos usuario, no hacer nada
       if (user) {
         console.log("👤 Usuario ya existe en contexto:", user.email);
         setLoading(false);
+        setSessionReady(true);
         return user;
       }
 
       setLoading(true);
-      
-      // ✅ Intentar obtener usuario de Supabase
-      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
-      
+
+      const {
+        data: { user: supabaseUser },
+        error,
+      } = await supabase.auth.getUser();
+
       if (error) {
         console.error("❌ Error obteniendo usuario de Supabase:", error);
-        
-        // ✅ Si falla, intentar restaurar desde localStorage
+
         const stored = localStorage.getItem("supabaseSession");
         if (stored) {
           try {
             const parsed = JSON.parse(stored);
             if (parsed?.user) {
-              console.log("👤 Usuario restaurado desde localStorage:", parsed.user.email);
+              console.log(
+                "👤 Usuario restaurado desde localStorage:",
+                parsed.user.email,
+              );
               setUser(parsed.user);
               setLoading(false);
+              setSessionReady(true);
               return parsed.user;
             }
           } catch (parseError) {
             console.error("Error parseando sesión:", parseError);
           }
         }
-        
+
         setUser(null);
         setLoading(false);
+        setSessionReady(false);
         return null;
       }
-      
+
       if (supabaseUser) {
         console.log("👤 Usuario desde Supabase:", supabaseUser.email);
         setUser(supabaseUser);
         setLoading(false);
+        setSessionReady(true);
         return supabaseUser;
       }
-      
+
       setUser(null);
       setLoading(false);
+      setSessionReady(false);
       return null;
     } catch (error) {
       console.error("❌ Error obteniendo usuario:", error);
       setUser(null);
       setLoading(false);
+      setSessionReady(false);
       return null;
     }
   }, [user]);
 
-  // ✅ SI NO HAY USUARIO PERO HAY SESIÓN, INTENTAR OBTENERLO
+  // ============================================
+  // ESPERAR A QUE LA SESIÓN ESTÉ LISTA PARA CARGAR TAREAS
+  // ============================================
+
+  // ✅ Cargar tareas SOLO cuando la sesión esté lista
   useEffect(() => {
-    if (!user && initialSession?.user) {
-      setUser(initialSession.user);
-      setLoading(false);
-    } else if (!user) {
-      getUser();
+    if (sessionReady && user) {
+      console.log("✅ Sesión lista, cargando tareas...");
+      getTasks(currentDoneFilter);
     }
-  }, [user, initialSession, getUser]);
+  }, [sessionReady, user, currentDoneFilter]);
 
   // ============================================
   // TAREAS NORMALES
   // ============================================
 
-  const getTasks = useCallback(async (done = false) => {
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const getTasks = useCallback(
+    async (done = false) => {
+      try {
+        // ✅ Si no hay usuario, esperar
+        if (!user) {
+          console.log("⏳ Esperando usuario para cargar tareas...");
+          return;
+        }
 
-      if (!currentUser) {
-        console.error("No user logged in");
+        console.log("📋 Cargando tareas para:", user.email);
+
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
+
+        if (!currentUser) {
+          console.error("No user logged in");
+          setTasks([]);
+          return;
+        }
+
+        const { error, data } = await supabase
+          .from("tasks")
+          .select()
+          .eq("userId", currentUser.id)
+          .eq("deleted", false)
+          .eq("done", done)
+          .order("id", { ascending: false });
+
+        if (error) throw error;
+
+        console.log(`✅ ${data?.length || 0} tareas cargadas`);
+        setTasks(data || []);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
         setTasks([]);
-        return;
       }
-
-      const { error, data } = await supabase
-        .from("tasks")
-        .select()
-        .eq("userId", currentUser.id)
-        .eq("deleted", false)
-        .eq("done", done)
-        .order("id", { ascending: false });
-
-      if (error) throw error;
-
-      setTasks(data || []);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      setTasks([]);
-    }
-  }, []);
+    },
+    [user],
+  );
 
   const getDeletedTasks = useCallback(async () => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) {
         console.error("No user logged in");
@@ -157,7 +188,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
     setAdding(true);
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) {
         console.error("No user logged in");
@@ -192,7 +225,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const permanentDeleteTask = async (id) => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) return;
 
@@ -211,7 +246,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const softDeleteTask = async (id) => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) return;
 
@@ -232,7 +269,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const restoreTask = async (id) => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) return;
 
@@ -251,7 +290,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const updateTask = async (id, updateFields) => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) return;
 
@@ -313,7 +354,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     try {
       setScheduledLoading(true);
 
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) {
         console.error("No user logged in");
@@ -342,7 +385,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const scheduleTaskLater = useCallback(
     async (task, scheduledDate, scheduledTime) => {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
 
         if (!currentUser || !currentUser.email) {
           throw new Error("No se encontró el email del usuario");
@@ -392,7 +437,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const rescheduleScheduledTask = useCallback(
     async (id, scheduledDate, scheduledTime) => {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
 
         if (!currentUser || !currentUser.email) {
           throw new Error("No se encontró el email del usuario");
@@ -438,7 +485,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const deleteScheduledTask = useCallback(async (id) => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) {
         throw new Error("Usuario no autenticado");
@@ -465,7 +514,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const cancelScheduledTask = useCallback(async (id) => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
       if (!currentUser) {
         throw new Error("Usuario no autenticado");
@@ -546,7 +597,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
     const interval = setInterval(async () => {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
 
         if (!currentUser) return;
 
