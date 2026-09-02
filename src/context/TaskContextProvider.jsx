@@ -4,39 +4,32 @@ import { supabase } from "../lib/supabase";
 import { TaskContext } from "./TaskContext";
 
 export const TaskContextProvider = ({ children, initialSession }) => {
-  // ✅ ESTADO DEL USUARIO (inicializado desde App.jsx)
+  // ✅ ESTADO DEL USUARIO
   const [user, setUser] = useState(initialSession?.user || null);
+  
   // ✅ LOADING - Inicialización clara
   const [loading, setLoading] = useState(() => {
-    // Si tenemos usuario desde App.jsx, no hay que cargar
     if (initialSession?.user) {
-      console.log(
-        "📌 Usuario inicial desde App.jsx:",
-        initialSession.user.email,
-      );
+      console.log("📌 Usuario inicial desde App.jsx:", initialSession.user.email);
       return false;
     }
-    // Si no hay usuario, mostrar carga
     return true;
   });
 
-  //  ESTADO DE TAREAS NORMALES
+  // ✅ ESTADO DE TAREAS NORMALES
   const [tasks, setTasks] = useState([]);
   const [adding, setAdding] = useState(false);
   const [currentDoneFilter, setCurrentDoneFilter] = useState(false);
 
-  //  ESTADO DE TAREAS PROGRAMADAS
+  // ✅ ESTADO DE TAREAS PROGRAMADAS
   const [scheduledTasks, setScheduledTasks] = useState([]);
   const [scheduledLoading, setScheduledLoading] = useState(false);
-
-  //ESTADO DE ACTUALIZACION TOGGLETASKDONE
   const [updateCounter, setUpdateCounter] = useState(0);
 
   // ============================================
-  // OBTENER USUARIO - Centralizado
+  // OBTENER USUARIO
   // ============================================
 
-  // ✅ OBTENER USUARIO - AHORA CON FALLBACK
   const getUser = useCallback(async () => {
     try {
       // ✅ Si ya tenemos usuario, no hacer nada
@@ -47,46 +40,41 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       }
 
       setLoading(true);
-
+      
       // ✅ Intentar obtener usuario de Supabase
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
+      
       if (error) {
         console.error("❌ Error obteniendo usuario de Supabase:", error);
-
+        
         // ✅ Si falla, intentar restaurar desde localStorage
         const stored = localStorage.getItem("supabaseSession");
         if (stored) {
           try {
             const parsed = JSON.parse(stored);
             if (parsed?.user) {
-              console.log(
-                "👤 Usuario restaurado desde localStorage:",
-                parsed.user.email,
-              );
+              console.log("👤 Usuario restaurado desde localStorage:", parsed.user.email);
               setUser(parsed.user);
               setLoading(false);
               return parsed.user;
             }
-          } catch (e) {
-            console.error("Error parseando sesión:", e);
+          } catch (parseError) {
+            console.error("Error parseando sesión:", parseError);
           }
         }
-
+        
         setUser(null);
         setLoading(false);
         return null;
       }
-
-      if (user) {
-        console.log("👤 Usuario desde Supabase:", user.email);
-        setUser(user);
+      
+      if (supabaseUser) {
+        console.log("👤 Usuario desde Supabase:", supabaseUser.email);
+        setUser(supabaseUser);
         setLoading(false);
-        return user;
+        return supabaseUser;
       }
-
+      
       setUser(null);
       setLoading(false);
       return null;
@@ -114,11 +102,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const getTasks = useCallback(async (done = false) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!currentUser) {
         console.error("No user logged in");
         setTasks([]);
         return;
@@ -127,7 +113,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       const { error, data } = await supabase
         .from("tasks")
         .select()
-        .eq("userId", user.id)
+        .eq("userId", currentUser.id)
         .eq("deleted", false)
         .eq("done", done)
         .order("id", { ascending: false });
@@ -143,11 +129,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const getDeletedTasks = useCallback(async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!currentUser) {
         console.error("No user logged in");
         return [];
       }
@@ -155,7 +139,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       const { error, data } = await supabase
         .from("tasks")
         .select()
-        .eq("userId", user.id)
+        .eq("userId", currentUser.id)
         .eq("deleted", true)
         .order("id", { ascending: true });
 
@@ -173,11 +157,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
     setAdding(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!currentUser) {
         console.error("No user logged in");
         return;
       }
@@ -186,7 +168,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         .from("tasks")
         .insert({
           name: taskName,
-          userId: user.id,
+          userId: currentUser.id,
           done: false,
           deleted: false,
         })
@@ -210,17 +192,15 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const permanentDeleteTask = async (id) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!currentUser) return;
 
       const { error } = await supabase
         .from("tasks")
         .delete()
         .eq("id", id)
-        .eq("userId", user.id);
+        .eq("userId", currentUser.id);
 
       if (error) throw error;
     } catch (error) {
@@ -231,17 +211,15 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const softDeleteTask = async (id) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!currentUser) return;
 
       const { error } = await supabase
         .from("tasks")
         .update({ deleted: true })
         .eq("id", id)
-        .eq("userId", user.id);
+        .eq("userId", currentUser.id);
 
       if (error) throw error;
 
@@ -254,17 +232,15 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const restoreTask = async (id) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!currentUser) return;
 
       const { error } = await supabase
         .from("tasks")
         .update({ deleted: false })
         .eq("id", id)
-        .eq("userId", user.id);
+        .eq("userId", currentUser.id);
 
       if (error) throw error;
     } catch (error) {
@@ -275,17 +251,15 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const updateTask = async (id, updateFields) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!currentUser) return;
 
       const { data, error } = await supabase
         .from("tasks")
         .update(updateFields)
         .eq("id", id)
-        .eq("userId", user.id)
+        .eq("userId", currentUser.id)
         .select()
         .single();
 
@@ -305,31 +279,23 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   };
 
   // ============================================
-  // TOGGLE TASK DONE - CORREGIDO
+  // TOGGLE TASK DONE
   // ============================================
 
   const toggleTaskDone = async (id, currentDone) => {
     const newDoneState = !currentDone;
 
     try {
-      //  Actualizar el estado local primero
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === id ? { ...task, done: newDoneState } : task,
         ),
       );
 
-      //  Actualizar en Supabase
       await updateTask(id, { done: newDoneState });
-
-      //  Incrementar contador para forzar actualización
       setUpdateCounter((prev) => prev + 1);
-
-      //  DESPUÉS de actualizar, RECARGAR la vista actual
-      // Esto hace que la tarea desaparezca de la vista si cambió de estado
       await getTasks(currentDoneFilter);
     } catch (error) {
-      //  Si hay error, revertir el cambio
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === id ? { ...task, done: currentDone } : task,
@@ -347,11 +313,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     try {
       setScheduledLoading(true);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!currentUser) {
         console.error("No user logged in");
         setScheduledTasks([]);
         return;
@@ -360,7 +324,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       const { data, error } = await supabase
         .from("scheduled_notifications")
         .select("*")
-        .eq("user_email", user.email)
+        .eq("user_email", currentUser.email)
         .in("status", ["pending", "sent", "failed", "cancelled"])
         .order("scheduled_for", { ascending: true });
 
@@ -378,11 +342,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const scheduleTaskLater = useCallback(
     async (task, scheduledDate, scheduledTime) => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-        if (!user || !user.email) {
+        if (!currentUser || !currentUser.email) {
           throw new Error("No se encontró el email del usuario");
         }
 
@@ -407,7 +369,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
           .insert({
             task_id: task.id,
             task_name: task.name,
-            user_email: user.email,
+            user_email: currentUser.email,
             scheduled_for: localDateString,
             status: "pending",
           })
@@ -430,11 +392,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const rescheduleScheduledTask = useCallback(
     async (id, scheduledDate, scheduledTime) => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-        if (!user || !user.email) {
+        if (!currentUser || !currentUser.email) {
           throw new Error("No se encontró el email del usuario");
         }
 
@@ -478,11 +438,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const deleteScheduledTask = useCallback(async (id) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!currentUser) {
         throw new Error("Usuario no autenticado");
       }
 
@@ -490,7 +448,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         .from("scheduled_notifications")
         .delete()
         .eq("id", id)
-        .eq("user_email", user.email);
+        .eq("user_email", currentUser.email);
 
       if (error) throw error;
 
@@ -507,11 +465,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const cancelScheduledTask = useCallback(async (id) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (!currentUser) {
         throw new Error("Usuario no autenticado");
       }
 
@@ -519,7 +475,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         .from("scheduled_notifications")
         .update({ status: "cancelled" })
         .eq("id", id)
-        .eq("user_email", user.email);
+        .eq("user_email", currentUser.email);
 
       if (error) throw error;
 
@@ -537,7 +493,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, []);
 
   // ============================================
-  // 1. SUSCRIPCIÓN EN TIEMPO REAL (PRINCIPAL)
+  // SUSCRIPCIÓN EN TIEMPO REAL
   // ============================================
 
   useEffect(() => {
@@ -578,7 +534,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, []);
 
   // ============================================
-  // 2. POLLING DE RESPALDO (cada 10 segundos)
+  // POLLING DE RESPALDO
   // ============================================
 
   useEffect(() => {
@@ -590,21 +546,18 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
     const interval = setInterval(async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-        if (!user) return;
+        if (!currentUser) return;
 
         const { data, error } = await supabase
           .from("scheduled_notifications")
           .select("*")
-          .eq("user_email", user.email)
+          .eq("user_email", currentUser.email)
           .in("status", ["pending", "sent", "failed"]);
 
         if (error) throw error;
 
-        // Verificar si hay cambios
         const currentStatuses = scheduledTasks.map((t) => ({
           id: t.id,
           status: t.status,
@@ -638,12 +591,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   // ============================================
 
   const value = {
-    // Usuario
     user,
     loading,
     getUser,
-
-    // Tareas normales
     tasks,
     adding,
     getTasks,
@@ -656,8 +606,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     updateTask,
     toggleTaskDone,
     currentDoneFilter,
-
-    // Tareas programadas
     scheduledTasks,
     scheduledLoading,
     getScheduledTasks,
