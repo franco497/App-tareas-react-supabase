@@ -3,10 +3,22 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import { TaskContext } from "./TaskContext";
 
-export const TaskContextProvider = ({ children }) => {
-  //  ESTADO DEL USUARIO (centralizado)
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+export const TaskContextProvider = ({ children, initialSession }) => {
+  // ✅ ESTADO DEL USUARIO (inicializado desde App.jsx)
+  const [user, setUser] = useState(initialSession?.user || null);
+  // ✅ LOADING - Inicialización clara
+  const [loading, setLoading] = useState(() => {
+    // Si tenemos usuario desde App.jsx, no hay que cargar
+    if (initialSession?.user) {
+      console.log(
+        "📌 Usuario inicial desde App.jsx:",
+        initialSession.user.email,
+      );
+      return false;
+    }
+    // Si no hay usuario, mostrar carga
+    return true;
+  });
 
   //  ESTADO DE TAREAS NORMALES
   const [tasks, setTasks] = useState([]);
@@ -24,11 +36,19 @@ export const TaskContextProvider = ({ children }) => {
   // OBTENER USUARIO - Centralizado
   // ============================================
 
+  // ✅ OBTENER USUARIO - AHORA CON FALLBACK
   const getUser = useCallback(async () => {
     try {
+      // ✅ Si ya tenemos usuario, no hacer nada
+      if (user) {
+        console.log("👤 Usuario ya existe en contexto:", user.email);
+        setLoading(false);
+        return user;
+      }
+
       setLoading(true);
 
-      // ✅ PRIMERO: Intentar obtener usuario de Supabase
+      // ✅ Intentar obtener usuario de Supabase
       const {
         data: { user },
         error,
@@ -76,7 +96,17 @@ export const TaskContextProvider = ({ children }) => {
       setLoading(false);
       return null;
     }
-  }, []);
+  }, [user]);
+
+  // ✅ SI NO HAY USUARIO PERO HAY SESIÓN, INTENTAR OBTENERLO
+  useEffect(() => {
+    if (!user && initialSession?.user) {
+      setUser(initialSession.user);
+      setLoading(false);
+    } else if (!user) {
+      getUser();
+    }
+  }, [user, initialSession, getUser]);
 
   // ============================================
   // TAREAS NORMALES

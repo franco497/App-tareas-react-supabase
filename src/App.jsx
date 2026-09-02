@@ -32,7 +32,6 @@ function App() {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // ✅ Si ya hay sesión en localStorage, restaurarla en Supabase
       const stored = localStorage.getItem("supabaseSession");
       
       if (stored) {
@@ -60,7 +59,6 @@ function App() {
         }
       }
 
-      // ✅ Si no hay sesión, intentar con Supabase
       if (!stored) {
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         if (supabaseSession) {
@@ -75,7 +73,6 @@ function App() {
 
     initializeAuth();
 
-    // ✅ ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -114,7 +111,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      <TaskContextProvider>
+      {/* ✅ PASAR LA SESIÓN AL CONTEXTO */}
+      <TaskContextProvider initialSession={session}>
         <Routes>
           <Route
             path="/"
