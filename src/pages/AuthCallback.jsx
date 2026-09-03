@@ -12,47 +12,30 @@ function AuthCallback() {
         let token = params.get("token");
 
         if (!token && window.location.hash) {
-          const hashParams = new URLSearchParams(
-            window.location.hash.split("?")[1],
-          );
+          const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
           token = hashParams.get("token");
         }
 
-        // ✅ DETECTAR SI ESTÁ EN LOCAL
-        const isLocal =
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1" ||
-          window.location.hostname === "5173";
+        //  DETECTAR SI ESTÁ EN LOCAL
+        const isLocal = window.location.hostname === "localhost" || 
+                        window.location.hostname === "127.0.0.1" ||
+                        window.location.hostname === "5173";
 
         let data;
         let responseOk;
 
         if (isLocal) {
-          // ✅ EN LOCAL: Usar sesión de Supabase directamente
-          console.log("🔧 Modo local: usando Supabase directamente");
-          const {
-            data: { session },
-            error,
-          } = await supabase.auth.getSession();
+          //  EN LOCAL: Usar sesión de Supabase directamente
+          const { data: { session }, error } = await supabase.auth.getSession();
           if (error) throw error;
           if (!session) throw new Error("No hay sesión");
-
+          
           data = { success: true, session };
           responseOk = true;
-
-          // ✅ Guardar sesión en localStorage
           localStorage.setItem("supabaseSession", JSON.stringify(session));
-          console.log("✅ Sesión guardada en localStorage (local)");
-
-          // ✅ RESTAURAR SESIÓN EN SUPABASE
-          await supabase.auth.setSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          });
-          console.log("✅ Sesión restaurada en Supabase (local)");
         } else {
-          // ✅ EN PRODUCCIÓN: Usar Netlify Function
-
+          //  EN PRODUCCIÓN: Usar Netlify Function
+          
           if (!token) {
             setStatus("❌ Token no encontrado");
             setTimeout(() => {
@@ -61,57 +44,20 @@ function AuthCallback() {
             return;
           }
 
-          console.log("🚀 Modo producción: verificando con Netlify Function");
-          console.log("🔍 Token recibido:", token);
-
           const response = await fetch(
             "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ token }),
-            },
+            }
           );
 
           data = await response.json();
           responseOk = response.ok;
 
-          console.log("📨 Respuesta de verify-magic-link:", {
-            status: response.status,
-            ok: responseOk,
-            success: data.success,
-            hasSession: !!data.session,
-          });
-
           if (responseOk && data.session) {
-            // ✅ Guardar sesión en localStorage
-            localStorage.setItem(
-              "supabaseSession",
-              JSON.stringify(data.session),
-            );
-            console.log("✅ Sesión guardada en localStorage (producción)");
-            console.log("👤 Usuario:", data.session.user.email);
-
-            // ✅ RESTAURAR SESIÓN EN SUPABASE (¡CLAVE!)
-            const { error: setSessionError } = await supabase.auth.setSession({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            });
-
-            if (setSessionError) {
-              console.error(
-                "❌ Error restaurando sesión en Supabase:",
-                setSessionError,
-              );
-            } else {
-              console.log("✅ Sesión restaurada en Supabase");
-            }
-
-            console.log("✅ Sesión restaurada en Supabase (producción)");
-
-            // ✅ Esperar un momento para que la sesión se propague
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            window.location.replace("/dashboard");
+            localStorage.setItem("supabaseSession", JSON.stringify(data.session));
           }
         }
 
@@ -120,13 +66,13 @@ function AuthCallback() {
         }
 
         if (data.session) {
-          console.log("🚀 Redirigiendo a dashboard...");
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");
         }
+
       } catch (error) {
-        console.error("❌ Error en AuthCallback:", error);
+        console.error("❌ Error:", error);
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => {
           window.location.replace("/");
@@ -140,17 +86,15 @@ function AuthCallback() {
   return (
     <div className="auth-callback-container">
       <div className="auth-callback-content">
-        <div
-          style={{
-            width: "50px",
-            height: "50px",
-            border: "4px solid #f3f3f3",
-            borderTop: "4px solid #3498db",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-            margin: "0 auto 20px",
-          }}
-        />
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto 20px'
+        }} />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
