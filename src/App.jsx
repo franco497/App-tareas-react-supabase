@@ -15,7 +15,6 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    //  RESTAURAR SESIÓN DESDE LOCALSTORAGE
     const restoreSession = async () => {
       const stored = localStorage.getItem("supabaseSession");
       
@@ -23,8 +22,6 @@ function App() {
         try {
           const parsed = JSON.parse(stored);
           
-          // ESTABLECER LA SESIÓN EN SUPABASE
-          // Supabase necesita que la sesión se establezca correctamente
           const { data, error } = await supabase.auth.setSession({
             access_token: parsed.session?.access_token || parsed.access_token,
             refresh_token: parsed.session?.refresh_token || parsed.refresh_token,
@@ -35,7 +32,8 @@ function App() {
             localStorage.removeItem("supabaseSession");
             setSession(null);
           } else {
-            setSession(parsed);
+            // ✅ IMPORTANTE: Usar la sesión de data.session que devuelve Supabase
+            setSession(data.session || parsed);
           }
         } catch (e) {
           console.error("❌ Error parseando sesión:", e);
@@ -49,16 +47,17 @@ function App() {
 
     restoreSession();
 
-    // ESCUCHAR CAMBIOS EN AUTENTICACIÓN
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔄 Evento de autenticación:", event);
+      console.log(`🔄 App - Evento: ${event}`);
       
       if (session) {
+        console.log(`✅ App - Sesión activa: ${session.user.email}`);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
         setSession(session);
       } else if (event === "SIGNED_OUT") {
+        console.log("👋 App - Sesión cerrada");
         localStorage.removeItem("supabaseSession");
         setSession(null);
       }
@@ -67,7 +66,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-
   if (authLoading) {
     return (
       <div style={{
@@ -75,6 +73,8 @@ function App() {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
+        backgroundColor: "#1a1a2e",
+        color: "#ffffff",
       }}>
         <h2>Cargando...</h2>
       </div>
@@ -83,7 +83,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      <TaskContextProvider>
+      {/* ✅ PASAR LA SESIÓN AL CONTEXTO */}
+      <TaskContextProvider initialSession={session}>
         <Routes>
           <Route
             path="/"
