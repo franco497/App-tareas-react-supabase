@@ -11,7 +11,6 @@ import { TaskContextProvider } from "./context";
 import Trash from "./pages/Trash";
 
 function App() {
-  // ✅ INICIALIZAR session DIRECTAMENTE desde localStorage
   const getInitialSession = () => {
     const stored = localStorage.getItem("supabaseSession");
     if (stored) {
@@ -39,18 +38,28 @@ function App() {
           const parsed = JSON.parse(stored);
           console.log("📌 Restaurando sesión desde localStorage:", parsed?.user?.email);
           
-          const { data, error } = await supabase.auth.setSession({
-            access_token: parsed.session?.access_token || parsed.access_token,
-            refresh_token: parsed.session?.refresh_token || parsed.refresh_token,
-          });
+          // ✅ Extraer tokens correctamente
+          const accessToken = parsed.session?.access_token || parsed.access_token;
+          const refreshToken = parsed.session?.refresh_token || parsed.refresh_token;
           
-          if (error) {
-            console.error("❌ Error restaurando sesión:", error);
+          if (accessToken && refreshToken) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            
+            if (error) {
+              console.error("❌ Error restaurando sesión:", error);
+              localStorage.removeItem("supabaseSession");
+              setSession(null);
+            } else {
+              console.log("✅ Sesión restaurada correctamente");
+              setSession(data.session || parsed);
+            }
+          } else {
+            console.error("❌ Tokens incompletos en localStorage");
             localStorage.removeItem("supabaseSession");
             setSession(null);
-          } else {
-            console.log("✅ Sesión restaurada correctamente");
-            setSession(data.session || parsed);
           }
         } catch (e) {
           console.error("❌ Error parseando sesión:", e);
@@ -59,7 +68,7 @@ function App() {
         }
       }
 
-      if (!stored) {
+      if (!stored || !session) {
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         if (supabaseSession) {
           console.log("📌 Sesión desde Supabase:", supabaseSession.user.email);
@@ -90,7 +99,7 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [session]);
 
   console.log("📊 App: Estado de sesión:", session?.user?.email || "No autenticado");
 
@@ -111,7 +120,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* ✅ PASAR LA SESIÓN AL CONTEXTO */}
       <TaskContextProvider initialSession={session}>
         <Routes>
           <Route
