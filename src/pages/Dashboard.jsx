@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useTasks } from "../context";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
@@ -8,8 +8,8 @@ import Footer from "../components/Footer";
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
-  const { user, loading, updateCounter, tasks } = useTasks();
-  const [isPending, startTransition] = useTransition(); 
+  const { user, loading, updateCounter } = useTasks();
+  const [isPending, startTransition] = useTransition();
 
   const handleToggleView = () => {
     setShowTaskDone(!showTaskDone);
@@ -54,7 +54,6 @@ function Dashboard() {
             </>
           )}
 
-          {/*  CON useTransition - transición suave */}
           <div
             style={{
               opacity: isPending ? 0.92 : 1,

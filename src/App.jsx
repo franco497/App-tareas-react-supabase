@@ -38,7 +38,6 @@ function App() {
           const parsed = JSON.parse(stored);
           console.log("📌 Restaurando sesión desde localStorage:", parsed?.user?.email);
           
-          // ✅ Extraer tokens correctamente
           const accessToken = parsed.session?.access_token || parsed.access_token;
           const refreshToken = parsed.session?.refresh_token || parsed.refresh_token;
           
@@ -99,7 +98,9 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, [session]);
+    // ✅ Solo ejecutar una vez
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   console.log("📊 App: Estado de sesión:", session?.user?.email || "No autenticado");
 
