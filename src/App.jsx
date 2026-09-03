@@ -16,7 +16,7 @@ function App() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log("📌 Sesión inicial desde localStorage:", parsed?.user?.email);
+        console.log("📌 App - Sesión desde localStorage:", parsed?.user?.email);
         return parsed;
       } catch (e) {
         localStorage.removeItem("supabaseSession");
@@ -31,12 +31,13 @@ function App() {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      console.log("🚀 App - Inicializando autenticación...");
       const stored = localStorage.getItem("supabaseSession");
       
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          console.log("📌 Restaurando sesión desde localStorage:", parsed?.user?.email);
+          console.log("📌 App - Restaurando sesión desde localStorage:", parsed?.user?.email);
           
           const accessToken = parsed.session?.access_token || parsed.access_token;
           const refreshToken = parsed.session?.refresh_token || parsed.refresh_token;
@@ -48,20 +49,20 @@ function App() {
             });
             
             if (error) {
-              console.error("❌ Error restaurando sesión:", error);
+              console.error("❌ App - Error restaurando sesión:", error);
               localStorage.removeItem("supabaseSession");
               setSession(null);
             } else {
-              console.log("✅ Sesión restaurada correctamente");
+              console.log("✅ App - Sesión restaurada correctamente");
               setSession(data.session || parsed);
             }
           } else {
-            console.error("❌ Tokens incompletos en localStorage");
+            console.error("❌ App - Tokens incompletos en localStorage");
             localStorage.removeItem("supabaseSession");
             setSession(null);
           }
         } catch (e) {
-          console.error("❌ Error parseando sesión:", e);
+          console.error("❌ App - Error parseando sesión:", e);
           localStorage.removeItem("supabaseSession");
           setSession(null);
         }
@@ -70,13 +71,14 @@ function App() {
       if (!stored || !session) {
         const { data: { session: supabaseSession } } = await supabase.auth.getSession();
         if (supabaseSession) {
-          console.log("📌 Sesión desde Supabase:", supabaseSession.user.email);
+          console.log("📌 App - Sesión desde Supabase:", supabaseSession.user.email);
           setSession(supabaseSession);
           localStorage.setItem("supabaseSession", JSON.stringify(supabaseSession));
         }
       }
       
       setAuthLoading(false);
+      console.log("✅ App - Autenticación inicializada");
     };
 
     initializeAuth();
@@ -84,25 +86,23 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔄 Evento de autenticación:", event);
+      console.log(`🔄 App - Evento de autenticación: ${event}`);
       
       if (session) {
-        console.log("👤 Usuario autenticado:", session.user.email);
+        console.log(`👤 App - Usuario autenticado: ${session.user.email}`);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
         setSession(session);
       } else if (event === "SIGNED_OUT") {
-        console.log("👋 Usuario cerró sesión");
+        console.log("👋 App - Usuario cerró sesión");
         localStorage.removeItem("supabaseSession");
         setSession(null);
       }
     });
 
     return () => subscription.unsubscribe();
-    // ✅ Solo ejecutar una vez
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [session]);
 
-  console.log("📊 App: Estado de sesión:", session?.user?.email || "No autenticado");
+  console.log(`📊 App - Estado actual: ${session?.user?.email || "No autenticado"}`);
 
   if (authLoading) {
     return (
