@@ -9,6 +9,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const subscriptionAttempts = useRef(0);
   const maxSubscriptionAttempts = 3;
   const isSubscribing = useRef(false);
+  const isMounted = useRef(true);
 
   // ✅ ESTADO DEL USUARIO - INICIALIZADO DESDE initialSession
   const [user, setUser] = useState(initialSession?.user || null);
@@ -25,7 +26,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const [updateCounter, setUpdateCounter] = useState(0);
 
   // ============================================
-  // OBTENER USUARIO - CON FALLBACK A initialSession
+  // OBTENER USUARIO
   // ============================================
 
   const getUser = useCallback(async () => {
@@ -38,7 +39,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
       setLoading(true);
 
-      // ✅ Intentar obtener de localStorage primero
       const stored = localStorage.getItem("supabaseSession");
       if (stored) {
         try {
@@ -54,7 +54,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         }
       }
 
-      // ✅ Intentar con Supabase
       const {
         data: { user: supabaseUser },
         error,
@@ -152,20 +151,15 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   // ============================================
 
   const setupRealtimeSubscription = useCallback(() => {
-    // ✅ Si ya hay un canal, limpiarlo primero
-    if (channelRef.current) {
-      try {
-        console.log("🧹 Limpiando canal anterior...");
-        supabase.removeChannel(channelRef.current);
-      } catch (e) {
-        console.log("Error limpiando canal:", e);
-      }
-      channelRef.current = null;
-    }
-
     // ✅ Si ya estamos suscribiendo, no hacer nada
     if (isSubscribing.current) {
       console.log("⏳ Ya estamos suscribiendo, esperando...");
+      return;
+    }
+
+    // ✅ Si ya hay un canal activo, NO limpiarlo (esto causaba el bucle)
+    if (channelRef.current) {
+      console.log("✅ Canal ya activo, no es necesario recrearlo");
       return;
     }
 
@@ -203,11 +197,21 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         if (status === "SUBSCRIBED") {
           console.log("✅ Suscripción a scheduled_notifications ACTIVA!");
           subscriptionAttempts.current = 0;
-          channelRef.current = channel;
+          // ✅ SOLO GUARDAR REFERENCIA SI EL CANAL ESTÁ ACTIVO
+          if (!channelRef.current) {
+            channelRef.current = channel;
+          }
         } else if (status === "CHANNEL_ERROR" || status === "CLOSED") {
           console.error(`❌ Error en la suscripción (${status}):`, err);
 
-          // ✅ Reintentar con backoff exponencial
+          // ✅ Limpiar referencia si el canal falló
+          if (channelRef.current === channel) {
+            channelRef.current = null;
+          }
+
+          // ✅ Reintentar solo si no estamos desmontados
+          if (!isMounted.current) return;
+
           if (subscriptionAttempts.current < maxSubscriptionAttempts) {
             subscriptionAttempts.current++;
             const delay = Math.min(
@@ -219,7 +223,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
             );
 
             setTimeout(() => {
-              setupRealtimeSubscription();
+              if (isMounted.current && !channelRef.current) {
+                setupRealtimeSubscription();
+              }
             }, delay);
           } else {
             console.error(
@@ -229,7 +235,10 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         }
       });
 
-      channelRef.current = channel;
+      // ✅ Guardar referencia solo si no hay otra
+      if (!channelRef.current) {
+        channelRef.current = channel;
+      }
     } catch (error) {
       console.error("❌ Error configurando suscripción:", error);
       isSubscribing.current = false;
@@ -237,7 +246,25 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, []);
 
   // ============================================
-  // EFECTO: INICIALIZAR SUSCRIPCIÓN
+  // FUNCIÓN PARA LIMPIAR CANAL DE MANERA SEGURA
+  // ============================================
+
+  const cleanupChannel = useCallback(() => {
+    if (channelRef.current) {
+      console.log("🧹 Limpiando canal...");
+      try {
+        // ✅ Remover el canal de Supabase
+        supabase.removeChannel(channelRef.current);
+      } catch (e) {
+        console.log("Error limpiando canal:", e);
+      }
+      channelRef.current = null;
+    }
+    isSubscribing.current = false;
+  }, []);
+
+  // ============================================
+  // EFECTO: INICIALIZAR SUSCRIPCIÓN SOLO UNA VEZ
   // ============================================
 
   useEffect(() => {
@@ -248,25 +275,39 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     }
 
     console.log("🔌 Iniciando suscripción a cambios en tiempo real...");
-    
-    // ✅ Pequeño delay para asegurar que el usuario está establecido
-    const timer = setTimeout(() => {
-      setupRealtimeSubscription();
-    }, 500);
+
+    // ✅ Iniciar suscripción solo si no hay canal activo
+    if (!channelRef.current && !isSubscribing.current) {
+      // Pequeño delay para asegurar que el usuario está establecido
+      const timer = setTimeout(() => {
+        setupRealtimeSubscription();
+      }, 500);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
 
     return () => {
-      clearTimeout(timer);
-      if (channelRef.current) {
-        try {
-          console.log("🧹 Limpiando suscripción al desmontar...");
-          supabase.removeChannel(channelRef.current);
-        } catch (e) {
-          console.log("Error limpiando canal:", e);
-        }
-        channelRef.current = null;
+      // ✅ Solo limpiar si nos estamos desmontando
+      if (!isMounted.current) {
+        cleanupChannel();
       }
     };
-  }, [user, initialSession, setupRealtimeSubscription]);
+  }, [user, initialSession, setupRealtimeSubscription, cleanupChannel]);
+
+  // ============================================
+  // EFECTO: CLEANUP AL DESMONTAR
+  // ============================================
+
+  useEffect(() => {
+    isMounted.current = true;
+
+    return () => {
+      isMounted.current = false;
+      cleanupChannel();
+    };
+  }, [cleanupChannel]);
 
   // ============================================
   // EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
@@ -301,9 +342,17 @@ export const TaskContextProvider = ({ children, initialSession }) => {
           setUser(session.user);
           localStorage.setItem("supabaseSession", JSON.stringify(session));
 
-          // ✅ Solo recargar tareas si el evento es SIGNED_IN
           if (event === "SIGNED_IN") {
+            // ✅ Limpiar canal anterior si existe
+            cleanupChannel();
+            // ✅ Cargar tareas
             getTasks(currentDoneFilter);
+            // ✅ Iniciar nueva suscripción
+            setTimeout(() => {
+              if (!channelRef.current && isMounted.current) {
+                setupRealtimeSubscription();
+              }
+            }, 1000);
           }
         }
       } else if (event === "SIGNED_OUT") {
@@ -311,22 +360,12 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         setUser(null);
         setTasks([]);
         localStorage.removeItem("supabaseSession");
-
-        // ✅ Limpiar suscripción al cerrar sesión
-        if (channelRef.current) {
-          try {
-            console.log("🧹 Limpiando canal al cerrar sesión...");
-            supabase.removeChannel(channelRef.current);
-          } catch (e) {
-            console.log("Error limpiando canal:", e);
-          }
-          channelRef.current = null;
-        }
+        cleanupChannel();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [getTasks, currentDoneFilter]);
+  }, [getTasks, currentDoneFilter, cleanupChannel, setupRealtimeSubscription]);
 
   // ============================================
   // RESTO DE FUNCIONES (SIN CAMBIOS)
