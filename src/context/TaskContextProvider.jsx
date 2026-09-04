@@ -10,8 +10,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const maxSubscriptionAttempts = 3;
   const isSubscribing = useRef(false);
   const isMounted = useRef(true);
+  const authInitialized = useRef(false); // ← NUEVO: controlar primer SIGNED_IN
 
-  // ✅ ESTADO DEL USUARIO - INICIALIZADO DESDE initialSession
+  // ✅ ESTADO DEL USUARIO
   const [user, setUser] = useState(initialSession?.user || null);
   const [loading, setLoading] = useState(!initialSession?.user);
 
@@ -147,7 +148,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   );
 
   // ============================================
-  // SUSCRIPCIÓN EN TIEMPO REAL - CORREGIDA
+  // SUSCRIPCIÓN EN TIEMPO REAL
   // ============================================
 
   const setupRealtimeSubscription = useCallback(() => {
@@ -157,9 +158,15 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       return;
     }
 
-    // ✅ Si ya hay un canal activo, NO limpiarlo (esto causaba el bucle)
+    // ✅ Si ya hay un canal activo, NO limpiarlo
     if (channelRef.current) {
       console.log("✅ Canal ya activo, no es necesario recrearlo");
+      return;
+    }
+
+    // ✅ Si el componente está desmontado, no hacer nada
+    if (!isMounted.current) {
+      console.log("⏳ Componente desmontado, cancelando suscripción");
       return;
     }
 
@@ -168,7 +175,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     try {
       console.log("🔌 Creando nueva suscripción...");
 
-      // ✅ CREAR EL CANAL CON LOS CALLBACKS ANTES DE SUBSCRIBIR
       const channel = supabase
         .channel("scheduled_notifications_changes")
         .on(
@@ -190,26 +196,22 @@ export const TaskContextProvider = ({ children, initialSession }) => {
           },
         );
 
-      // ✅ AHORA SÍ, subscribirnos
       channel.subscribe((status, err) => {
         isSubscribing.current = false;
 
         if (status === "SUBSCRIBED") {
           console.log("✅ Suscripción a scheduled_notifications ACTIVA!");
           subscriptionAttempts.current = 0;
-          // ✅ SOLO GUARDAR REFERENCIA SI EL CANAL ESTÁ ACTIVO
-          if (!channelRef.current) {
+          if (!channelRef.current && isMounted.current) {
             channelRef.current = channel;
           }
         } else if (status === "CHANNEL_ERROR" || status === "CLOSED") {
           console.error(`❌ Error en la suscripción (${status}):`, err);
 
-          // ✅ Limpiar referencia si el canal falló
           if (channelRef.current === channel) {
             channelRef.current = null;
           }
 
-          // ✅ Reintentar solo si no estamos desmontados
           if (!isMounted.current) return;
 
           if (subscriptionAttempts.current < maxSubscriptionAttempts) {
@@ -235,8 +237,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         }
       });
 
-      // ✅ Guardar referencia solo si no hay otra
-      if (!channelRef.current) {
+      if (!channelRef.current && isMounted.current) {
         channelRef.current = channel;
       }
     } catch (error) {
@@ -246,14 +247,13 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, []);
 
   // ============================================
-  // FUNCIÓN PARA LIMPIAR CANAL DE MANERA SEGURA
+  // FUNCIÓN PARA LIMPIAR CANAL
   // ============================================
 
   const cleanupChannel = useCallback(() => {
     if (channelRef.current) {
       console.log("🧹 Limpiando canal...");
       try {
-        // ✅ Remover el canal de Supabase
         supabase.removeChannel(channelRef.current);
       } catch (e) {
         console.log("Error limpiando canal:", e);
@@ -268,33 +268,36 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   // ============================================
 
   useEffect(() => {
-    // ✅ Esperar a que el usuario esté disponible
     if (!user && !initialSession?.user) {
       console.log("⏳ Esperando usuario para iniciar suscripción...");
       return;
     }
 
-    console.log("🔌 Iniciando suscripción a cambios en tiempo real...");
-
-    // ✅ Iniciar suscripción solo si no hay canal activo
-    if (!channelRef.current && !isSubscribing.current) {
-      // Pequeño delay para asegurar que el usuario está establecido
+    // ✅ Solo iniciar si no hay canal activo
+    if (!channelRef.current && !isSubscribing.current && isMounted.current) {
+      console.log("🔌 Iniciando suscripción a cambios en tiempo real...");
       const timer = setTimeout(() => {
-        setupRealtimeSubscription();
+        if (isMounted.current) {
+          setupRealtimeSubscription();
+        }
       }, 500);
 
-      return () => {
-        clearTimeout(timer);
-      };
+      return () => clearTimeout(timer);
     }
+  }, [user, initialSession, setupRealtimeSubscription]);
 
-    return () => {
-      // ✅ Solo limpiar si nos estamos desmontando
-      if (!isMounted.current) {
-        cleanupChannel();
-      }
-    };
-  }, [user, initialSession, setupRealtimeSubscription, cleanupChannel]);
+  // ============================================
+  // EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
+  // ============================================
+
+  useEffect(() => {
+    if (user) {
+      getTasks(currentDoneFilter);
+    } else if (initialSession?.user) {
+      setUser(initialSession.user);
+      getTasks(currentDoneFilter);
+    }
+  }, [user, initialSession, getTasks, currentDoneFilter]);
 
   // ============================================
   // EFECTO: CLEANUP AL DESMONTAR
@@ -310,21 +313,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, [cleanupChannel]);
 
   // ============================================
-  // EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
-  // ============================================
-
-  useEffect(() => {
-    if (user) {
-      console.log("✅ Usuario disponible, cargando tareas...");
-      getTasks(currentDoneFilter);
-    } else if (initialSession?.user) {
-      console.log("✅ initialSession disponible, estableciendo usuario...");
-      setUser(initialSession.user);
-      getTasks(currentDoneFilter);
-    }
-  }, [user, initialSession, getTasks, currentDoneFilter]);
-
-  // ============================================
   // EFECTO: ESCUCHAR CAMBIOS DE AUTENTICACIÓN
   // ============================================
 
@@ -334,38 +322,63 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`🔄 Contexto - Evento: ${event}`);
 
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        if (session?.user) {
-          console.log(
-            `✅ Contexto - Usuario autenticado: ${session.user.email}`,
-          );
-          setUser(session.user);
-          localStorage.setItem("supabaseSession", JSON.stringify(session));
+      // ✅ Ignorar INITIAL_SESSION - no es un cambio real
+      if (event === "INITIAL_SESSION") {
+        console.log("⏳ Ignorando INITIAL_SESSION (evento inicial)");
+        return;
+      }
 
-          if (event === "SIGNED_IN") {
-            // ✅ Limpiar canal anterior si existe
-            cleanupChannel();
-            // ✅ Cargar tareas
-            getTasks(currentDoneFilter);
-            // ✅ Iniciar nueva suscripción
-            setTimeout(() => {
-              if (!channelRef.current && isMounted.current) {
-                setupRealtimeSubscription();
-              }
-            }, 1000);
-          }
+      if (event === "SIGNED_IN") {
+        // ✅ Solo procesar si realmente cambió algo
+        if (!session?.user) return;
+
+        // ✅ Verificar si el usuario ya está seteado (evitar duplicados)
+        if (user?.email === session.user.email) {
+          console.log("👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado");
+          return;
         }
+
+        console.log(`✅ Contexto - Usuario autenticado: ${session.user.email}`);
+        setUser(session.user);
+        localStorage.setItem("supabaseSession", JSON.stringify(session));
+
+        // ✅ Cargar tareas
+        getTasks(currentDoneFilter);
+
+        // ✅ Iniciar suscripción SOLO si no hay canal activo
+        if (!channelRef.current && !isSubscribing.current && isMounted.current) {
+          console.log("🔌 Iniciando suscripción después de SIGNED_IN...");
+          setTimeout(() => {
+            if (isMounted.current) {
+              setupRealtimeSubscription();
+            }
+          }, 1000);
+        }
+
       } else if (event === "SIGNED_OUT") {
         console.log("👋 Contexto - Sesión cerrada");
         setUser(null);
         setTasks([]);
         localStorage.removeItem("supabaseSession");
         cleanupChannel();
+        authInitialized.current = false;
+      } else if (event === "TOKEN_REFRESHED") {
+        // ✅ Solo actualizar localStorage, no reiniciar todo
+        if (session?.user) {
+          console.log(`🔄 Token refrescado: ${session.user.email}`);
+          localStorage.setItem("supabaseSession", JSON.stringify(session));
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [getTasks, currentDoneFilter, cleanupChannel, setupRealtimeSubscription]);
+  }, [
+    getTasks,
+    currentDoneFilter,
+    cleanupChannel,
+    setupRealtimeSubscription,
+    user,
+  ]);
 
   // ============================================
   // RESTO DE FUNCIONES (SIN CAMBIOS)
