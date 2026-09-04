@@ -13,36 +13,49 @@ import Trash from "./pages/Trash";
 function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
     const restoreSession = async () => {
-      const stored = localStorage.getItem("supabaseSession");
-      
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          
-          const { data, error } = await supabase.auth.setSession({
-            access_token: parsed.session?.access_token || parsed.access_token,
-            refresh_token: parsed.session?.refresh_token || parsed.refresh_token,
-          });
-          
-          if (error) {
-            console.error("❌ Error restaurando sesión:", error);
+      try {
+        const stored = localStorage.getItem("supabaseSession");
+
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+
+            // ✅ Verificar si la sesión es válida
+            const { data, error } = await supabase.auth.setSession({
+              access_token: parsed.session?.access_token || parsed.access_token,
+              refresh_token:
+                parsed.session?.refresh_token || parsed.refresh_token,
+            });
+
+            if (error) {
+              console.error("❌ Error restaurando sesión:", error);
+              localStorage.removeItem("supabaseSession");
+              setSession(null);
+            } else {
+              // ✅ Usar la sesión de data.session que devuelve Supabase
+              setSession(data.session || parsed);
+              console.log(
+                `✅ App - Sesión restaurada: ${data.session?.user?.email || parsed?.user?.email}`,
+              );
+            }
+          } catch (e) {
+            console.error("❌ Error parseando sesión:", e);
             localStorage.removeItem("supabaseSession");
             setSession(null);
-          } else {
-            // ✅ IMPORTANTE: Usar la sesión de data.session que devuelve Supabase
-            setSession(data.session || parsed);
           }
-        } catch (e) {
-          console.error("❌ Error parseando sesión:", e);
-          localStorage.removeItem("supabaseSession");
-          setSession(null);
         }
+
+        setAuthLoading(false);
+        setAuthInitialized(true);
+      } catch (error) {
+        console.error("❌ Error en restoreSession:", error);
+        setAuthLoading(false);
+        setAuthInitialized(true);
       }
-      
-      setAuthLoading(false);
     };
 
     restoreSession();
@@ -51,7 +64,7 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`🔄 App - Evento: ${event}`);
-      
+
       if (session) {
         console.log(`✅ App - Sesión activa: ${session.user.email}`);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
@@ -63,19 +76,23 @@ function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (authLoading) {
     return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        backgroundColor: "#1a1a2e",
-        color: "#ffffff",
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#1a1a2e",
+          color: "#ffffff",
+        }}
+      >
         <h2>Cargando...</h2>
       </div>
     );
@@ -83,7 +100,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* ✅ PASAR LA SESIÓN AL CONTEXTO */}
       <TaskContextProvider initialSession={session}>
         <Routes>
           <Route

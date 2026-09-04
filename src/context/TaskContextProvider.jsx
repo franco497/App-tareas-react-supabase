@@ -1,9 +1,14 @@
 // src/context/TaskContextProvider.jsx
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { TaskContext } from "./TaskContext";
 
 export const TaskContextProvider = ({ children, initialSession }) => {
+  // ✅ REF para controlar suscripciones
+  const channelRef = useRef(null);
+  const subscriptionAttempts = useRef(0);
+  const maxSubscriptionAttempts = 3;
+
   // ✅ ESTADO DEL USUARIO - INICIALIZADO DESDE initialSession
   const [user, setUser] = useState(initialSession?.user || null);
   const [loading, setLoading] = useState(!initialSession?.user);
@@ -24,7 +29,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const getUser = useCallback(async () => {
     try {
-      // ✅ Si ya tenemos usuario, devolverlo
       if (user) {
         console.log(`👤 Usuario ya existe: ${user.email}`);
         setLoading(false);
@@ -50,12 +54,16 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       }
 
       // ✅ Intentar con Supabase
-      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
-      
+      const {
+        data: { user: supabaseUser },
+        error,
+      } = await supabase.auth.getUser();
+
       if (error) {
-        // ✅ Si falla, verificar si tenemos initialSession
         if (initialSession?.user) {
-          console.log(`👤 Usuario desde initialSession: ${initialSession.user.email}`);
+          console.log(
+            `👤 Usuario desde initialSession: ${initialSession.user.email}`,
+          );
           setUser(initialSession.user);
           setLoading(false);
           return initialSession.user;
@@ -82,57 +90,158 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   // TAREAS NORMALES - MEJORADAS
   // ============================================
 
-  const getTasks = useCallback(async (done = false) => {
-    try {
-      // ✅ Usar el usuario del estado, no getUser()
-      const currentUser = user || initialSession?.user;
-      
-      if (!currentUser) {
-        console.error("❌ No user logged in");
+  const getTasks = useCallback(
+    async (done = false) => {
+      try {
+        const currentUser = user || initialSession?.user;
+
+        if (!currentUser) {
+          console.error("❌ No user logged in");
+          setTasks([]);
+          return;
+        }
+
+        console.log(
+          `📋 Cargando tareas para: ${currentUser.email} (done: ${done})`,
+        );
+
+        const { error, data } = await supabase
+          .from("tasks")
+          .select()
+          .eq("userId", currentUser.id)
+          .eq("deleted", false)
+          .eq("done", done)
+          .order("id", { ascending: false });
+
+        if (error) {
+          if (error.message?.includes("AuthSessionMissingError")) {
+            console.log("⚠️ Error de sesión, reintentando...");
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const retry = await supabase
+              .from("tasks")
+              .select()
+              .eq("userId", currentUser.id)
+              .eq("deleted", false)
+              .eq("done", done)
+              .order("id", { ascending: false });
+
+            if (!retry.error) {
+              setTasks(retry.data || []);
+              console.log(
+                `✅ ${retry.data?.length || 0} tareas cargadas (reintento)`,
+              );
+              return;
+            }
+          }
+          throw error;
+        }
+
+        setTasks(data || []);
+        console.log(`✅ ${data?.length || 0} tareas cargadas`);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
         setTasks([]);
-        return;
       }
+    },
+    [user, initialSession],
+  );
 
-      console.log(`📋 Cargando tareas para: ${currentUser.email} (done: ${done})`);
+  // ============================================
+  // SUSCRIPCIÓN EN TIEMPO REAL - CORREGIDA
+  // ============================================
 
-      const { error, data } = await supabase
-        .from("tasks")
-        .select()
-        .eq("userId", currentUser.id)
-        .eq("deleted", false)
-        .eq("done", done)
-        .order("id", { ascending: false });
+  const setupRealtimeSubscription = useCallback(() => {
+    // ✅ Si ya hay un canal, limpiarlo primero
+    if (channelRef.current) {
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (e) {
+        console.log("Limpiando canal anterior...");
+      }
+      channelRef.current = null;
+    }
 
-      if (error) {
-        // ✅ Si el error es de sesión, intentar restaurar
-        if (error.message?.includes("AuthSessionMissingError")) {
-          console.log("⚠️ Error de sesión, reintentando...");
-          // Esperar un momento y reintentar
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const retry = await supabase
-            .from("tasks")
-            .select()
-            .eq("userId", currentUser.id)
-            .eq("deleted", false)
-            .eq("done", done)
-            .order("id", { ascending: false });
-          
-          if (!retry.error) {
-            setTasks(retry.data || []);
-            console.log(`✅ ${retry.data?.length || 0} tareas cargadas (reintento)`);
-            return;
+    // ✅ Crear nuevo canal
+    const channel = supabase
+      .channel("scheduled_notifications_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "scheduled_notifications",
+        },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const updatedTask = payload.new;
+            setScheduledTasks((prevTasks) =>
+              prevTasks.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task,
+              ),
+            );
+          }
+        },
+      )
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Suscripción a scheduled_notifications ACTIVA!");
+          subscriptionAttempts.current = 0;
+        } else if (status === "CHANNEL_ERROR" || status === "CLOSED") {
+          console.error(`❌ Error en la suscripción (${status}):`, err);
+
+          // ✅ Reintentar con backoff exponencial
+          if (subscriptionAttempts.current < maxSubscriptionAttempts) {
+            subscriptionAttempts.current++;
+            const delay = Math.min(
+              1000 * Math.pow(2, subscriptionAttempts.current),
+              10000,
+            );
+            console.log(
+              `🔄 Reintentando en ${delay}ms (intento ${subscriptionAttempts.current})`,
+            );
+
+            setTimeout(() => {
+              setupRealtimeSubscription();
+            }, delay);
+          } else {
+            console.error(
+              "❌ Máximo de reintentos alcanzado para la suscripción",
+            );
           }
         }
-        throw error;
-      }
+      });
 
-      setTasks(data || []);
-      console.log(`✅ ${data?.length || 0} tareas cargadas`);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      setTasks([]);
+    channelRef.current = channel;
+
+    // ✅ Cleanup cuando el componente se desmonte
+    return () => {
+      if (channelRef.current) {
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch (e) {
+          console.log("Error limpiando canal:", e);
+        }
+        channelRef.current = null;
+      }
+    };
+  }, []);
+
+  // ============================================
+  // EFECTO: INICIALIZAR SUSCRIPCIÓN
+  // ============================================
+
+  useEffect(() => {
+    // ✅ Esperar a que el usuario esté disponible
+    if (!user && !initialSession?.user) {
+      console.log("⏳ Esperando usuario para iniciar suscripción...");
+      return;
     }
-  }, [user, initialSession]);
+
+    console.log("🔌 Iniciando suscripción a cambios en tiempo real...");
+    const cleanup = setupRealtimeSubscription();
+
+    return cleanup;
+  }, [user, initialSession, setupRealtimeSubscription]);
 
   // ============================================
   // EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
@@ -158,20 +267,35 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`🔄 Contexto - Evento: ${event}`);
-      
+
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session?.user) {
-          console.log(`✅ Contexto - Usuario autenticado: ${session.user.email}`);
+          console.log(
+            `✅ Contexto - Usuario autenticado: ${session.user.email}`,
+          );
           setUser(session.user);
           localStorage.setItem("supabaseSession", JSON.stringify(session));
-          // ✅ Recargar tareas automáticamente
-          getTasks(currentDoneFilter);
+
+          // ✅ Solo recargar tareas si el evento es SIGNED_IN
+          if (event === "SIGNED_IN") {
+            getTasks(currentDoneFilter);
+          }
         }
       } else if (event === "SIGNED_OUT") {
         console.log("👋 Contexto - Sesión cerrada");
         setUser(null);
         setTasks([]);
         localStorage.removeItem("supabaseSession");
+
+        // ✅ Limpiar suscripción al cerrar sesión
+        if (channelRef.current) {
+          try {
+            supabase.removeChannel(channelRef.current);
+          } catch (e) {
+            console.log("Error limpiando canal:", e);
+          }
+          channelRef.current = null;
+        }
       }
     });
 
@@ -351,7 +475,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     try {
       setScheduledLoading(true);
       const currentUser = user || initialSession?.user;
-      
+
       if (!currentUser) {
         console.error("No user logged in");
         setScheduledTasks([]);
@@ -468,59 +592,65 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     [getScheduledTasks],
   );
 
-  const deleteScheduledTask = useCallback(async (id) => {
-    try {
-      const currentUser = user || initialSession?.user;
-      if (!currentUser) {
-        throw new Error("Usuario no autenticado");
+  const deleteScheduledTask = useCallback(
+    async (id) => {
+      try {
+        const currentUser = user || initialSession?.user;
+        if (!currentUser) {
+          throw new Error("Usuario no autenticado");
+        }
+
+        const { error } = await supabase
+          .from("scheduled_notifications")
+          .delete()
+          .eq("id", id)
+          .eq("user_email", currentUser.email);
+
+        if (error) throw error;
+
+        setScheduledTasks((prevTasks) =>
+          prevTasks.filter((task) => task.id !== id),
+        );
+
+        return true;
+      } catch (error) {
+        console.error("Error eliminando tarea:", error);
+        throw error;
       }
+    },
+    [user, initialSession],
+  );
 
-      const { error } = await supabase
-        .from("scheduled_notifications")
-        .delete()
-        .eq("id", id)
-        .eq("user_email", currentUser.email);
+  const cancelScheduledTask = useCallback(
+    async (id) => {
+      try {
+        const currentUser = user || initialSession?.user;
+        if (!currentUser) {
+          throw new Error("Usuario no autenticado");
+        }
 
-      if (error) throw error;
+        const { error } = await supabase
+          .from("scheduled_notifications")
+          .update({ status: "cancelled" })
+          .eq("id", id)
+          .eq("user_email", currentUser.email);
 
-      setScheduledTasks((prevTasks) =>
-        prevTasks.filter((task) => task.id !== id),
-      );
+        if (error) throw error;
 
-      return true;
-    } catch (error) {
-      console.error("Error eliminando tarea:", error);
-      throw error;
-    }
-  }, [user, initialSession]);
+        setScheduledTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === id ? { ...task, status: "cancelled" } : task,
+          ),
+        );
 
-  const cancelScheduledTask = useCallback(async (id) => {
-    try {
-      const currentUser = user || initialSession?.user;
-      if (!currentUser) {
-        throw new Error("Usuario no autenticado");
+        return true;
+      } catch (error) {
+        console.error("Error cancelando tarea:", error);
+        throw error;
       }
-
-      const { error } = await supabase
-        .from("scheduled_notifications")
-        .update({ status: "cancelled" })
-        .eq("id", id)
-        .eq("user_email", currentUser.email);
-
-      if (error) throw error;
-
-      setScheduledTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === id ? { ...task, status: "cancelled" } : task,
-        ),
-      );
-
-      return true;
-    } catch (error) {
-      console.error("Error cancelando tarea:", error);
-      throw error;
-    }
-  }, [user, initialSession]);
+    },
+    [user, initialSession],
+  );
 
   // SUSCRIPCIÓN EN TIEMPO REAL (sin cambios)
   useEffect(() => {
