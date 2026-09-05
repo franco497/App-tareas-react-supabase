@@ -6,6 +6,70 @@ function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
+  // ✅ FUNCIÓN PARA EXTRAER TOKEN DE LA URL POR MÚLTIPLES MÉTODOS
+  const extractTokenFromUrl = () => {
+    const url = window.location.href;
+    const search = window.location.search;
+    const hash = window.location.hash;
+    const pathname = window.location.pathname;
+
+    console.log("🔍 ===== EXTRACTANDO TOKEN =====");
+    console.log("📍 URL completa:", url);
+    console.log("📍 Pathname:", pathname);
+    console.log("📍 Search:", search);
+    console.log("📍 Hash:", hash);
+
+    let token = null;
+
+    // ✅ MÉTODO 1: URLSearchParams (el más común)
+    const params = new URLSearchParams(search);
+    token = params.get("token");
+    console.log("🔍 Método 1 (URLSearchParams):", token);
+
+    // ✅ MÉTODO 2: Extraer con regex de la URL completa
+    if (!token) {
+      const match = url.match(/[?&]token=([^&]+)/);
+      if (match) {
+        token = match[1];
+        console.log("🔍 Método 2 (Regex URL):", token);
+      }
+    }
+
+    // ✅ MÉTODO 3: Buscar en el hash
+    if (!token && hash) {
+      const hashMatch = hash.match(/[?&]token=([^&]+)/);
+      if (hashMatch) {
+        token = hashMatch[1];
+        console.log("🔍 Método 3 (Hash):", token);
+      }
+    }
+
+    // ✅ MÉTODO 4: Buscar en pathname (para casos donde viene como parámetro de ruta)
+    if (!token && pathname.includes("/auth/callback")) {
+      const pathMatch = pathname.match(/\/auth\/callback\/([^/?]+)/);
+      if (pathMatch) {
+        token = pathMatch[1];
+        console.log("🔍 Método 4 (Path):", token);
+      }
+    }
+
+    // ✅ MÉTODO 5: Intentar con URL API nativa
+    if (!token) {
+      try {
+        const urlObj = new URL(url);
+        token = urlObj.searchParams.get("token");
+        console.log("🔍 Método 5 (URL API):", token);
+      } catch (e) {
+        console.log("⚠️ Error usando URL API:", e);
+      }
+    }
+
+    console.log("🔍 TOKEN FINAL:", token);
+    console.log("🔍 Longitud:", token?.length || 0);
+
+    return token;
+  };
+
   useEffect(() => {
     const verifyToken = async () => {
       // ✅ Evitar procesamiento múltiple
@@ -13,78 +77,18 @@ function AuthCallback() {
       setProcessed(true);
 
       try {
-        // ============================================
-        // 🔍 LOG 1: URL COMPLETA
-        // ============================================
-        console.log("🔍 ===== AUTH CALLBACK INICIADO =====");
-        console.log("📍 URL completa:", window.location.href);
-        console.log("📍 Pathname:", window.location.pathname);
-        console.log("📍 Search:", window.location.search);
-        console.log("📍 Hash:", window.location.hash);
-        console.log("📍 Hostname:", window.location.hostname);
-        console.log("📍 Port:", window.location.port);
+        // ✅ EXTRAER TOKEN
+        const token = extractTokenFromUrl();
 
-        // ============================================
-        // 🔍 LOG 2: EXTRACCIÓN DEL TOKEN
-        // ============================================
-        const params = new URLSearchParams(window.location.search);
-        let token = params.get("token");
-
-        console.log("🔍 Token desde search params:", token);
-
-        // ✅ Si no está en search, buscar en hash
-        if (!token && window.location.hash) {
-          console.log("🔍 Buscando token en hash...");
-          console.log("🔍 Hash completo:", window.location.hash);
-          
-          // Intentar diferentes formas de extraer del hash
-          let hashToken = null;
-          
-          // Forma 1: Hash con ?token=XXX
-          const hashParams = new URLSearchParams(
-            window.location.hash.split("?")[1]
-          );
-          hashToken = hashParams.get("token");
-          console.log("🔍 Token desde hash (forma 1):", hashToken);
-          
-          // Forma 2: Hash con #/auth/callback?token=XXX
-          if (!hashToken && window.location.hash.includes("?")) {
-            const hashParts = window.location.hash.split("?");
-            if (hashParts.length > 1) {
-              const hashSearch = new URLSearchParams(hashParts[1]);
-              hashToken = hashSearch.get("token");
-              console.log("🔍 Token desde hash (forma 2):", hashToken);
-            }
-          }
-          
-          // Forma 3: Buscar token con regex en el hash completo
-          if (!hashToken) {
-            const match = window.location.hash.match(/[?&]token=([^&]+)/);
-            if (match) {
-              hashToken = match[1];
-              console.log("🔍 Token desde hash (regex):", hashToken);
-            }
-          }
-          
-          token = hashToken || token;
-        }
-
-        console.log("🔍 TOKEN FINAL:", token);
-        console.log("🔍 Longitud del token:", token?.length || 0);
-
-        // ============================================
-        // 🔍 LOG 3: VERIFICACIÓN DEL TOKEN
-        // ============================================
         if (!token) {
-          console.error("❌ TOKEN NO ENCONTRADO en la URL");
+          console.error("❌ TOKEN NO ENCONTRADO");
           console.log("📝 URL completa:", window.location.href);
           console.log("📝 Search:", window.location.search);
-          console.log("📝 Hash:", window.location.hash);
           
-          setStatus("❌ Token no encontrado");
+          setStatus("❌ Token no encontrado en la URL");
           setTimeout(() => {
             window.location.replace("/");
-          }, 2000);
+          }, 3000);
           return;
         }
 
@@ -92,9 +96,10 @@ function AuthCallback() {
         const isLocal =
           window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1" ||
-          window.location.hostname === "5173";
+          window.location.port === "5173";
 
         console.log("🔧 Modo:", isLocal ? "LOCAL" : "PRODUCCIÓN");
+        console.log("📤 Token a verificar:", token);
 
         let data;
         let responseOk;
@@ -118,42 +123,62 @@ function AuthCallback() {
           });
         } else {
           console.log("🚀 Modo producción: verificando con Netlify Function");
-          console.log("📤 Enviando token a verify-magic-link:", token);
+          console.log("📤 Enviando token:", token);
 
-          // ============================================
-          // 🔍 LOG 4: PETICIÓN A verify-magic-link
-          // ============================================
-          const startTime = Date.now();
-          
-          const response = await fetch(
-            "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token }),
-            },
-          );
+          // ✅ INTENTAR CON RETRY SI FALLA
+          let response;
+          let retryCount = 0;
+          const maxRetries = 2;
 
-          const elapsedTime = Date.now() - startTime;
-          console.log(`⏱️ Tiempo de respuesta: ${elapsedTime}ms`);
+          while (retryCount <= maxRetries) {
+            try {
+              response = await fetch(
+                "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
+                {
+                  method: "POST",
+                  headers: { 
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                  },
+                  body: JSON.stringify({ token }),
+                }
+              );
+              break; // Si funciona, salir del loop
+            } catch (err) {
+              retryCount++;
+              console.log(`⚠️ Intento ${retryCount} falló:`, err);
+              if (retryCount <= maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+              } else {
+                throw err;
+              }
+            }
+          }
 
-          data = await response.json();
+          const responseText = await response.text();
+          console.log("📨 Respuesta raw:", responseText);
+
+          try {
+            data = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error("❌ Error parseando respuesta:", parseError);
+            console.log("📝 Respuesta raw:", responseText);
+            throw new Error("El servidor no respondió correctamente");
+          }
+
           responseOk = response.ok;
 
           console.log("📨 Respuesta de verify-magic-link:", {
             status: response.status,
-            statusText: response.statusText,
             ok: responseOk,
             success: data.success,
             hasSession: !!data.session,
             error: data.error,
-            data: data,
           });
 
           if (responseOk && data.session) {
             console.log("✅ Sesión recibida correctamente");
             console.log("👤 Usuario:", data.session.user.email);
-            console.log("🆔 User ID:", data.session.user.id);
             
             localStorage.setItem(
               "supabaseSession",
@@ -176,8 +201,6 @@ function AuthCallback() {
             }
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
-          } else {
-            console.error("❌ Respuesta fallida:", data);
           }
         }
 
@@ -188,8 +211,7 @@ function AuthCallback() {
 
         if (data.session) {
           console.log("🚀 Redirigiendo a dashboard...");
-          console.log("📍 URL de destino: /dashboard");
-          window.location.href = "/dashboard";
+          window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");
         }
@@ -203,7 +225,12 @@ function AuthCallback() {
       }
     };
 
-    verifyToken();
+    // ✅ EJECUTAR CON UN PEQUEÑO DELAY PARA ASEGURAR QUE LA URL ESTÉ COMPLETA
+    const timer = setTimeout(() => {
+      verifyToken();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [processed]);
 
   return (
