@@ -220,17 +220,10 @@ function AuthCallback() {
         console.error("❌ Error en AuthCallback:", error);
         console.error("📝 Stack:", error.stack);
 
-        // ✅ ESTO CONGELARÁ LA PANTALLA PARA VER LOS LOGS
-        debugger; // ← La ejecución se pausa aquí
-
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
-        /*         setTimeout(() => {
+        setTimeout(() => {
           window.location.replace("/");
-        }, 3000); */
-        // ✅ EN SU LUGAR, MUESTRA EL ERROR Y NO REDIRIJAS
-        console.log(
-          "⏳ Pausado por debugger. Revisa la consola para ver los logs.",
-        );
+        }, 3000);
       }
     };
 
