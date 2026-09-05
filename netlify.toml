@@ -7,6 +7,28 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# ✅ REDIRECCIONES CORRECTAS PARA SPA CON BROWSER ROUTER
+[[redirects]]
+  from = "/auth/callback"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/scheduled"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/trash"
+  to = "/index.html"
+  status = 200
+
+# ✅ REDIRECCIÓN GENERAL - DEBE IR AL FINAL
 [[redirects]]
   from = "/*"
   to = "/index.html"

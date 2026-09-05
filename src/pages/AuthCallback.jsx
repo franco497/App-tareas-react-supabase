@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
+console.log("🔥 AuthCallback.jsx se ha cargado (archivo)");
+
 function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);

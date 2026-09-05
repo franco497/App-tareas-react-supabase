@@ -1,5 +1,5 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import Login from "./pages/login";
@@ -99,30 +99,36 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <TaskContextProvider initialSession={session}>
-        <Routes>
-          <Route
-            path="/"
-            element={!session ? <Login /> : <Navigate to="/dashboard" />}
-          />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route
-            path="/dashboard"
-            element={session ? <Dashboard /> : <Navigate to="/" />}
-          />
-          <Route
-            path="/scheduled"
-            element={session ? <ScheduledTasks /> : <Navigate to="/" />}
-          />
-          <Route path="*" element={<NotFound />} />
-          <Route
-            path="/trash"
-            element={session ? <Trash /> : <Navigate to="/" />}
-          />
-        </Routes>
-      </TaskContextProvider>
-    </BrowserRouter>
+    <TaskContextProvider initialSession={session}>
+      <Routes>
+        <Route
+          path="/"
+          element={!session ? <Login /> : <Navigate to="/dashboard" />}
+        />
+        <Route
+          path="/auth/callback"
+          element={
+            <>
+              {console.log("🔥 Ruta /auth/callback renderizada")}
+              <AuthCallback />
+            </>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={session ? <Dashboard /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/scheduled"
+          element={session ? <ScheduledTasks /> : <Navigate to="/" />}
+        />
+        <Route path="*" element={<NotFound />} />
+        <Route
+          path="/trash"
+          element={session ? <Trash /> : <Navigate to="/" />}
+        />
+      </Routes>
+    </TaskContextProvider>
   );
 }
 
