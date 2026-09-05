@@ -8,14 +8,14 @@ console.log("🔥 AuthCallback.jsx se ha cargado (archivo)");
 function AuthCallback() {
   // 🔥 LOG DE RENDERIZADO DEL COMPONENTE
   console.log("🔥 AuthCallback componente renderizado");
-  
+
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
   // ✅ FUNCIÓN PARA EXTRAER TOKEN DE LA URL
   const extractTokenFromUrl = () => {
     console.log("🔍 extractTokenFromUrl() llamada");
-    
+
     const url = window.location.href;
     const search = window.location.search;
     const hash = window.location.hash;
@@ -61,10 +61,10 @@ function AuthCallback() {
   useEffect(() => {
     console.log("🔥 useEffect de AuthCallback ejecutado");
     console.log("📌 processed:", processed);
-    
+
     const verifyToken = async () => {
       console.log("🚀 verifyToken() iniciado");
-      
+
       // ✅ Evitar procesamiento múltiple
       if (processed) {
         console.log("⏳ Ya procesado, saliendo...");
@@ -83,7 +83,7 @@ function AuthCallback() {
           console.error("❌ TOKEN NO ENCONTRADO");
           console.log("📝 URL completa:", window.location.href);
           console.log("📝 Search:", window.location.search);
-          
+
           setStatus("❌ Token no encontrado en la URL");
           setTimeout(() => {
             window.location.replace("/");
@@ -135,19 +135,21 @@ function AuthCallback() {
                 "https://sistema-tareas-recordatorios.netlify.app/.netlify/functions/verify-magic-link",
                 {
                   method: "POST",
-                  headers: { 
+                  headers: {
                     "Content-Type": "application/json",
-                    "Accept": "application/json",
+                    Accept: "application/json",
                   },
                   body: JSON.stringify({ token }),
-                }
+                },
               );
               break;
             } catch (err) {
               retryCount++;
               console.log(`⚠️ Intento ${retryCount} falló:`, err);
               if (retryCount <= maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+                await new Promise((resolve) =>
+                  setTimeout(resolve, 1000 * retryCount),
+                );
               } else {
                 throw err;
               }
@@ -178,7 +180,7 @@ function AuthCallback() {
           if (responseOk && data.session) {
             console.log("✅ Sesión recibida correctamente");
             console.log("👤 Usuario:", data.session.user.email);
-            
+
             localStorage.setItem(
               "supabaseSession",
               JSON.stringify(data.session),
@@ -217,6 +219,10 @@ function AuthCallback() {
       } catch (error) {
         console.error("❌ Error en AuthCallback:", error);
         console.error("📝 Stack:", error.stack);
+
+        // ✅ ESTO CONGELARÁ LA PANTALLA PARA VER LOS LOGS
+        debugger; // ← La ejecución se pausa aquí
+
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => {
           window.location.replace("/");
@@ -226,7 +232,7 @@ function AuthCallback() {
 
     // ✅ EJECUTAR INMEDIATAMENTE, SIN DELAY
     verifyToken();
-    
+
     // ✅ LIMPIAR
     return () => {
       console.log("🧹 Limpiando AuthCallback");
