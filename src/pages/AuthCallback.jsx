@@ -140,7 +140,7 @@ function AuthCallback() {
                     Accept: "application/json",
                   },
                   body: JSON.stringify({ token }),
-                },
+                }
               );
               break;
             } catch (err) {
@@ -148,7 +148,7 @@ function AuthCallback() {
               console.log(`⚠️ Intento ${retryCount} falló:`, err);
               if (retryCount <= maxRetries) {
                 await new Promise((resolve) =>
-                  setTimeout(resolve, 1000 * retryCount),
+                  setTimeout(resolve, 1000 * retryCount)
                 );
               } else {
                 throw err;
@@ -181,27 +181,30 @@ function AuthCallback() {
             console.log("✅ Sesión recibida correctamente");
             console.log("👤 Usuario:", data.session.user.email);
 
+            // ✅ Guardar sesión en localStorage
             localStorage.setItem(
               "supabaseSession",
-              JSON.stringify(data.session),
+              JSON.stringify(data.session)
             );
             console.log("✅ Sesión guardada en localStorage");
 
-            const { error: setSessionError } = await supabase.auth.setSession({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            });
+            // ✅ CORREGIDO: No usar setSession, dejar que Supabase maneje la sesión
+            // Solo verificamos que la sesión esté activa
+            const { data: sessionData } = await supabase.auth.getSession();
 
-            if (setSessionError) {
-              console.error(
-                "❌ Error restaurando sesión en Supabase:",
-                setSessionError,
+            if (sessionData?.session) {
+              console.log(
+                "✅ Sesión activa en Supabase:",
+                sessionData.session.user.email
               );
             } else {
-              console.log("✅ Sesión restaurada en Supabase");
+              console.log(
+                "⏳ La sesión se activará automáticamente con el evento SIGNED_IN"
+              );
             }
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // ✅ Esperar un momento para que el evento SIGNED_IN se propague
+            await new Promise((resolve) => setTimeout(resolve, 1500));
           }
         }
 
