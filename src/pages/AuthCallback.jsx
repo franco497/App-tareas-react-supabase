@@ -2,14 +2,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
+// 🔥 LOG DE CARGA DEL ARCHIVO
 console.log("🔥 AuthCallback.jsx se ha cargado (archivo)");
 
 function AuthCallback() {
+  // 🔥 LOG DE RENDERIZADO DEL COMPONENTE
+  console.log("🔥 AuthCallback componente renderizado");
+  
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
-  // ✅ FUNCIÓN PARA EXTRAER TOKEN DE LA URL POR MÚLTIPLES MÉTODOS
+  // ✅ FUNCIÓN PARA EXTRAER TOKEN DE LA URL
   const extractTokenFromUrl = () => {
+    console.log("🔍 extractTokenFromUrl() llamada");
+    
     const url = window.location.href;
     const search = window.location.search;
     const hash = window.location.hash;
@@ -23,12 +29,12 @@ function AuthCallback() {
 
     let token = null;
 
-    // ✅ MÉTODO 1: URLSearchParams (el más común)
+    // ✅ MÉTODO 1: URLSearchParams
     const params = new URLSearchParams(search);
     token = params.get("token");
     console.log("🔍 Método 1 (URLSearchParams):", token);
 
-    // ✅ MÉTODO 2: Extraer con regex de la URL completa
+    // ✅ MÉTODO 2: Regex en URL completa
     if (!token) {
       const match = url.match(/[?&]token=([^&]+)/);
       if (match) {
@@ -37,32 +43,12 @@ function AuthCallback() {
       }
     }
 
-    // ✅ MÉTODO 3: Buscar en el hash
+    // ✅ MÉTODO 3: Buscar en hash
     if (!token && hash) {
       const hashMatch = hash.match(/[?&]token=([^&]+)/);
       if (hashMatch) {
         token = hashMatch[1];
         console.log("🔍 Método 3 (Hash):", token);
-      }
-    }
-
-    // ✅ MÉTODO 4: Buscar en pathname (para casos donde viene como parámetro de ruta)
-    if (!token && pathname.includes("/auth/callback")) {
-      const pathMatch = pathname.match(/\/auth\/callback\/([^/?]+)/);
-      if (pathMatch) {
-        token = pathMatch[1];
-        console.log("🔍 Método 4 (Path):", token);
-      }
-    }
-
-    // ✅ MÉTODO 5: Intentar con URL API nativa
-    if (!token) {
-      try {
-        const urlObj = new URL(url);
-        token = urlObj.searchParams.get("token");
-        console.log("🔍 Método 5 (URL API):", token);
-      } catch (e) {
-        console.log("⚠️ Error usando URL API:", e);
       }
     }
 
@@ -73,14 +59,25 @@ function AuthCallback() {
   };
 
   useEffect(() => {
+    console.log("🔥 useEffect de AuthCallback ejecutado");
+    console.log("📌 processed:", processed);
+    
     const verifyToken = async () => {
+      console.log("🚀 verifyToken() iniciado");
+      
       // ✅ Evitar procesamiento múltiple
-      if (processed) return;
+      if (processed) {
+        console.log("⏳ Ya procesado, saliendo...");
+        return;
+      }
       setProcessed(true);
+      console.log("✅ processed seteado a true");
 
       try {
         // ✅ EXTRAER TOKEN
         const token = extractTokenFromUrl();
+
+        console.log("📤 Token extraído:", token);
 
         if (!token) {
           console.error("❌ TOKEN NO ENCONTRADO");
@@ -98,7 +95,7 @@ function AuthCallback() {
         const isLocal =
           window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1" ||
-          window.location.port === "5173";
+          window.location.port === "5175";
 
         console.log("🔧 Modo:", isLocal ? "LOCAL" : "PRODUCCIÓN");
         console.log("📤 Token a verificar:", token);
@@ -127,7 +124,7 @@ function AuthCallback() {
           console.log("🚀 Modo producción: verificando con Netlify Function");
           console.log("📤 Enviando token:", token);
 
-          // ✅ INTENTAR CON RETRY SI FALLA
+          // ✅ INTENTAR CON RETRY
           let response;
           let retryCount = 0;
           const maxRetries = 2;
@@ -145,7 +142,7 @@ function AuthCallback() {
                   body: JSON.stringify({ token }),
                 }
               );
-              break; // Si funciona, salir del loop
+              break;
             } catch (err) {
               retryCount++;
               console.log(`⚠️ Intento ${retryCount} falló:`, err);
@@ -227,13 +224,14 @@ function AuthCallback() {
       }
     };
 
-    // ✅ EJECUTAR CON UN PEQUEÑO DELAY PARA ASEGURAR QUE LA URL ESTÉ COMPLETA
-    const timer = setTimeout(() => {
-      verifyToken();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [processed]);
+    // ✅ EJECUTAR INMEDIATAMENTE, SIN DELAY
+    verifyToken();
+    
+    // ✅ LIMPIAR
+    return () => {
+      console.log("🧹 Limpiando AuthCallback");
+    };
+  }, [processed]); // ✅ Dependencia correcta
 
   return (
     <div className="auth-callback-container">
