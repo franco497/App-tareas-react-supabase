@@ -2,20 +2,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-// 🔥 LOG DE CARGA DEL ARCHIVO
 console.log("🔥 AuthCallback.jsx se ha cargado (archivo)");
 
 function AuthCallback() {
-  // 🔥 LOG DE RENDERIZADO DEL COMPONENTE
   console.log("🔥 AuthCallback componente renderizado");
 
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
-  // ✅ FUNCIÓN PARA EXTRAER TOKEN DE LA URL
+  // ✅ FUNCIÓN MEJORADA PARA EXTRAER TOKEN
   const extractTokenFromUrl = () => {
-    console.log("🔍 extractTokenFromUrl() llamada");
-
     const url = window.location.href;
     const search = window.location.search;
     const hash = window.location.hash;
@@ -52,6 +48,15 @@ function AuthCallback() {
       }
     }
 
+    // ✅ MÉTODO 4: Si hay fragmento en la URL (Netlify a veces los añade)
+    if (!token) {
+      const fragmentMatch = url.match(/#\/auth\/callback\?token=([^&]+)/);
+      if (fragmentMatch) {
+        token = fragmentMatch[1];
+        console.log("🔍 Método 4 (Fragment):", token);
+      }
+    }
+
     console.log("🔍 TOKEN FINAL:", token);
     console.log("🔍 Longitud:", token?.length || 0);
 
@@ -65,7 +70,6 @@ function AuthCallback() {
     const verifyToken = async () => {
       console.log("🚀 verifyToken() iniciado");
 
-      // ✅ Evitar procesamiento múltiple
       if (processed) {
         console.log("⏳ Ya procesado, saliendo...");
         return;
@@ -181,15 +185,13 @@ function AuthCallback() {
             console.log("✅ Sesión recibida correctamente");
             console.log("👤 Usuario:", data.session.user.email);
 
-            // ✅ Guardar sesión en localStorage
             localStorage.setItem(
               "supabaseSession",
               JSON.stringify(data.session)
             );
             console.log("✅ Sesión guardada en localStorage");
 
-            // ✅ CORREGIDO: No usar setSession, dejar que Supabase maneje la sesión
-            // Solo verificamos que la sesión esté activa
+            // ✅ Verificar sesión activa
             const { data: sessionData } = await supabase.auth.getSession();
 
             if (sessionData?.session) {
@@ -203,7 +205,6 @@ function AuthCallback() {
               );
             }
 
-            // ✅ Esperar un momento para que el evento SIGNED_IN se propague
             await new Promise((resolve) => setTimeout(resolve, 1500));
           }
         }
@@ -230,14 +231,16 @@ function AuthCallback() {
       }
     };
 
-    // ✅ EJECUTAR INMEDIATAMENTE, SIN DELAY
-    verifyToken();
+    // ✅ EJECUTAR CON UN PEQUEÑO DELAY PARA ASEGURAR QUE LA URL ESTÉ COMPLETA
+    const timer = setTimeout(() => {
+      verifyToken();
+    }, 100);
 
-    // ✅ LIMPIAR
     return () => {
+      clearTimeout(timer);
       console.log("🧹 Limpiando AuthCallback");
     };
-  }, [processed]); // ✅ Dependencia correcta
+  }, [processed]);
 
   return (
     <div className="auth-callback-container">
