@@ -10,27 +10,23 @@ function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
-  // ✅ FUNCIÓN MEJORADA PARA EXTRAER TOKEN
   const extractTokenFromUrl = () => {
+    // ✅ FORZAR LA LECTURA DIRECTA DE LA URL ACTUAL
     const url = window.location.href;
     const search = window.location.search;
-    const hash = window.location.hash;
-    const pathname = window.location.pathname;
 
     console.log("🔍 ===== EXTRACTANDO TOKEN =====");
-    console.log("📍 URL completa:", url);
-    console.log("📍 Pathname:", pathname);
-    console.log("📍 Search:", search);
-    console.log("📍 Hash:", hash);
+    console.log("📍 URL actual (window.location.href):", url);
+    console.log("📍 Search actual (window.location.search):", search);
 
     let token = null;
 
-    // ✅ MÉTODO 1: URLSearchParams
+    // ✅ MÉTODO 1: URLSearchParams - EL MÁS CONFIABLE
     const params = new URLSearchParams(search);
     token = params.get("token");
     console.log("🔍 Método 1 (URLSearchParams):", token);
 
-    // ✅ MÉTODO 2: Regex en URL completa
+    // ✅ MÉTODO 2: Si no hay token en search, buscar en la URL completa
     if (!token) {
       const match = url.match(/[?&]token=([^&]+)/);
       if (match) {
@@ -39,26 +35,21 @@ function AuthCallback() {
       }
     }
 
-    // ✅ MÉTODO 3: Buscar en hash
-    if (!token && hash) {
-      const hashMatch = hash.match(/[?&]token=([^&]+)/);
+    // ✅ MÉTODO 3: Si hay hash, buscar allí
+    if (!token && window.location.hash) {
+      const hashMatch = window.location.hash.match(/[?&]token=([^&]+)/);
       if (hashMatch) {
         token = hashMatch[1];
         console.log("🔍 Método 3 (Hash):", token);
       }
     }
 
-    // ✅ MÉTODO 4: Si hay fragmento en la URL (Netlify a veces los añade)
-    if (!token) {
-      const fragmentMatch = url.match(/#\/auth\/callback\?token=([^&]+)/);
-      if (fragmentMatch) {
-        token = fragmentMatch[1];
-        console.log("🔍 Método 4 (Fragment):", token);
-      }
-    }
-
+    // ✅ VERIFICACIÓN FINAL: ¿El token es el mismo que en la URL?
     console.log("🔍 TOKEN FINAL:", token);
     console.log("🔍 Longitud:", token?.length || 0);
+
+    // ✅ Si el token es el VIEJO, esto se verá en los logs
+    // Busca "bf964bd5" en los logs - si aparece, ese es el problema
 
     return token;
   };
@@ -144,7 +135,7 @@ function AuthCallback() {
                     Accept: "application/json",
                   },
                   body: JSON.stringify({ token }),
-                }
+                },
               );
               break;
             } catch (err) {
@@ -152,7 +143,7 @@ function AuthCallback() {
               console.log(`⚠️ Intento ${retryCount} falló:`, err);
               if (retryCount <= maxRetries) {
                 await new Promise((resolve) =>
-                  setTimeout(resolve, 1000 * retryCount)
+                  setTimeout(resolve, 1000 * retryCount),
                 );
               } else {
                 throw err;
@@ -187,7 +178,7 @@ function AuthCallback() {
 
             localStorage.setItem(
               "supabaseSession",
-              JSON.stringify(data.session)
+              JSON.stringify(data.session),
             );
             console.log("✅ Sesión guardada en localStorage");
 
@@ -197,11 +188,11 @@ function AuthCallback() {
             if (sessionData?.session) {
               console.log(
                 "✅ Sesión activa en Supabase:",
-                sessionData.session.user.email
+                sessionData.session.user.email,
               );
             } else {
               console.log(
-                "⏳ La sesión se activará automáticamente con el evento SIGNED_IN"
+                "⏳ La sesión se activará automáticamente con el evento SIGNED_IN",
               );
             }
 
