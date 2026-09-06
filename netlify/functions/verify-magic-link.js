@@ -6,8 +6,44 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
+// ✅ FUNCIÓN PARA BUSCAR TOKEN CON REINTENTOS
+const findTokenWithRetry = async (token, maxRetries = 5, delay = 2000) => {
+  console.log(`🔍 Buscando token: ${token}`);
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(`🔍 Intento ${attempt} de ${maxRetries}...`);
+    
+    const { data, error } = await supabase
+      .from("magic_links")
+      .select("*")
+      .eq("token", token)
+      .gte("expires_at", new Date().toISOString())
+      .single();
+
+    if (data) {
+      console.log(`✅ Token encontrado en intento ${attempt}`);
+      return { data, error: null };
+    }
+
+    if (attempt < maxRetries) {
+      console.log(`⏳ Token no encontrado (${error?.message || "sin datos"}), esperando ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  // Último intento: buscar sin filtro de expiración
+  console.log("🔄 Último intento sin filtro de expiración...");
+  const { data, error } = await supabase
+    .from("magic_links")
+    .select("*")
+    .eq("token", token)
+    .single();
+
+  return { data, error };
+};
+
 export const handler = async (event) => {
-  // CORS
+  // ✅ CORS
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -23,7 +59,6 @@ export const handler = async (event) => {
   try {
     const { token } = JSON.parse(event.body);
 
-
     if (!token) {
       return {
         statusCode: 400,
@@ -35,17 +70,14 @@ export const handler = async (event) => {
       };
     }
 
-    // Buscar token válido
-    const { data: magicLink, error } = await supabase
-      .from("magic_links")
-      .select("*")
-      .eq("token", token)
-      .eq("is_used", false)
-      .gte("expires_at", new Date().toISOString())
-      .single();
+    console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
+    console.log(`📝 Token recibido: ${token}`);
 
-    if (error) {
-      console.error("❌ Error buscando token:", error);
+    // ✅ BUSCAR TOKEN CON REINTENTOS
+    const { data: magicLink, error } = await findTokenWithRetry(token);
+
+    if (error || !magicLink) {
+      console.error("❌ Token no encontrado después de reintentos:", error);
       return {
         statusCode: 400,
         headers: {
@@ -56,29 +88,33 @@ export const handler = async (event) => {
       };
     }
 
-    if (!magicLink) {
-      console.error("❌ Token no encontrado o expirado");
-      return {
-        statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ error: "Token inválido o expirado" }),
-      };
+    console.log(`✅ Token encontrado: ${magicLink.token}`);
+    console.log(`📧 Email: ${magicLink.email}`);
+    console.log(`🔒 Usado: ${magicLink.is_used}`);
+    console.log(`⏰ Creado: ${magicLink.created_at}`);
+    console.log(`⏰ Expira: ${magicLink.expires_at}`);
+
+    // ✅ Si el token ya fue usado pero no expiró, permitirlo
+    if (magicLink.is_used) {
+      console.log("⚠️ Token ya usado, pero aún válido. Reutilizando...");
+    } else {
+      // ✅ Marcar como usado
+      const { error: updateError } = await supabase
+        .from("magic_links")
+        .update({ is_used: true, used_at: new Date().toISOString() })
+        .eq("id", magicLink.id);
+
+      if (updateError) {
+        console.error("❌ Error marcando token como usado:", updateError);
+      } else {
+        console.log("✅ Token marcado como usado");
+      }
     }
-
-    //  Marcar como usado
-    await supabase
-      .from("magic_links")
-      .update({ is_used: true, used_at: new Date().toISOString() })
-      .eq("id", magicLink.id);
-
 
     const email = magicLink.email;
     const temporaryPassword = token + "magic_link_password_123";
 
-    // VERIFICAR SI EL USUARIO YA EXISTE EN SUPABASE AUTH
+    // ✅ VERIFICAR SI EL USUARIO YA EXISTE
     const { data: users, error: listError } =
       await supabase.auth.admin.listUsers();
 
@@ -96,9 +132,9 @@ export const handler = async (event) => {
 
     const existingUser = users?.users?.find((user) => user.email === email);
 
-    // SI EL USUARIO NO EXISTE, CREARLO
+    // ✅ SI EL USUARIO NO EXISTE, CREARLO
     if (!existingUser) {
-
+      console.log("🆕 Usuario no existe, creando...");
       const { data: newUser, error: signUpError } =
         await supabase.auth.admin.createUser({
           email: email,
@@ -117,11 +153,11 @@ export const handler = async (event) => {
           body: JSON.stringify({ error: "Error creando usuario" }),
         };
       }
-
+      console.log(`✅ Usuario creado: ${email}`);
     }
 
-    // INICIAR SESIÓN
-
+    // ✅ INICIAR SESIÓN
+    console.log("🔐 Iniciando sesión...");
     const { data: session, error: loginError } =
       await supabase.auth.signInWithPassword({
         email: email,
@@ -171,6 +207,7 @@ export const handler = async (event) => {
           };
         }
 
+        console.log("✅ Sesión iniciada (reintento)");
         return {
           statusCode: 200,
           headers: {
@@ -190,6 +227,8 @@ export const handler = async (event) => {
         body: JSON.stringify({ error: "Error iniciando sesión" }),
       };
     }
+
+    console.log(`✅ Sesión iniciada: ${session.user.email}`);
 
     return {
       statusCode: 200,
