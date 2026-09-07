@@ -9,12 +9,12 @@ const supabase = createClient(
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  console.error("❌ ERROR CRÍTICO: JWT_SECRET no está configurado");
+  console.error("❌ ERROR: JWT_SECRET no configurado");
   throw new Error("JWT_SECRET es requerido");
 }
 console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
-// ✅ VERIFICAR JWT (sin consultar la base de datos)
+// ✅ VERIFICAR JWT (sin base de datos)
 function verifyJWT(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -82,7 +82,12 @@ export const handler = async (event) => {
   try {
     const { token } = JSON.parse(event.body);
 
+    console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
+    console.log(`📝 Token recibido (primeros 30 chars): ${token?.substring(0, 30) || 'NULL'}...`);
+    console.log(`📝 Longitud del token: ${token?.length || 0}`);
+
     if (!token) {
+      console.error("❌ Token vacío");
       return {
         statusCode: 400,
         headers: {
@@ -93,184 +98,32 @@ export const handler = async (event) => {
       };
     }
 
-    console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
-    console.log(`📝 Token recibido: ${token}`);
-
     // ============================================
-    // ✅ OPCIÓN 1: Buscar por token corto en BD
+    // ✅ VERIFICAR JWT DIRECTAMENTE (SIN BD)
     // ============================================
-    const { data: magicLink, error } = await supabase
-      .from("magic_links")
-      .select("*")
-      .eq("token", token)
-      .gte("expires_at", new Date().toISOString())
-      .single();
+    console.log("🔍 Verificando JWT...");
+    const { valid, email, decoded, error } = verifyJWT(token);
 
-    if (error || !magicLink) {
-      console.log("⚠️ No encontrado como token corto, intentando como JWT...");
-      
-      // ============================================
-      // ✅ OPCIÓN 2: Verificar directamente como JWT
-      // ============================================
-      const { valid, email, decoded } = verifyJWT(token);
-      
-      if (!valid) {
-        console.error("❌ JWT inválido:", decoded);
-        return {
-          statusCode: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ error: "Token inválido o expirado" }),
-        };
-      }
-
-      console.log(`✅ JWT válido para: ${email}`);
-      
-      // ✅ CONTINUAR CON LOGIN (sin BD)
-      const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
-      console.log(`🔐 Contraseña temporal generada (${temporaryPassword.length} caracteres)`);
-
-      // Verificar/crear usuario
-      const { data: users, error: listError } = await supabase.auth.admin.listUsers();
-      if (listError) {
-        console.error("❌ Error listando usuarios:", listError);
-        return {
-          statusCode: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ error: "Error verificando usuario" }),
-        };
-      }
-
-      const existingUser = users?.users?.find((user) => user.email === email);
-
-      if (!existingUser) {
-        console.log("🆕 Usuario no existe, creando...");
-        const { error: signUpError } = await supabase.auth.admin.createUser({
-          email: email,
-          password: temporaryPassword,
-          email_confirm: true,
-        });
-        if (signUpError) {
-          console.error("❌ Error creando usuario:", signUpError);
-          return {
-            statusCode: 500,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
-            body: JSON.stringify({ error: "Error creando usuario" }),
-          };
-        }
-        console.log(`✅ Usuario creado: ${email}`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      } else {
-        console.log("👤 Usuario ya existe, actualizando contraseña...");
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-          existingUser.id,
-          { password: temporaryPassword }
-        );
-        if (updateError) {
-          console.error("❌ Error actualizando contraseña:", updateError);
-          return {
-            statusCode: 500,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
-            body: JSON.stringify({ error: "Error actualizando contraseña" }),
-          };
-        }
-        console.log("✅ Contraseña actualizada");
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-
-      // Iniciar sesión
-      const { data: session, error: loginError } = await loginWithRetry(
-        email,
-        temporaryPassword,
-        5,
-        2000
-      );
-
-      if (loginError || !session?.session) {
-        console.error("❌ Error iniciando sesión:", loginError);
-        return {
-          statusCode: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ error: "Error iniciando sesión" }),
-        };
-      }
-
-      console.log(`✅ Sesión iniciada: ${session.session.user.email}`);
-
-      return {
-        statusCode: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ success: true, session: session.session }),
-      };
-    }
-
-    // ============================================
-    // ✅ TOKEN CORTO ENCONTRADO EN BD
-    // ============================================
-    console.log(`✅ Token encontrado: ${magicLink.token}`);
-    console.log(`📧 Email: ${magicLink.email}`);
-    console.log(`🔒 Usado: ${magicLink.is_used}`);
-
-    // ✅ VERIFICAR EL JWT ASOCIADO
-    if (!magicLink.jwt_token) {
-      console.error("❌ No hay JWT asociado");
-      return {
-        statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ error: "Token inválido" }),
-      };
-    }
-
-    const { valid, email, decoded } = verifyJWT(magicLink.jwt_token);
-    
     if (!valid) {
-      console.error("❌ JWT asociado inválido:", decoded);
+      console.error("❌ JWT inválido:", error);
       return {
         statusCode: 400,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ error: "Token inválido o expirado" }),
+        body: JSON.stringify({ error: `Token inválido o expirado` }),
       };
     }
 
     console.log(`✅ JWT válido para: ${email}`);
-
-    // ✅ Marcar como usado en BD
-    if (!magicLink.is_used) {
-      await supabase
-        .from("magic_links")
-        .update({ is_used: true, used_at: new Date().toISOString() })
-        .eq("id", magicLink.id);
-      console.log("✅ Token marcado como usado en BD");
-    }
+    console.log(`📝 Payload:`, decoded);
 
     // ✅ GENERAR CONTRASEÑA TEMPORAL CORTA
     const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
-    console.log(`🔐 Contraseña temporal generada (${temporaryPassword.length} caracteres)`);
+    console.log(`🔐 Contraseña temporal (${temporaryPassword.length} caracteres)`);
 
-    // ✅ VERIFICAR/CREAR USUARIO
+    // ✅ VERIFICAR SI EL USUARIO YA EXISTE
     const { data: users, error: listError } = await supabase.auth.admin.listUsers();
 
     if (listError) {
@@ -287,6 +140,7 @@ export const handler = async (event) => {
 
     const existingUser = users?.users?.find((user) => user.email === email);
 
+    // ✅ SI EL USUARIO NO EXISTE, CREARLO
     if (!existingUser) {
       console.log("🆕 Usuario no existe, creando...");
       const { error: signUpError } = await supabase.auth.admin.createUser({

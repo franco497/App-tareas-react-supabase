@@ -1,14 +1,7 @@
 // netlify/functions/send-magic-link.js
-import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
 
 const CLIENT_ID = process.env.GMAIL_CLIENT_ID;
 const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
@@ -17,20 +10,14 @@ const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL || "devincentisf35@gmail.com";
 const SITE_URL = process.env.SITE_URL || "https://sistema-tareas-recordatorios.netlify.app";
 
-// ✅ JWT SECRET - VALIDAR QUE EXISTE
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  console.error("❌ ERROR CRÍTICO: JWT_SECRET no está configurado");
+  console.error("❌ ERROR: JWT_SECRET no configurado");
   throw new Error("JWT_SECRET es requerido");
 }
 console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
-// ✅ Generar token corto para la URL (32 caracteres)
-function generateShortToken() {
-  return crypto.randomBytes(16).toString('hex');
-}
-
-// ✅ Generar JWT para verificación (firmado digitalmente)
+// ✅ Generar JWT
 function generateJWT(email) {
   const payload = {
     email: email,
@@ -38,11 +25,6 @@ function generateJWT(email) {
     timestamp: Date.now(),
   };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
-}
-
-function getClientIP(event) {
-  const forwarded = event.headers["x-forwarded-for"];
-  return forwarded ? forwarded.split(",")[0] : "unknown";
 }
 
 async function sendMagicLinkEmail(email, token) {
@@ -68,8 +50,9 @@ async function sendMagicLinkEmail(email, token) {
       tls: { rejectUnauthorized: false },
     });
 
-    // ✅ URL con token corto (32 caracteres) - SIN timestamp para evitar caché
-    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}`;
+    // ✅ URL con timestamp para evitar caché
+    const timestamp = Date.now();
+    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}&_t=${timestamp}`;
 
     const textContent = `
 Hola,
@@ -209,65 +192,12 @@ export const handler = async (event) => {
       };
     }
 
-    const RATE_LIMIT = 15;
-    const TIME_WINDOW = 60 * 60 * 1000;
+    // ✅ GENERAR JWT
+    const token = generateJWT(email);
+    console.log(`🆕 JWT generado: ${token.substring(0, 30)}...`);
 
-    const timeAgo = new Date(Date.now() - TIME_WINDOW);
-    const { count, error: countError } = await supabase
-      .from("magic_links")
-      .select("*", { count: "exact", head: true })
-      .eq("email", email)
-      .gte("created_at", timeAgo.toISOString());
-
-    if (countError) throw countError;
-
-    if (count && count >= RATE_LIMIT) {
-      return {
-        statusCode: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({
-          error: `Demasiados intentos. Espera una hora. (Límite: ${RATE_LIMIT} intentos por hora)`,
-        }),
-      };
-    }
-
-    // ✅ GENERAR TOKEN CORTO PARA LA URL
-    const shortToken = generateShortToken();
-    console.log(`🆕 Token corto: ${shortToken}`);
-
-    // ✅ GENERAR JWT PARA VERIFICACIÓN
-    const jwtToken = generateJWT(email);
-    console.log(`🆕 JWT generado: ${jwtToken.substring(0, 30)}...`);
-
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-    // ✅ Guardar en base de datos (SOLO para auditoría)
-    try {
-      const { error: insertError } = await supabase.from("magic_links").insert({
-        email,
-        token: shortToken,
-        jwt_token: jwtToken,
-        expires_at: expiresAt.toISOString(),
-        ip_address: getClientIP(event),
-        user_agent: event.headers["user-agent"] || "unknown",
-        is_used: false,
-      });
-
-      if (insertError) {
-        console.error("❌ Error guardando token en BD:", insertError);
-        console.log("⚠️ Continuando sin guardar en BD (el JWT es autosuficiente)");
-      } else {
-        console.log("✅ Token guardado en BD para auditoría");
-      }
-    } catch (dbError) {
-      console.log("⚠️ Error en BD (no crítico):", dbError.message);
-    }
-
-    // ✅ Enviar email con el TOKEN CORTO en la URL
-    const emailSent = await sendMagicLinkEmail(email, shortToken);
+    // ✅ Enviar email
+    const emailSent = await sendMagicLinkEmail(email, token);
 
     if (!emailSent) {
       return {
