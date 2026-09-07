@@ -26,12 +26,11 @@ const findTokenWithRetry = async (token, maxRetries = 5, delay = 2000) => {
     }
 
     if (attempt < maxRetries) {
-      console.log(`⏳ Token no encontrado (${error?.message || "sin datos"}), esperando ${delay}ms...`);
+      console.log(`⏳ Token no encontrado, esperando ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
-  // Último intento: buscar sin filtro de expiración
   console.log("🔄 Último intento sin filtro de expiración...");
   const { data, error } = await supabase
     .from("magic_links")
@@ -40,6 +39,49 @@ const findTokenWithRetry = async (token, maxRetries = 5, delay = 2000) => {
     .single();
 
   return { data, error };
+};
+
+// ✅ FUNCIÓN PARA INICIAR SESIÓN CON REINTENTOS
+const loginWithRetry = async (email, password, maxRetries = 3, delay = 2000) => {
+  console.log(`🔐 Intentando iniciar sesión para: ${email}`);
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(`🔐 Intento ${attempt} de ${maxRetries}...`);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (!error && data?.session) {
+        console.log(`✅ Sesión iniciada en intento ${attempt}`);
+        return { data, error: null };
+      }
+
+      if (error) {
+        console.log(`⚠️ Intento ${attempt} falló: ${error.message}`);
+        
+        // ✅ Si es error de credenciales y no es el último intento, esperar
+        if (error.message?.includes("Invalid login credentials") && attempt < maxRetries) {
+          console.log(`⏳ Esperando ${delay}ms antes de reintentar...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        return { data: null, error };
+      }
+    } catch (err) {
+      console.log(`⚠️ Intento ${attempt} falló con excepción:`, err);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        return { data: null, error: err };
+      }
+    }
+  }
+
+  return { data: null, error: new Error("Máximo de reintentos alcanzado") };
 };
 
 export const handler = async (event) => {
@@ -73,11 +115,11 @@ export const handler = async (event) => {
     console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
     console.log(`📝 Token recibido: ${token}`);
 
-    // ✅ BUSCAR TOKEN CON REINTENTOS
+    // ✅ BUSCAR TOKEN
     const { data: magicLink, error } = await findTokenWithRetry(token);
 
     if (error || !magicLink) {
-      console.error("❌ Token no encontrado después de reintentos:", error);
+      console.error("❌ Token no encontrado:", error);
       return {
         statusCode: 400,
         headers: {
@@ -91,14 +133,9 @@ export const handler = async (event) => {
     console.log(`✅ Token encontrado: ${magicLink.token}`);
     console.log(`📧 Email: ${magicLink.email}`);
     console.log(`🔒 Usado: ${magicLink.is_used}`);
-    console.log(`⏰ Creado: ${magicLink.created_at}`);
-    console.log(`⏰ Expira: ${magicLink.expires_at}`);
 
-    // ✅ Si el token ya fue usado pero no expiró, permitirlo
-    if (magicLink.is_used) {
-      console.log("⚠️ Token ya usado, pero aún válido. Reutilizando...");
-    } else {
-      // ✅ Marcar como usado
+    // ✅ Marcar como usado (si no lo estaba)
+    if (!magicLink.is_used) {
       const { error: updateError } = await supabase
         .from("magic_links")
         .update({ is_used: true, used_at: new Date().toISOString() })
@@ -154,81 +191,76 @@ export const handler = async (event) => {
         };
       }
       console.log(`✅ Usuario creado: ${email}`);
-    }
+      
+      // ✅ Esperar un momento para que el usuario se propague
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } else {
+      // ✅ SI EL USUARIO YA EXISTE, ACTUALIZAR SU CONTRASEÑA
+      console.log("👤 Usuario ya existe, actualizando contraseña...");
+      const { error: updateError } = await supabase.auth.admin.updateUserById(
+        existingUser.id,
+        { password: temporaryPassword }
+      );
 
-    // ✅ INICIAR SESIÓN
-    console.log("🔐 Iniciando sesión...");
-    const { data: session, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email: email,
-        password: temporaryPassword,
-      });
-
-    if (loginError) {
-      console.error("❌ Error iniciando sesión:", loginError);
-
-      // Si el usuario existe pero la contraseña no funciona, actualizarla
-      if (existingUser) {
-        console.log("🔄 Reintentando con actualización de contraseña...");
-
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-          existingUser.id,
-          { password: temporaryPassword },
-        );
-
-        if (updateError) {
-          console.error("❌ Error actualizando contraseña:", updateError);
-          return {
-            statusCode: 500,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
-            body: JSON.stringify({ error: "Error actualizando contraseña" }),
-          };
-        }
-
-        // Reintentar login
-        const { data: retrySession, error: retryError } =
-          await supabase.auth.signInWithPassword({
-            email: email,
-            password: temporaryPassword,
-          });
-
-        if (retryError) {
-          console.error("❌ Error reintentando login:", retryError);
-          return {
-            statusCode: 500,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
-            body: JSON.stringify({ error: "Error iniciando sesión" }),
-          };
-        }
-
-        console.log("✅ Sesión iniciada (reintento)");
+      if (updateError) {
+        console.error("❌ Error actualizando contraseña:", updateError);
         return {
-          statusCode: 200,
+          statusCode: 500,
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
           },
-          body: JSON.stringify({ success: true, session: retrySession }),
+          body: JSON.stringify({ error: "Error actualizando contraseña" }),
+        };
+      }
+      console.log("✅ Contraseña actualizada");
+      
+      // ✅ Esperar un momento para que la contraseña se propague
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // ✅ INICIAR SESIÓN CON REINTENTOS
+    const { data: session, error: loginError } = await loginWithRetry(
+      email,
+      temporaryPassword,
+      5, // Max retries
+      2000 // Delay entre intentos
+    );
+
+    if (loginError || !session?.session) {
+      console.error("❌ Error iniciando sesión después de reintentos:", loginError);
+      
+      // ✅ ÚLTIMO RECURSO: Intentar con la contraseña actual sin actualizar
+      console.log("🔄 Último recurso: intentando login sin actualizar contraseña...");
+      const { data: lastTry, error: lastError } = await supabase.auth.signInWithPassword({
+        email,
+        password: temporaryPassword,
+      });
+
+      if (lastError || !lastTry?.session) {
+        console.error("❌ Error final al iniciar sesión:", lastError);
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Error iniciando sesión" }),
         };
       }
 
+      console.log("✅ Sesión iniciada (último recurso)");
       return {
-        statusCode: 500,
+        statusCode: 200,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ error: "Error iniciando sesión" }),
+        body: JSON.stringify({ success: true, session: lastTry.session }),
       };
     }
 
-    console.log(`✅ Sesión iniciada: ${session.user.email}`);
+    console.log(`✅ Sesión iniciada: ${session.session.user.email}`);
 
     return {
       statusCode: 200,
@@ -236,7 +268,7 @@ export const handler = async (event) => {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       },
-      body: JSON.stringify({ success: true, session }),
+      body: JSON.stringify({ success: true, session: session.session }),
     };
   } catch (error) {
     console.error("❌ Error en handler:", error);
