@@ -52,7 +52,9 @@ async function sendMagicLinkEmail(email, token) {
       tls: { rejectUnauthorized: false },
     });
 
-    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}`;
+    // ✅ Generar URL con timestamp para evitar caché
+const timestamp = Date.now();
+const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}&_t=${timestamp}`;
 
     //  TEXTO PLANO
     const textContent = `
@@ -113,7 +115,7 @@ Si no solicitaste este enlace, ignora este correo.
         <div class="content">
           <p>Has solicitado un enlace de acceso para tu cuenta.</p>
           <p style="text-align: center; margin: 30px 0;">
-            <a href="${magicLinkUrl}" class="button">Iniciar sesión</a>
+            <a href="${magicLinkUrl}" target="_blank" rel="noopener noreferrer" class="button">Iniciar sesión</a>
           </p>
           <p>O copia este enlace en tu navegador:</p>
           <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">

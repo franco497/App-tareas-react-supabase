@@ -10,46 +10,73 @@ function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
+  // ✅ FUNCIÓN PARA EXTRAER TOKEN - VERSIÓN MEJORADA
   const extractTokenFromUrl = () => {
     // ✅ FORZAR LA LECTURA DIRECTA DE LA URL ACTUAL
-    const url = window.location.href;
-    const search = window.location.search;
+    const currentUrl = window.location.href;
+    const currentSearch = window.location.search;
+    const currentHash = window.location.hash;
 
     console.log("🔍 ===== EXTRACTANDO TOKEN =====");
-    console.log("📍 URL actual (window.location.href):", url);
-    console.log("📍 Search actual (window.location.search):", search);
+    console.log("📍 URL actual:", currentUrl);
+    console.log("📍 Search actual:", currentSearch);
+    console.log("📍 Hash actual:", currentHash);
+    console.log("📍 Pathname actual:", window.location.pathname);
 
     let token = null;
 
-    // ✅ MÉTODO 1: URLSearchParams - EL MÁS CONFIABLE
-    const params = new URLSearchParams(search);
+    // ✅ MÉTODO 1: URLSearchParams
+    const params = new URLSearchParams(currentSearch);
     token = params.get("token");
     console.log("🔍 Método 1 (URLSearchParams):", token);
 
-    // ✅ MÉTODO 2: Si no hay token en search, buscar en la URL completa
+    // ✅ MÉTODO 2: Regex en URL completa
     if (!token) {
-      const match = url.match(/[?&]token=([^&]+)/);
+      const match = currentUrl.match(/[?&]token=([^&]+)/);
       if (match) {
         token = match[1];
         console.log("🔍 Método 2 (Regex URL):", token);
       }
     }
 
-    // ✅ MÉTODO 3: Si hay hash, buscar allí
-    if (!token && window.location.hash) {
-      const hashMatch = window.location.hash.match(/[?&]token=([^&]+)/);
+    // ✅ MÉTODO 3: Buscar en hash
+    if (!token && currentHash) {
+      const hashMatch = currentHash.match(/[?&]token=([^&]+)/);
       if (hashMatch) {
         token = hashMatch[1];
         console.log("🔍 Método 3 (Hash):", token);
       }
     }
 
-    // ✅ VERIFICACIÓN FINAL: ¿El token es el mismo que en la URL?
-    console.log("🔍 TOKEN FINAL:", token);
-    console.log("🔍 Longitud:", token?.length || 0);
+    // ✅ MÉTODO 4: Intentar con URL API
+    if (!token) {
+      try {
+        const urlObj = new URL(currentUrl);
+        token = urlObj.searchParams.get("token");
+        console.log("🔍 Método 4 (URL API):", token);
+      } catch (e) {
+        console.log("⚠️ Error usando URL API:", e);
+      }
+    }
 
-    // ✅ Si el token es el VIEJO, esto se verá en los logs
-    // Busca "bf964bd5" en los logs - si aparece, ese es el problema
+    // ✅ VERIFICACIÓN FINAL: Si el token se ve como un token anterior, alertar
+    if (token) {
+      console.log("🔍 TOKEN FINAL:", token);
+      console.log("🔍 Longitud:", token.length);
+
+      // ✅ Si el token coincide con el primer token, mostrar advertencia
+      // (Esto es para debug)
+      if (
+        token === "bf964bd56727895e8004ac9dffb46797" ||
+        token === "db1623d7f18cbb98f834e042bdf35270"
+      ) {
+        console.warn(
+          "⚠️ ¡ATENCIÓN! Este token parece ser el PRIMER token, no el nuevo.",
+        );
+      }
+    } else {
+      console.error("❌ NO se encontró token en la URL");
+    }
 
     return token;
   };
@@ -80,6 +107,10 @@ function AuthCallback() {
           console.log("📝 Search:", window.location.search);
 
           setStatus("❌ Token no encontrado en la URL");
+
+          // ✅ Mostrar la URL en la pantalla para debug
+          console.log("🔍 La URL actual es:", window.location.href);
+
           setTimeout(() => {
             window.location.replace("/");
           }, 3000);
