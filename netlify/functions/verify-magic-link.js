@@ -14,7 +14,7 @@ if (!JWT_SECRET) {
 }
 console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
-// ✅ VERIFICAR JWT
+// ✅ VERIFICAR JWT (sin consultar la base de datos)
 function verifyJWT(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -94,9 +94,11 @@ export const handler = async (event) => {
     }
 
     console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
-    console.log(`📝 Token recibido: ${token.substring(0, 30)}...`);
+    console.log(`📝 Token recibido: ${token}`);
 
-    // ✅ BUSCAR EL TOKEN EN LA BD
+    // ============================================
+    // ✅ OPCIÓN 1: Buscar por token corto en BD
+    // ============================================
     const { data: magicLink, error } = await supabase
       .from("magic_links")
       .select("*")
@@ -105,17 +107,123 @@ export const handler = async (event) => {
       .single();
 
     if (error || !magicLink) {
-      console.error("❌ Token no encontrado:", error);
+      console.log("⚠️ No encontrado como token corto, intentando como JWT...");
+      
+      // ============================================
+      // ✅ OPCIÓN 2: Verificar directamente como JWT
+      // ============================================
+      const { valid, email, decoded } = verifyJWT(token);
+      
+      if (!valid) {
+        console.error("❌ JWT inválido:", decoded);
+        return {
+          statusCode: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Token inválido o expirado" }),
+        };
+      }
+
+      console.log(`✅ JWT válido para: ${email}`);
+      
+      // ✅ CONTINUAR CON LOGIN (sin BD)
+      const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
+      console.log(`🔐 Contraseña temporal generada (${temporaryPassword.length} caracteres)`);
+
+      // Verificar/crear usuario
+      const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+      if (listError) {
+        console.error("❌ Error listando usuarios:", listError);
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Error verificando usuario" }),
+        };
+      }
+
+      const existingUser = users?.users?.find((user) => user.email === email);
+
+      if (!existingUser) {
+        console.log("🆕 Usuario no existe, creando...");
+        const { error: signUpError } = await supabase.auth.admin.createUser({
+          email: email,
+          password: temporaryPassword,
+          email_confirm: true,
+        });
+        if (signUpError) {
+          console.error("❌ Error creando usuario:", signUpError);
+          return {
+            statusCode: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({ error: "Error creando usuario" }),
+          };
+        }
+        console.log(`✅ Usuario creado: ${email}`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        console.log("👤 Usuario ya existe, actualizando contraseña...");
+        const { error: updateError } = await supabase.auth.admin.updateUserById(
+          existingUser.id,
+          { password: temporaryPassword }
+        );
+        if (updateError) {
+          console.error("❌ Error actualizando contraseña:", updateError);
+          return {
+            statusCode: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({ error: "Error actualizando contraseña" }),
+          };
+        }
+        console.log("✅ Contraseña actualizada");
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      // Iniciar sesión
+      const { data: session, error: loginError } = await loginWithRetry(
+        email,
+        temporaryPassword,
+        5,
+        2000
+      );
+
+      if (loginError || !session?.session) {
+        console.error("❌ Error iniciando sesión:", loginError);
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({ error: "Error iniciando sesión" }),
+        };
+      }
+
+      console.log(`✅ Sesión iniciada: ${session.session.user.email}`);
+
       return {
-        statusCode: 400,
+        statusCode: 200,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ error: "Token inválido o expirado" }),
+        body: JSON.stringify({ success: true, session: session.session }),
       };
     }
 
+    // ============================================
+    // ✅ TOKEN CORTO ENCONTRADO EN BD
+    // ============================================
     console.log(`✅ Token encontrado: ${magicLink.token}`);
     console.log(`📧 Email: ${magicLink.email}`);
     console.log(`🔒 Usado: ${magicLink.is_used}`);
@@ -136,7 +244,7 @@ export const handler = async (event) => {
     const { valid, email, decoded } = verifyJWT(magicLink.jwt_token);
     
     if (!valid) {
-      console.error("❌ JWT inválido:", decoded);
+      console.error("❌ JWT asociado inválido:", decoded);
       return {
         statusCode: 400,
         headers: {
@@ -149,26 +257,20 @@ export const handler = async (event) => {
 
     console.log(`✅ JWT válido para: ${email}`);
 
-    // ✅ Marcar como usado
+    // ✅ Marcar como usado en BD
     if (!magicLink.is_used) {
       await supabase
         .from("magic_links")
         .update({ is_used: true, used_at: new Date().toISOString() })
         .eq("id", magicLink.id);
-      console.log("✅ Token marcado como usado");
+      console.log("✅ Token marcado como usado en BD");
     }
 
-    // ============================================
     // ✅ GENERAR CONTRASEÑA TEMPORAL CORTA
-    // ============================================
-    // Usamos el token que llega (puede ser JWT largo)
-    // Pero tomamos solo los primeros 20 caracteres + timestamp
-    // Longitud: ~30 caracteres - ✅ DENTRO DEL LÍMITE DE SUPABASE
     const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
     console.log(`🔐 Contraseña temporal generada (${temporaryPassword.length} caracteres)`);
-    console.log(`🔐 Password: ${temporaryPassword}`);
 
-    // ✅ VERIFICAR SI EL USUARIO YA EXISTE
+    // ✅ VERIFICAR/CREAR USUARIO
     const { data: users, error: listError } = await supabase.auth.admin.listUsers();
 
     if (listError) {
@@ -185,10 +287,9 @@ export const handler = async (event) => {
 
     const existingUser = users?.users?.find((user) => user.email === email);
 
-    // ✅ SI EL USUARIO NO EXISTE, CREARLO
     if (!existingUser) {
       console.log("🆕 Usuario no existe, creando...");
-      const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
+      const { error: signUpError } = await supabase.auth.admin.createUser({
         email: email,
         password: temporaryPassword,
         email_confirm: true,
@@ -208,7 +309,6 @@ export const handler = async (event) => {
       console.log(`✅ Usuario creado: ${email}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     } else {
-      // ✅ SI EL USUARIO YA EXISTE, ACTUALIZAR SU CONTRASEÑA
       console.log("👤 Usuario ya existe, actualizando contraseña...");
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         existingUser.id,
@@ -217,17 +317,13 @@ export const handler = async (event) => {
 
       if (updateError) {
         console.error("❌ Error actualizando contraseña:", updateError);
-        console.log(`📝 Error details:`, updateError);
         return {
           statusCode: 500,
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
           },
-          body: JSON.stringify({ 
-            error: "Error actualizando contraseña",
-            details: updateError.message 
-          }),
+          body: JSON.stringify({ error: "Error actualizando contraseña" }),
         };
       }
       console.log("✅ Contraseña actualizada");
@@ -243,35 +339,14 @@ export const handler = async (event) => {
     );
 
     if (loginError || !session?.session) {
-      console.error("❌ Error iniciando sesión después de reintentos:", loginError);
-      
-      // ✅ ÚLTIMO RECURSO: Intentar con la contraseña actual sin actualizar
-      console.log("🔄 Último recurso: intentando login sin actualizar contraseña...");
-      const { data: lastTry, error: lastError } = await supabase.auth.signInWithPassword({
-        email,
-        password: temporaryPassword,
-      });
-
-      if (lastError || !lastTry?.session) {
-        console.error("❌ Error final al iniciar sesión:", lastError);
-        return {
-          statusCode: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ error: "Error iniciando sesión" }),
-        };
-      }
-
-      console.log("✅ Sesión iniciada (último recurso)");
+      console.error("❌ Error iniciando sesión:", loginError);
       return {
-        statusCode: 200,
+        statusCode: 500,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ success: true, session: lastTry.session }),
+        body: JSON.stringify({ error: "Error iniciando sesión" }),
       };
     }
 

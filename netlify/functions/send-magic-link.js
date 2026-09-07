@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -24,8 +25,13 @@ if (!JWT_SECRET) {
 }
 console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
-// ✅ Generar JWT en lugar de token aleatorio
-function generateMagicLinkToken(email) {
+// ✅ Generar token corto para la URL (32 caracteres)
+function generateShortToken() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+// ✅ Generar JWT para verificación (firmado digitalmente)
+function generateJWT(email) {
   const payload = {
     email: email,
     purpose: "magic-link",
@@ -62,9 +68,8 @@ async function sendMagicLinkEmail(email, token) {
       tls: { rejectUnauthorized: false },
     });
 
-    // ✅ Generar URL con timestamp para evitar caché
-    const timestamp = Date.now();
-    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}&_t=${timestamp}`;
+    // ✅ URL con token corto (32 caracteres) - SIN timestamp para evitar caché
+    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}`;
 
     const textContent = `
 Hola,
@@ -229,30 +234,40 @@ export const handler = async (event) => {
       };
     }
 
-    // ✅ GENERAR JWT
-    const token = generateMagicLinkToken(email);
-    console.log(`🆕 JWT generado: ${token.substring(0, 20)}...`);
+    // ✅ GENERAR TOKEN CORTO PARA LA URL
+    const shortToken = generateShortToken();
+    console.log(`🆕 Token corto: ${shortToken}`);
+
+    // ✅ GENERAR JWT PARA VERIFICACIÓN
+    const jwtToken = generateJWT(email);
+    console.log(`🆕 JWT generado: ${jwtToken.substring(0, 30)}...`);
 
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // ✅ Guardar en base de datos para auditoría
-    const { error: insertError } = await supabase.from("magic_links").insert({
-      email,
-      token,
-      expires_at: expiresAt.toISOString(),
-      ip_address: getClientIP(event),
-      user_agent: event.headers["user-agent"] || "unknown",
-      is_used: false,
-    });
+    // ✅ Guardar en base de datos (SOLO para auditoría)
+    try {
+      const { error: insertError } = await supabase.from("magic_links").insert({
+        email,
+        token: shortToken,
+        jwt_token: jwtToken,
+        expires_at: expiresAt.toISOString(),
+        ip_address: getClientIP(event),
+        user_agent: event.headers["user-agent"] || "unknown",
+        is_used: false,
+      });
 
-    if (insertError) {
-      console.error("❌ Error guardando token en BD:", insertError);
-      console.log("⚠️ Continuando sin guardar en BD (el JWT es autosuficiente)");
-    } else {
-      console.log("✅ Token guardado en BD para auditoría");
+      if (insertError) {
+        console.error("❌ Error guardando token en BD:", insertError);
+        console.log("⚠️ Continuando sin guardar en BD (el JWT es autosuficiente)");
+      } else {
+        console.log("✅ Token guardado en BD para auditoría");
+      }
+    } catch (dbError) {
+      console.log("⚠️ Error en BD (no crítico):", dbError.message);
     }
 
-    const emailSent = await sendMagicLinkEmail(email, token);
+    // ✅ Enviar email con el TOKEN CORTO en la URL
+    const emailSent = await sendMagicLinkEmail(email, shortToken);
 
     if (!emailSent) {
       return {
