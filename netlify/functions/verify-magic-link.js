@@ -1,48 +1,47 @@
 // netlify/functions/verify-magic-link.js
 import { createClient } from "@supabase/supabase-js";
+import jwt from "jsonwebtoken";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-// ✅ FUNCIÓN PARA BUSCAR TOKEN CON REINTENTOS
-const findTokenWithRetry = async (token, maxRetries = 5, delay = 2000) => {
-  console.log(`🔍 Buscando token: ${token}`);
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    console.log(`🔍 Intento ${attempt} de ${maxRetries}...`);
+// ✅ JWT SECRET - VALIDAR QUE EXISTE
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("❌ ERROR CRÍTICO: JWT_SECRET no está configurado");
+  throw new Error("JWT_SECRET es requerido");
+}
+console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
+
+// ✅ Verificar JWT (sin consultar la base de datos)
+function verifyMagicLinkToken(token) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
     
-    const { data, error } = await supabase
-      .from("magic_links")
-      .select("*")
-      .eq("token", token)
-      .gte("expires_at", new Date().toISOString())
-      .single();
-
-    if (data) {
-      console.log(`✅ Token encontrado en intento ${attempt}`);
-      return { data, error: null };
+    if (decoded.purpose !== "magic-link") {
+      return { valid: false, error: "Propósito inválido" };
     }
-
-    if (attempt < maxRetries) {
-      console.log(`⏳ Token no encontrado, esperando ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
+    
+    return { 
+      valid: true, 
+      email: decoded.email, 
+      decoded,
+      error: null 
+    };
+  } catch (error) {
+    return { 
+      valid: false, 
+      error: error.message,
+      email: null,
+      decoded: null 
+    };
   }
-
-  console.log("🔄 Último intento sin filtro de expiración...");
-  const { data, error } = await supabase
-    .from("magic_links")
-    .select("*")
-    .eq("token", token)
-    .single();
-
-  return { data, error };
-};
+}
 
 // ✅ FUNCIÓN PARA INICIAR SESIÓN CON REINTENTOS
-const loginWithRetry = async (email, password, maxRetries = 3, delay = 2000) => {
+const loginWithRetry = async (email, password, maxRetries = 5, delay = 2000) => {
   console.log(`🔐 Intentando iniciar sesión para: ${email}`);
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -62,7 +61,6 @@ const loginWithRetry = async (email, password, maxRetries = 3, delay = 2000) => 
       if (error) {
         console.log(`⚠️ Intento ${attempt} falló: ${error.message}`);
         
-        // ✅ Si es error de credenciales y no es el último intento, esperar
         if (error.message?.includes("Invalid login credentials") && attempt < maxRetries) {
           console.log(`⏳ Esperando ${delay}ms antes de reintentar...`);
           await new Promise(resolve => setTimeout(resolve, delay));
@@ -113,13 +111,13 @@ export const handler = async (event) => {
     }
 
     console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
-    console.log(`📝 Token recibido: ${token}`);
+    console.log(`📝 Token recibido: ${token.substring(0, 20)}...`);
 
-    // ✅ BUSCAR TOKEN
-    const { data: magicLink, error } = await findTokenWithRetry(token);
+    // ✅ VERIFICAR JWT (sin consultar la base de datos)
+    const { valid, email, decoded, error } = verifyMagicLinkToken(token);
 
-    if (error || !magicLink) {
-      console.error("❌ Token no encontrado:", error);
+    if (!valid) {
+      console.error("❌ JWT inválido:", error);
       return {
         statusCode: 400,
         headers: {
@@ -130,25 +128,33 @@ export const handler = async (event) => {
       };
     }
 
-    console.log(`✅ Token encontrado: ${magicLink.token}`);
-    console.log(`📧 Email: ${magicLink.email}`);
-    console.log(`🔒 Usado: ${magicLink.is_used}`);
+    console.log(`✅ JWT válido para: ${email}`);
+    console.log(`📝 Payload:`, decoded);
 
-    // ✅ Marcar como usado (si no lo estaba)
-    if (!magicLink.is_used) {
-      const { error: updateError } = await supabase
+    // ✅ Opcional: Verificar en base de datos para auditoría
+    try {
+      const { data: magicLink } = await supabase
         .from("magic_links")
-        .update({ is_used: true, used_at: new Date().toISOString() })
-        .eq("id", magicLink.id);
+        .select("*")
+        .eq("token", token)
+        .single();
 
-      if (updateError) {
-        console.error("❌ Error marcando token como usado:", updateError);
+      if (magicLink && !magicLink.is_used) {
+        await supabase
+          .from("magic_links")
+          .update({ is_used: true, used_at: new Date().toISOString() })
+          .eq("id", magicLink.id);
+        console.log("✅ Token marcado como usado en BD");
+      } else if (magicLink && magicLink.is_used) {
+        console.log("⚠️ Token ya estaba marcado como usado en BD");
       } else {
-        console.log("✅ Token marcado como usado");
+        console.log("⚠️ Token no encontrado en BD (solo JWT válido)");
       }
+    } catch (dbError) {
+      console.log("⚠️ No se pudo actualizar la BD:", dbError.message);
     }
 
-    const email = magicLink.email;
+    // ✅ CONTINUAR CON LOGIN
     const temporaryPassword = token + "magic_link_password_123";
 
     // ✅ VERIFICAR SI EL USUARIO YA EXISTE

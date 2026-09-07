@@ -2,6 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -13,15 +14,24 @@ const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GMAIL_REDIRECT_URI;
 const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL || "devincentisf35@gmail.com";
-const SITE_URL = process.env.SITE_URL || "https://tudominio.netlify.app";
+const SITE_URL = process.env.SITE_URL || "https://sistema-tareas-recordatorios.netlify.app";
 
-function generateToken() {
-  const crypto = globalThis.crypto;
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
+// ✅ JWT SECRET - VALIDAR QUE EXISTE
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("❌ ERROR CRÍTICO: JWT_SECRET no está configurado");
+  throw new Error("JWT_SECRET es requerido");
+}
+console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
+
+// ✅ Generar JWT en lugar de token aleatorio
+function generateMagicLinkToken(email) {
+  const payload = {
+    email: email,
+    purpose: "magic-link",
+    timestamp: Date.now(),
+  };
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
 }
 
 function getClientIP(event) {
@@ -53,10 +63,9 @@ async function sendMagicLinkEmail(email, token) {
     });
 
     // ✅ Generar URL con timestamp para evitar caché
-const timestamp = Date.now();
-const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}&_t=${timestamp}`;
+    const timestamp = Date.now();
+    const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}&_t=${timestamp}`;
 
-    //  TEXTO PLANO
     const textContent = `
 Hola,
 
@@ -73,71 +82,73 @@ Si no solicitaste este enlace, ignora este correo.
 © 2026 - App Tareas - Sistema de Gestión y Recordatorios
 `;
 
-    // HTML
     const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button {
-          display: inline-block;
-          background: #28a745;
-          color: #ffffff !important;
-          padding: 12px 30px;
-          text-decoration: none;
-          border-radius: 5px;
-          font-weight: bold;
-          border: none;
-          cursor: pointer;
-          font-size: 16px;
-        }
-        .button:hover {
-          background: #218838;
-        }
-        .button:visited,
-        .button:active {
-          color: #ffffff !important;
-        }
-        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h2>🔐 Enlace de acceso</h2>
-        </div>
-        <div class="content">
-          <p>Has solicitado un enlace de acceso para tu cuenta.</p>
-          <p style="text-align: center; margin: 30px 0;">
-            <a href="${magicLinkUrl}" target="_blank" rel="noopener noreferrer" class="button">Iniciar sesión</a>
-          </p>
-          <p>O copia este enlace en tu navegador:</p>
-          <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
-            ${magicLinkUrl}
-          </p>
-          <p>El enlace expirará en <strong>15 minutos</strong>.</p>
-          <p>Si no solicitaste este enlace, ignora este correo.</p>
-                  <p style="font-size: 13px; color: #888888; text-align: center; margin-top: 15px;">
-          💡 Agrega <strong style="color: #667eea;">${FROM_EMAIL}</strong> a tus contactos para asegurar la entrega.
-        </p>
-        <p style="font-size: 11px; color: #aaaaaa; text-align: center; margin-top: 10px;">
-          Si no deseas recibir más correos de este tipo, 
-          <a href="#" style="color: #aaaaaa; text-decoration: underline;">haz clic aquí</a>
-        </p>
-        </div>
-        <div class="footer">
-          <p>© 2026 - App Tareas </p>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+    .button {
+      display: inline-block;
+      background: #28a745;
+      color: #ffffff !important;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .button:hover { background: #218838; }
+    .button:visited, .button:active { color: #ffffff !important; }
+    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d; }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>🔐 Enlace de acceso</h2>
+    </div>
+    <div class="content">
+      <p>Has solicitado un enlace de acceso para tu cuenta.</p>
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${magicLinkUrl}" target="_blank" rel="noopener noreferrer" class="button">Iniciar sesión</a>
+      </p>
+      <p>O copia este enlace en tu navegador:</p>
+      <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
+        ${magicLinkUrl}
+      </p>
+      <div class="warning">
+        ⏰ Este enlace expirará en <strong>15 minutos</strong>.
       </div>
-    </body>
-    </html>
-  `;
+      <p>Si no solicitaste este enlace, ignora este correo.</p>
+      <p style="font-size: 13px; color: #888888; text-align: center; margin-top: 15px;">
+        💡 Agrega <strong style="color: #667eea;">${FROM_EMAIL}</strong> a tus contactos para asegurar la entrega.
+      </p>
+    </div>
+    <div class="footer">
+      <p>© 2026 - App Tareas - Sistema de Gestión y Recordatorios</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
 
     await transporter.sendMail({
       from: `"Franco De Vincentis - App Tareas" <${FROM_EMAIL}>`,
@@ -218,18 +229,28 @@ export const handler = async (event) => {
       };
     }
 
-    const token = generateToken();
+    // ✅ GENERAR JWT
+    const token = generateMagicLinkToken(email);
+    console.log(`🆕 JWT generado: ${token.substring(0, 20)}...`);
+
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
+    // ✅ Guardar en base de datos para auditoría
     const { error: insertError } = await supabase.from("magic_links").insert({
       email,
       token,
       expires_at: expiresAt.toISOString(),
       ip_address: getClientIP(event),
       user_agent: event.headers["user-agent"] || "unknown",
+      is_used: false,
     });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error("❌ Error guardando token en BD:", insertError);
+      console.log("⚠️ Continuando sin guardar en BD (el JWT es autosuficiente)");
+    } else {
+      console.log("✅ Token guardado en BD para auditoría");
+    }
 
     const emailSent = await sendMagicLinkEmail(email, token);
 
