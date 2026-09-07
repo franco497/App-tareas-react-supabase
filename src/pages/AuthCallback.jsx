@@ -12,7 +12,6 @@ function AuthCallback() {
 
   // ✅ FUNCIÓN PARA EXTRAER TOKEN - VERSIÓN MEJORADA
   const extractTokenFromUrl = () => {
-    // ✅ FORZAR LA LECTURA DIRECTA DE LA URL ACTUAL
     const currentUrl = window.location.href;
     const currentSearch = window.location.search;
     const currentHash = window.location.hash;
@@ -59,21 +58,9 @@ function AuthCallback() {
       }
     }
 
-    // ✅ VERIFICACIÓN FINAL: Si el token se ve como un token anterior, alertar
     if (token) {
-      console.log("🔍 TOKEN FINAL:", token);
+      console.log("🔍 TOKEN FINAL:", token.substring(0, 30) + "...");
       console.log("🔍 Longitud:", token.length);
-
-      // ✅ Si el token coincide con el primer token, mostrar advertencia
-      // (Esto es para debug)
-      if (
-        token === "bf964bd56727895e8004ac9dffb46797" ||
-        token === "db1623d7f18cbb98f834e042bdf35270"
-      ) {
-        console.warn(
-          "⚠️ ¡ATENCIÓN! Este token parece ser el PRIMER token, no el nuevo.",
-        );
-      }
     } else {
       console.error("❌ NO se encontró token en la URL");
     }
@@ -84,6 +71,15 @@ function AuthCallback() {
   useEffect(() => {
     console.log("🔥 useEffect de AuthCallback ejecutado");
     console.log("📌 processed:", processed);
+    console.log("📍 URL en useEffect:", window.location.href);
+    console.log("📍 Search en useEffect:", window.location.search);
+
+    // ✅ VERIFICAR TOKEN EN LA URL - AHORA DENTRO DEL useEffect
+    if (!window.location.search.includes('token')) {
+      console.warn("⚠️ No hay token en la URL, forzando recarga...");
+      window.location.reload();
+      return;
+    }
 
     const verifyToken = async () => {
       console.log("🚀 verifyToken() iniciado");
@@ -96,10 +92,9 @@ function AuthCallback() {
       console.log("✅ processed seteado a true");
 
       try {
-        // ✅ EXTRAER TOKEN
         const token = extractTokenFromUrl();
 
-        console.log("📤 Token extraído:", token);
+        console.log("📤 Token extraído:", token ? token.substring(0, 30) + "..." : "null");
 
         if (!token) {
           console.error("❌ TOKEN NO ENCONTRADO");
@@ -107,24 +102,18 @@ function AuthCallback() {
           console.log("📝 Search:", window.location.search);
 
           setStatus("❌ Token no encontrado en la URL");
-
-          // ✅ Mostrar la URL en la pantalla para debug
-          console.log("🔍 La URL actual es:", window.location.href);
-
           setTimeout(() => {
             window.location.replace("/");
           }, 3000);
           return;
         }
 
-        // ✅ DETECTAR SI ESTÁ EN LOCAL
         const isLocal =
           window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1" ||
           window.location.port === "5175";
 
         console.log("🔧 Modo:", isLocal ? "LOCAL" : "PRODUCCIÓN");
-        console.log("📤 Token a verificar:", token);
 
         let data;
         let responseOk;
@@ -148,9 +137,8 @@ function AuthCallback() {
           });
         } else {
           console.log("🚀 Modo producción: verificando con Netlify Function");
-          console.log("📤 Enviando token:", token);
+          console.log("📤 Enviando token:", token.substring(0, 30) + "...");
 
-          // ✅ INTENTAR CON RETRY
           let response;
           let retryCount = 0;
           const maxRetries = 2;
@@ -166,7 +154,7 @@ function AuthCallback() {
                     Accept: "application/json",
                   },
                   body: JSON.stringify({ token }),
-                },
+                }
               );
               break;
             } catch (err) {
@@ -174,7 +162,7 @@ function AuthCallback() {
               console.log(`⚠️ Intento ${retryCount} falló:`, err);
               if (retryCount <= maxRetries) {
                 await new Promise((resolve) =>
-                  setTimeout(resolve, 1000 * retryCount),
+                  setTimeout(resolve, 1000 * retryCount)
                 );
               } else {
                 throw err;
@@ -183,7 +171,7 @@ function AuthCallback() {
           }
 
           const responseText = await response.text();
-          console.log("📨 Respuesta raw:", responseText);
+          console.log("📨 Respuesta raw:", responseText.substring(0, 200) + "...");
 
           try {
             data = JSON.parse(responseText);
@@ -209,21 +197,20 @@ function AuthCallback() {
 
             localStorage.setItem(
               "supabaseSession",
-              JSON.stringify(data.session),
+              JSON.stringify(data.session)
             );
             console.log("✅ Sesión guardada en localStorage");
 
-            // ✅ Verificar sesión activa
             const { data: sessionData } = await supabase.auth.getSession();
 
             if (sessionData?.session) {
               console.log(
                 "✅ Sesión activa en Supabase:",
-                sessionData.session.user.email,
+                sessionData.session.user.email
               );
             } else {
               console.log(
-                "⏳ La sesión se activará automáticamente con el evento SIGNED_IN",
+                "⏳ La sesión se activará automáticamente con el evento SIGNED_IN"
               );
             }
 
@@ -253,7 +240,6 @@ function AuthCallback() {
       }
     };
 
-    // ✅ EJECUTAR CON UN PEQUEÑO DELAY PARA ASEGURAR QUE LA URL ESTÉ COMPLETA
     const timer = setTimeout(() => {
       verifyToken();
     }, 100);
