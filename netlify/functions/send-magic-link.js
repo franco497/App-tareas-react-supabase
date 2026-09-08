@@ -2,6 +2,13 @@
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+);
 
 const CLIENT_ID = process.env.GMAIL_CLIENT_ID;
 const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
@@ -17,6 +24,10 @@ if (!JWT_SECRET) {
 }
 console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
+// ✅ Rate limiting - 15 intentos por hora
+const RATE_LIMIT = 15;
+const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
+
 // ✅ Generar JWT
 function generateJWT(email) {
   const payload = {
@@ -27,6 +38,44 @@ function generateJWT(email) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
 }
 
+// ✅ Verificar rate limiting
+async function checkRateLimit(email) {
+  const timeAgo = new Date(Date.now() - TIME_WINDOW);
+  const { count, error } = await supabase
+    .from("magic_links")
+    .select("*", { count: "exact", head: true })
+    .eq("email", email)
+    .gte("created_at", timeAgo.toISOString());
+
+  if (error) {
+    console.error("❌ Error checking rate limit:", error);
+    return false;
+  }
+
+  const canSend = count < RATE_LIMIT;
+  console.log(`📊 Rate limit: ${count}/${RATE_LIMIT} intentos en la última hora para ${email}`);
+  return canSend;
+}
+
+// ✅ Registrar intento (solo para rate limiting)
+async function logRateLimit(email, tokenHash) {
+  const expiresAt = new Date(Date.now() + TIME_WINDOW);
+  const { error } = await supabase.from("magic_links").insert({
+    email,
+    token: tokenHash, // Hash del token (no el JWT completo)
+    created_at: new Date().toISOString(),
+    expires_at: expiresAt.toISOString(),
+    is_used: false,
+  });
+
+  if (error) {
+    console.error("❌ Error logging rate limit:", error);
+  } else {
+    console.log(`✅ Intento registrado para rate limiting`);
+  }
+}
+
+// ✅ Función para enviar email
 async function sendMagicLinkEmail(email, token) {
   try {
     const oAuth2Client = new google.auth.OAuth2(
@@ -192,11 +241,39 @@ export const handler = async (event) => {
       };
     }
 
+    // ============================================
+    // ✅ VERIFICAR RATE LIMITING
+    // ============================================
+    const canSend = await checkRateLimit(email);
+    if (!canSend) {
+      console.log(`🚫 Rate limit excedido para ${email}`);
+      return {
+        statusCode: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
+          error: `Demasiados intentos. Espera una hora. (Límite: ${RATE_LIMIT} intentos por hora)`,
+        }),
+      };
+    }
+
+    // ============================================
     // ✅ GENERAR JWT
+    // ============================================
     const token = generateJWT(email);
     console.log(`🆕 JWT generado: ${token.substring(0, 30)}...`);
 
-    // ✅ Enviar email
+    // ============================================
+    // ✅ GUARDAR PARA RATE LIMITING (solo hash del token)
+    // ============================================
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex').substring(0, 16);
+    await logRateLimit(email, tokenHash);
+
+    // ============================================
+    // ✅ ENVIAR EMAIL
+    // ============================================
     const emailSent = await sendMagicLinkEmail(email, token);
 
     if (!emailSent) {
