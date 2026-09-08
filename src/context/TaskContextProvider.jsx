@@ -10,10 +10,8 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const maxSubscriptionAttempts = 3;
   const isSubscribing = useRef(false);
   const isMounted = useRef(true);
-  const authInitialized = useRef(false); // ← NUEVO: controlar primer SIGNED_IN
-
-  // ✅ ✅ ✅ AGREGAR ESTA LÍNEA (estaba faltando)
-  const initializedRef = useRef(false); // ← ¡ESTA FALTABA!
+  const authInitialized = useRef(false);
+  const initializedRef = useRef(false);
 
   // ✅ ESTADO DEL USUARIO
   const [user, setUser] = useState(initialSession?.user || null);
@@ -150,7 +148,68 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   );
 
   // ============================================
-  // ✅ ESCUCHAR CAMBIOS EN localStorage
+  // ✅ EFECTO: INICIALIZACIÓN ÚNICA
+  // ============================================
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    console.log("🚀 Inicializando contexto...");
+
+    // ✅ Si hay initialSession, usarlo directamente
+    if (initialSession?.user) {
+      console.log(`📌 Usando initialSession: ${initialSession.user.email}`);
+      setUser(initialSession.user);
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Si no hay initialSession, intentar recuperar de localStorage
+    const stored = localStorage.getItem("supabaseSession");
+    if (stored) {
+      try {
+        const session = JSON.parse(stored);
+        if (session?.user) {
+          console.log(`📌 Sesión recuperada de localStorage: ${session.user.email}`);
+          setUser(session.user);
+          setLoading(false);
+          return;
+        }
+      } catch (e) {
+        console.error("❌ Error parseando sesión:", e);
+      }
+    }
+
+    // ✅ Si no hay sesión en localStorage, intentar con Supabase
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        console.log(`📌 Sesión desde Supabase: ${session.user.email}`);
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        console.log("⏳ No hay sesión activa, usuario no autenticado");
+        setLoading(false);
+      }
+    }).catch((error) => {
+      console.error("❌ Error obteniendo sesión de Supabase:", error);
+      setLoading(false);
+    });
+  }, [initialSession]);
+
+  // ============================================
+  // ✅ EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
+  // ============================================
+  useEffect(() => {
+    if (user) {
+      console.log(`✅ Usuario disponible, cargando tareas para: ${user.email}`);
+      getTasks(currentDoneFilter);
+    } else {
+      console.log("⏳ Esperando usuario para cargar tareas...");
+    }
+  }, [user, getTasks, currentDoneFilter]);
+
+  // ============================================
+  // ✅ EFECTO: ESCUCHAR CAMBIOS EN localStorage
   // ============================================
   useEffect(() => {
     const handleStorageChange = (event) => {
@@ -167,8 +226,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
               );
               setUser(session.user);
               setLoading(false);
-              // ✅ Recargar tareas automáticamente
-              getTasks(currentDoneFilter);
+              // ✅ getTasks se ejecutará automáticamente cuando user cambie
             }
           } catch (e) {
             console.error("❌ Error parseando session:", e);
@@ -186,7 +244,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [getTasks, currentDoneFilter]);
+  }, []); // ← Sin dependencias
 
   // ============================================
   // EFECTO: ESCUCHAR CAMBIOS DE AUTENTICACIÓN DE SUPABASE
@@ -197,61 +255,60 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`🔄 Contexto - Evento: ${event}`);
 
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        if (session?.user) {
-          console.log(
-            `✅ Contexto - Usuario autenticado: ${session.user.email}`,
-          );
-          setUser(session.user);
-          localStorage.setItem("supabaseSession", JSON.stringify(session));
+      // ✅ Ignorar INITIAL_SESSION
+      if (event === "INITIAL_SESSION") {
+        console.log("⏳ Ignorando INITIAL_SESSION (evento inicial)");
+        return;
+      }
 
-          if (event === "SIGNED_IN") {
-            getTasks(currentDoneFilter);
-          }
+      if (event === "SIGNED_IN") {
+        if (!session?.user) return;
+
+        // ✅ Verificar si el usuario ya está seteado
+        if (user?.email === session.user.email) {
+          console.log("👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado");
+          return;
         }
+
+        console.log(`✅ Contexto - Usuario autenticado: ${session.user.email}`);
+        setUser(session.user);
+        localStorage.setItem("supabaseSession", JSON.stringify(session));
+        // ✅ getTasks se ejecutará automáticamente cuando user cambie
+
       } else if (event === "SIGNED_OUT") {
         console.log("👋 Contexto - Sesión cerrada");
         setUser(null);
         setTasks([]);
         localStorage.removeItem("supabaseSession");
+        cleanupChannel();
+        authInitialized.current = false;
+
+      } else if (event === "TOKEN_REFRESHED") {
+        if (session?.user) {
+          console.log(`🔄 Token refrescado: ${session.user.email}`);
+          localStorage.setItem("supabaseSession", JSON.stringify(session));
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [getTasks, currentDoneFilter]);
-
-  // ============================================
-  // EFECTO: INICIALIZACIÓN ÚNICA
-  // ============================================
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    if (initialSession?.user) {
-      setUser(initialSession.user);
-      setLoading(false);
-      getTasks(currentDoneFilter);
-    }
-  }, [initialSession, getTasks, currentDoneFilter]);
+  }, [user]);
 
   // ============================================
   // SUSCRIPCIÓN EN TIEMPO REAL
   // ============================================
 
   const setupRealtimeSubscription = useCallback(() => {
-    // ✅ Si ya estamos suscribiendo, no hacer nada
     if (isSubscribing.current) {
       console.log("⏳ Ya estamos suscribiendo, esperando...");
       return;
     }
 
-    // ✅ Si ya hay un canal activo, NO limpiarlo
     if (channelRef.current) {
       console.log("✅ Canal ya activo, no es necesario recrearlo");
       return;
     }
 
-    // ✅ Si el componente está desmontado, no hacer nada
     if (!isMounted.current) {
       console.log("⏳ Componente desmontado, cancelando suscripción");
       return;
@@ -349,7 +406,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, []);
 
   // ============================================
-  // EFECTO: INICIALIZAR SUSCRIPCIÓN SOLO UNA VEZ
+  // EFECTO: INICIALIZAR SUSCRIPCIÓN
   // ============================================
 
   useEffect(() => {
@@ -358,7 +415,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       return;
     }
 
-    // ✅ Solo iniciar si no hay canal activo
     if (!channelRef.current && !isSubscribing.current && isMounted.current) {
       console.log("🔌 Iniciando suscripción a cambios en tiempo real...");
       const timer = setTimeout(() => {
@@ -372,19 +428,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, [user, initialSession, setupRealtimeSubscription]);
 
   // ============================================
-  // EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
-  // ============================================
-
-  useEffect(() => {
-    if (user) {
-      getTasks(currentDoneFilter);
-    } else if (initialSession?.user) {
-      setUser(initialSession.user);
-      getTasks(currentDoneFilter);
-    }
-  }, [user, initialSession, getTasks, currentDoneFilter]);
-
-  // ============================================
   // EFECTO: CLEANUP AL DESMONTAR
   // ============================================
 
@@ -396,79 +439,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       cleanupChannel();
     };
   }, [cleanupChannel]);
-
-  // ============================================
-  // EFECTO: ESCUCHAR CAMBIOS DE AUTENTICACIÓN
-  // ============================================
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`🔄 Contexto - Evento: ${event}`);
-
-      // ✅ Ignorar INITIAL_SESSION - no es un cambio real
-      if (event === "INITIAL_SESSION") {
-        console.log("⏳ Ignorando INITIAL_SESSION (evento inicial)");
-        return;
-      }
-
-      if (event === "SIGNED_IN") {
-        // ✅ Solo procesar si realmente cambió algo
-        if (!session?.user) return;
-
-        // ✅ Verificar si el usuario ya está seteado (evitar duplicados)
-        if (user?.email === session.user.email) {
-          console.log(
-            "👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado",
-          );
-          return;
-        }
-
-        console.log(`✅ Contexto - Usuario autenticado: ${session.user.email}`);
-        setUser(session.user);
-        localStorage.setItem("supabaseSession", JSON.stringify(session));
-
-        // ✅ Cargar tareas
-        getTasks(currentDoneFilter);
-
-        // ✅ Iniciar suscripción SOLO si no hay canal activo
-        if (
-          !channelRef.current &&
-          !isSubscribing.current &&
-          isMounted.current
-        ) {
-          console.log("🔌 Iniciando suscripción después de SIGNED_IN...");
-          setTimeout(() => {
-            if (isMounted.current) {
-              setupRealtimeSubscription();
-            }
-          }, 1000);
-        }
-      } else if (event === "SIGNED_OUT") {
-        console.log("👋 Contexto - Sesión cerrada");
-        setUser(null);
-        setTasks([]);
-        localStorage.removeItem("supabaseSession");
-        cleanupChannel();
-        authInitialized.current = false;
-      } else if (event === "TOKEN_REFRESHED") {
-        // ✅ Solo actualizar localStorage, no reiniciar todo
-        if (session?.user) {
-          console.log(`🔄 Token refrescado: ${session.user.email}`);
-          localStorage.setItem("supabaseSession", JSON.stringify(session));
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [
-    getTasks,
-    currentDoneFilter,
-    cleanupChannel,
-    setupRealtimeSubscription,
-    user,
-  ]);
 
   // ============================================
   // RESTO DE FUNCIONES (SIN CAMBIOS)
@@ -864,7 +834,10 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     return () => clearInterval(interval);
   }, [scheduledTasks, user, initialSession]);
 
+  // ============================================
   // VALORES DEL CONTEXTO
+  // ============================================
+
   const value = {
     user,
     loading,
