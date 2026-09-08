@@ -25,7 +25,7 @@ if (!JWT_SECRET) {
 console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
 // ✅ Rate limiting - 15 intentos por hora
-const RATE_LIMIT = 15;
+const RATE_LIMIT = 2;
 const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
 
 // ✅ Generar JWT
