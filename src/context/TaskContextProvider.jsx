@@ -90,7 +90,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   // ============================================
   // TAREAS NORMALES
   // ============================================
-
   const getTasks = useCallback(
     async (done = false) => {
       try {
@@ -148,6 +147,91 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   );
 
   // ============================================
+  // ✅ ESCUCHAR CAMBIOS EN localStorage
+  // ============================================
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === "supabaseSession") {
+        console.log("🔄 Cambio detectado en localStorage:", event.key);
+
+        if (event.newValue) {
+          try {
+            const session = JSON.parse(event.newValue);
+            if (session?.user) {
+              console.log(
+                "✅ Usuario detectado desde localStorage:",
+                session.user.email,
+              );
+              setUser(session.user);
+              setLoading(false);
+              // ✅ Recargar tareas automáticamente
+              getTasks(currentDoneFilter);
+            }
+          } catch (e) {
+            console.error("❌ Error parseando session:", e);
+          }
+        } else {
+          console.log("👋 Sesión eliminada de localStorage");
+          setUser(null);
+          setTasks([]);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [getTasks, currentDoneFilter]);
+
+  // ============================================
+  // EFECTO: ESCUCHAR CAMBIOS DE AUTENTICACIÓN DE SUPABASE
+  // ============================================
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`🔄 Contexto - Evento: ${event}`);
+
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (session?.user) {
+          console.log(
+            `✅ Contexto - Usuario autenticado: ${session.user.email}`,
+          );
+          setUser(session.user);
+          localStorage.setItem("supabaseSession", JSON.stringify(session));
+
+          if (event === "SIGNED_IN") {
+            getTasks(currentDoneFilter);
+          }
+        }
+      } else if (event === "SIGNED_OUT") {
+        console.log("👋 Contexto - Sesión cerrada");
+        setUser(null);
+        setTasks([]);
+        localStorage.removeItem("supabaseSession");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [getTasks, currentDoneFilter]);
+
+  // ============================================
+  // EFECTO: INICIALIZACIÓN ÚNICA
+  // ============================================
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    if (initialSession?.user) {
+      setUser(initialSession.user);
+      setLoading(false);
+      getTasks(currentDoneFilter);
+    }
+  }, [initialSession, getTasks, currentDoneFilter]);
+
+  // ============================================
   // SUSCRIPCIÓN EN TIEMPO REAL
   // ============================================
 
@@ -175,26 +259,24 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     try {
       console.log("🔌 Creando nueva suscripción...");
 
-      const channel = supabase
-        .channel("scheduled_notifications_changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "scheduled_notifications",
-          },
-          (payload) => {
-            if (payload.eventType === "UPDATE") {
-              const updatedTask = payload.new;
-              setScheduledTasks((prevTasks) =>
-                prevTasks.map((task) =>
-                  task.id === updatedTask.id ? updatedTask : task,
-                ),
-              );
-            }
-          },
-        );
+      const channel = supabase.channel("scheduled_notifications_changes").on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "scheduled_notifications",
+        },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const updatedTask = payload.new;
+            setScheduledTasks((prevTasks) =>
+              prevTasks.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task,
+              ),
+            );
+          }
+        },
+      );
 
       channel.subscribe((status, err) => {
         isSubscribing.current = false;
@@ -334,7 +416,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
         // ✅ Verificar si el usuario ya está seteado (evitar duplicados)
         if (user?.email === session.user.email) {
-          console.log("👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado");
+          console.log(
+            "👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado",
+          );
           return;
         }
 
@@ -346,7 +430,11 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         getTasks(currentDoneFilter);
 
         // ✅ Iniciar suscripción SOLO si no hay canal activo
-        if (!channelRef.current && !isSubscribing.current && isMounted.current) {
+        if (
+          !channelRef.current &&
+          !isSubscribing.current &&
+          isMounted.current
+        ) {
           console.log("🔌 Iniciando suscripción después de SIGNED_IN...");
           setTimeout(() => {
             if (isMounted.current) {
@@ -354,7 +442,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
             }
           }, 1000);
         }
-
       } else if (event === "SIGNED_OUT") {
         console.log("👋 Contexto - Sesión cerrada");
         setUser(null);
@@ -670,59 +757,65 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     [getScheduledTasks],
   );
 
-  const deleteScheduledTask = useCallback(async (id) => {
-    try {
-      const currentUser = user || initialSession?.user;
-      if (!currentUser) {
-        throw new Error("Usuario no autenticado");
+  const deleteScheduledTask = useCallback(
+    async (id) => {
+      try {
+        const currentUser = user || initialSession?.user;
+        if (!currentUser) {
+          throw new Error("Usuario no autenticado");
+        }
+
+        const { error } = await supabase
+          .from("scheduled_notifications")
+          .delete()
+          .eq("id", id)
+          .eq("user_email", currentUser.email);
+
+        if (error) throw error;
+
+        setScheduledTasks((prevTasks) =>
+          prevTasks.filter((task) => task.id !== id),
+        );
+
+        return true;
+      } catch (error) {
+        console.error("Error eliminando tarea:", error);
+        throw error;
       }
+    },
+    [user, initialSession],
+  );
 
-      const { error } = await supabase
-        .from("scheduled_notifications")
-        .delete()
-        .eq("id", id)
-        .eq("user_email", currentUser.email);
+  const cancelScheduledTask = useCallback(
+    async (id) => {
+      try {
+        const currentUser = user || initialSession?.user;
+        if (!currentUser) {
+          throw new Error("Usuario no autenticado");
+        }
 
-      if (error) throw error;
+        const { error } = await supabase
+          .from("scheduled_notifications")
+          .update({ status: "cancelled" })
+          .eq("id", id)
+          .eq("user_email", currentUser.email);
 
-      setScheduledTasks((prevTasks) =>
-        prevTasks.filter((task) => task.id !== id),
-      );
+        if (error) throw error;
 
-      return true;
-    } catch (error) {
-      console.error("Error eliminando tarea:", error);
-      throw error;
-    }
-  }, [user, initialSession]);
+        setScheduledTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === id ? { ...task, status: "cancelled" } : task,
+          ),
+        );
 
-  const cancelScheduledTask = useCallback(async (id) => {
-    try {
-      const currentUser = user || initialSession?.user;
-      if (!currentUser) {
-        throw new Error("Usuario no autenticado");
+        return true;
+      } catch (error) {
+        console.error("Error cancelando tarea:", error);
+        throw error;
       }
-
-      const { error } = await supabase
-        .from("scheduled_notifications")
-        .update({ status: "cancelled" })
-        .eq("id", id)
-        .eq("user_email", currentUser.email);
-
-      if (error) throw error;
-
-      setScheduledTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === id ? { ...task, status: "cancelled" } : task,
-        ),
-      );
-
-      return true;
-    } catch (error) {
-      console.error("Error cancelando tarea:", error);
-      throw error;
-    }
-  }, [user, initialSession]);
+    },
+    [user, initialSession],
+  );
 
   // ============================================
   // POLLING DE RESPALDO
