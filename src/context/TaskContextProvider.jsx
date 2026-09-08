@@ -12,6 +12,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const isMounted = useRef(true);
   const authInitialized = useRef(false); // ← NUEVO: controlar primer SIGNED_IN
 
+  // ✅ ✅ ✅ AGREGAR ESTA LÍNEA (estaba faltando)
+  const initializedRef = useRef(false); // ← ¡ESTA FALTABA!
+
   // ✅ ESTADO DEL USUARIO
   const [user, setUser] = useState(initialSession?.user || null);
   const [loading, setLoading] = useState(!initialSession?.user);
