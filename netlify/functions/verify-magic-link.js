@@ -12,16 +12,25 @@ if (!JWT_SECRET) {
   console.error("❌ ERROR: JWT_SECRET no configurado");
   throw new Error("JWT_SECRET es requerido");
 }
-console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
 
-// ✅ VERIFICAR JWT (sin base de datos)
+// ✅ LISTA NEGRA EN MEMORIA (se reinicia al reiniciar la función)
+// ⚠️ En Netlify Functions, esto se mantiene mientras la función está activa
+const usedTokens = new Set();
+
+// ✅ Limpiar tokens expirados cada hora
+setInterval(() => {
+  console.log(`🧹 Limpiando lista negra: ${usedTokens.size} tokens`);
+  usedTokens.clear();
+}, 60 * 60 * 1000); // 1 hora
+
+// ✅ VERIFICAR JWT
 function verifyJWT(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     if (decoded.purpose !== "magic-link") {
       return { valid: false, error: "Propósito inválido" };
     }
-    return { valid: true, email: decoded.email, decoded };
+    return { valid: true, email: decoded.email, decoded, jti: decoded.jti };
   } catch (error) {
     return { valid: false, error: error.message };
   }
@@ -83,8 +92,7 @@ export const handler = async (event) => {
     const { token } = JSON.parse(event.body);
 
     console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
-    console.log(`📝 Token recibido (primeros 30 chars): ${token?.substring(0, 30) || 'NULL'}...`);
-    console.log(`📝 Longitud del token: ${token?.length || 0}`);
+    console.log(`📝 Token recibido: ${token?.substring(0, 30) || 'NULL'}...`);
 
     if (!token) {
       console.error("❌ Token vacío");
@@ -98,11 +106,9 @@ export const handler = async (event) => {
       };
     }
 
-    // ============================================
-    // ✅ VERIFICAR JWT DIRECTAMENTE (SIN BD)
-    // ============================================
+    // ✅ VERIFICAR JWT
     console.log("🔍 Verificando JWT...");
-    const { valid, email, decoded, error } = verifyJWT(token);
+    const { valid, email, decoded, jti, error } = verifyJWT(token);
 
     if (!valid) {
       console.error("❌ JWT inválido:", error);
@@ -112,12 +118,32 @@ export const handler = async (event) => {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        body: JSON.stringify({ error: `Token inválido o expirado` }),
+        body: JSON.stringify({ error: "Token inválido o expirado" }),
+      };
+    }
+
+    // ✅ VERIFICAR SI EL TOKEN YA FUE USADO (lista negra en memoria)
+    if (jti && usedTokens.has(jti)) {
+      console.error(`❌ Token ya usado (jti: ${jti})`);
+      return {
+        statusCode: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ error: "Token inválido o expirado" }),
       };
     }
 
     console.log(`✅ JWT válido para: ${email}`);
-    console.log(`📝 Payload:`, decoded);
+    console.log(`📝 JTI: ${jti}`);
+
+    // ✅ MARCAR EL TOKEN COMO USADO (guardar en lista negra)
+    if (jti) {
+      usedTokens.add(jti);
+      console.log(`✅ Token marcado como usado (jti: ${jti})`);
+      console.log(`📊 Tokens usados en memoria: ${usedTokens.size}`);
+    }
 
     // ✅ GENERAR CONTRASEÑA TEMPORAL CORTA
     const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);

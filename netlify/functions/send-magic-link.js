@@ -26,13 +26,15 @@ console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configur
 
 // ✅ Rate limiting - 15 intentos por hora
 const RATE_LIMIT = 15;
-const TIME_WINDOW = 60 * 60 * 1000; // 1 hora
+const TIME_WINDOW = 60 * 60 * 1000;
 
-// ✅ Generar JWT
+// ✅ Generar JWT con jti (JWT ID) único
 function generateJWT(email) {
+  const jti = crypto.randomBytes(16).toString('hex'); // ID único
   const payload = {
     email: email,
     purpose: "magic-link",
+    jti: jti,
     timestamp: Date.now(),
   };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
@@ -52,30 +54,25 @@ async function checkRateLimit(email) {
     return false;
   }
 
-  const canSend = count < RATE_LIMIT;
-  console.log(`📊 Rate limit: ${count}/${RATE_LIMIT} intentos en la última hora para ${email}`);
-  return canSend;
+  return count < RATE_LIMIT;
 }
 
 // ✅ Registrar intento (solo para rate limiting)
-async function logRateLimit(email, tokenHash) {
-  const expiresAt = new Date(Date.now() + TIME_WINDOW);
+async function logRateLimit(email) {
   const { error } = await supabase.from("magic_links").insert({
     email,
-    token: tokenHash, // Hash del token (no el JWT completo)
+    token: "rate_limit_" + Date.now(),
     created_at: new Date().toISOString(),
-    expires_at: expiresAt.toISOString(),
+    expires_at: new Date(Date.now() + TIME_WINDOW).toISOString(),
     is_used: false,
   });
 
   if (error) {
     console.error("❌ Error logging rate limit:", error);
-  } else {
-    console.log(`✅ Intento registrado para rate limiting`);
   }
 }
 
-// ✅ Función para enviar email
+// ✅ Enviar email
 async function sendMagicLinkEmail(email, token) {
   try {
     const oAuth2Client = new google.auth.OAuth2(
@@ -229,24 +226,9 @@ export const handler = async (event) => {
       };
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return {
-        statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({ error: "Email inválido" }),
-      };
-    }
-
-    // ============================================
     // ✅ VERIFICAR RATE LIMITING
-    // ============================================
     const canSend = await checkRateLimit(email);
     if (!canSend) {
-      console.log(`🚫 Rate limit excedido para ${email}`);
       return {
         statusCode: 429,
         headers: {
@@ -259,21 +241,14 @@ export const handler = async (event) => {
       };
     }
 
-    // ============================================
-    // ✅ GENERAR JWT
-    // ============================================
+    // ✅ GENERAR JWT CON JTI
     const token = generateJWT(email);
-    console.log(`🆕 JWT generado: ${token.substring(0, 30)}...`);
+    console.log(`🆕 JWT generado con jti: ${token.substring(0, 30)}...`);
 
-    // ============================================
-    // ✅ GUARDAR PARA RATE LIMITING (solo hash del token)
-    // ============================================
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex').substring(0, 16);
-    await logRateLimit(email, tokenHash);
+    // ✅ GUARDAR PARA RATE LIMITING
+    await logRateLimit(email);
 
-    // ============================================
-    // ✅ ENVIAR EMAIL
-    // ============================================
+    // ✅ Enviar email
     const emailSent = await sendMagicLinkEmail(email, token);
 
     if (!emailSent) {
