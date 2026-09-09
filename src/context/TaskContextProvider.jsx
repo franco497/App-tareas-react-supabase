@@ -454,7 +454,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         .select()
         .eq("userId", currentUser.id)
         .eq("deleted", true)
-        .order("id", { ascending: true });
+        .order("id", { ascending: false });
 
       if (error) throw error;
       return data || [];
@@ -625,7 +625,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         .select("*")
         .eq("user_email", currentUser.email)
         .in("status", ["pending", "sent", "failed", "cancelled"])
-        .order("scheduled_for", { ascending: true });
+        .order("scheduled_for", { ascending: false });
 
       if (error) throw error;
       setScheduledTasks(data || []);
