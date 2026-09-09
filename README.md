@@ -10,6 +10,7 @@ Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** q
 
 * 📝 **Gestión completa de tareas** – Crear, editar, eliminar y marcar tareas como completadas o pendientes.
 * 📧 **Recordatorios automáticos por email** – Envío inmediato o programado mediante Gmail API y procesamiento automático con un cron job.
+* 🔒 **Tokens de un solo uso** – Cada enlace mágico generado es de un solo uso, invalidándose automáticamente después de ser utilizado.
 * 🗑️ **Papelera de reciclaje** – Restauración de tareas eliminadas o eliminación permanente.
 * 🔐 **Autenticación con Magic Links** – Inicio de sesión sin contraseñas mediante Netlify Functions.
 * 🛡️ **Protección anti-spam** – Límite de 15 solicitudes de acceso por hora para cada usuario.
@@ -32,6 +33,7 @@ Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** q
 | Netlify Functions       | Autenticación mediante Magic Links       |
 | Supabase Edge Functions | Procesamiento de recordatorios           |
 | Gmail API               | Envío de correos electrónicos            |
+| JSON Web Token (JWT)    | Firma digital y verificación de enlaces  |
 | cron-job.org            | Ejecución del cron job                   |
 | SweetAlert2             | Notificaciones y modales                 |
 | CSS3                    | Estilos y diseño responsive              |
@@ -42,12 +44,14 @@ Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** q
 
 PostgreSQL mediante **Supabase**, utilizando **4 tablas relacionales** y **Row Level Security (RLS)** para garantizar que cada usuario solo pueda acceder a su propia información.
 
-| Tabla                   | Propósito                          |
-| ----------------------- | ---------------------------------- |
-| tasks                   | Almacenamiento de tareas           |
-| scheduled_notifications | Recordatorios programados          |
-| magic_links             | Tokens temporales de autenticación |
-| users                   | Información de usuarios            |
+| Tabla                   | Propósito                                                       |
+| ----------------------- | --------------------------------------------------------------- |
+| tasks                   | Almacenamiento de tareas                                        |
+| scheduled_notifications | Recordatorios programados                                       |
+| magic_links             | Registro de auditoría de tokens generados (sin uso en validación) |
+| users                   | Información de usuarios                                         |
+
+> 📌 **Nota:** La tabla `magic_links` se utiliza únicamente para auditoría y control de rate limiting. La verificación de tokens se realiza mediante **JWT con firma digital**, sin depender de consultas a la base de datos.
 
 ---
 
@@ -71,18 +75,21 @@ Actualiza el estado del recordatorio
 
 ### 🔐 Autenticación mediante Magic Links
 
-```text
-Usuario ingresa su email
+```Usuario ingresa su email
         ↓
-Netlify Function genera un token
+Netlify Function genera un JWT con firma digital
         ↓
-Guarda el token en Supabase
+Guarda el token en Supabase (solo para auditoría)
         ↓
 Envía el enlace de acceso por email
         ↓
 El usuario abre el enlace
         ↓
-Se valida el token e inicia sesión
+Se verifica la firma del JWT (sin consultar la BD)
+        ↓
+Se valida que el token no haya sido usado (lista negra en memoria)
+        ↓
+Se inicia sesión automáticamente
 ```
 
 ---
