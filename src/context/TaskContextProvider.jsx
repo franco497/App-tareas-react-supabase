@@ -170,7 +170,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       try {
         const session = JSON.parse(stored);
         if (session?.user) {
-          console.log(`📌 Sesión recuperada de localStorage: ${session.user.email}`);
+          console.log(
+            `📌 Sesión recuperada de localStorage: ${session.user.email}`,
+          );
           setUser(session.user);
           setLoading(false);
           return;
@@ -181,19 +183,22 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     }
 
     // ✅ Si no hay sesión en localStorage, intentar con Supabase
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        console.log(`📌 Sesión desde Supabase: ${session.user.email}`);
-        setUser(session.user);
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (session?.user) {
+          console.log(`📌 Sesión desde Supabase: ${session.user.email}`);
+          setUser(session.user);
+          setLoading(false);
+        } else {
+          console.log("⏳ No hay sesión activa, usuario no autenticado");
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Error obteniendo sesión de Supabase:", error);
         setLoading(false);
-      } else {
-        console.log("⏳ No hay sesión activa, usuario no autenticado");
-        setLoading(false);
-      }
-    }).catch((error) => {
-      console.error("❌ Error obteniendo sesión de Supabase:", error);
-      setLoading(false);
-    });
+      });
   }, [initialSession]);
 
   // ============================================
@@ -266,7 +271,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
         // ✅ Verificar si el usuario ya está seteado
         if (user?.email === session.user.email) {
-          console.log("👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado");
+          console.log(
+            "👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado",
+          );
           return;
         }
 
@@ -274,7 +281,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         setUser(session.user);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
         // ✅ getTasks se ejecutará automáticamente cuando user cambie
-
       } else if (event === "SIGNED_OUT") {
         console.log("👋 Contexto - Sesión cerrada");
         setUser(null);
@@ -282,7 +288,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         localStorage.removeItem("supabaseSession");
         cleanupChannel();
         authInitialized.current = false;
-
       } else if (event === "TOKEN_REFRESHED") {
         if (session?.user) {
           console.log(`🔄 Token refrescado: ${session.user.email}`);
@@ -329,11 +334,16 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         (payload) => {
           if (payload.eventType === "UPDATE") {
             const updatedTask = payload.new;
-            setScheduledTasks((prevTasks) =>
-              prevTasks.map((task) =>
+            setScheduledTasks((prevTasks) => {
+              // ✅ Actualizar la tarea
+              const updated = prevTasks.map((task) =>
                 task.id === updatedTask.id ? updatedTask : task,
-              ),
-            );
+              );
+              // ✅ ORDENAR DESCENDENTE por scheduled_for
+              return updated.sort((a, b) => {
+                return new Date(b.scheduled_for) - new Date(a.scheduled_for);
+              });
+            });
           }
         },
       );
@@ -814,18 +824,12 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
         if (error) throw error;
 
-        const currentStatuses = scheduledTasks.map((t) => ({
-          id: t.id,
-          status: t.status,
-        }));
-        const newStatuses = data.map((t) => ({ id: t.id, status: t.status }));
+        // ✅ ORDENAR DESCENDENTE antes de setear
+        const sortedData = data.sort((a, b) => {
+          return new Date(b.scheduled_for) - new Date(a.scheduled_for);
+        });
 
-        const hasChanges =
-          JSON.stringify(currentStatuses) !== JSON.stringify(newStatuses);
-
-        if (hasChanges) {
-          setScheduledTasks(data);
-        }
+        setScheduledTasks(sortedData);
       } catch (error) {
         console.error("Error en polling:", error);
       }
