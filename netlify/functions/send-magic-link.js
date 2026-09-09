@@ -15,14 +15,17 @@ const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GMAIL_REDIRECT_URI;
 const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL || "devincentisf35@gmail.com";
-const SITE_URL = process.env.SITE_URL || "https://sistema-tareas-recordatorios.netlify.app";
+const SITE_URL =
+  process.env.SITE_URL || "https://sistema-tareas-recordatorios.netlify.app";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   console.error("❌ ERROR: JWT_SECRET no configurado");
   throw new Error("JWT_SECRET es requerido");
 }
-console.log(`🔐 JWT_SECRET ${JWT_SECRET ? '✅ configurado' : '❌ NO configurado'}`);
+console.log(
+  `🔐 JWT_SECRET ${JWT_SECRET ? "✅ configurado" : "❌ NO configurado"}`,
+);
 
 // ✅ Rate limiting - 15 intentos por hora
 const RATE_LIMIT = 15;
@@ -30,14 +33,14 @@ const TIME_WINDOW = 60 * 60 * 1000;
 
 // ✅ Generar JWT con jti (JWT ID) único
 function generateJWT(email) {
-  const jti = crypto.randomBytes(16).toString('hex'); // ID único
+  const jti = crypto.randomBytes(16).toString("hex"); // ID único
   const payload = {
     email: email,
     purpose: "magic-link",
     jti: jti,
     timestamp: Date.now(),
   };
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
 }
 
 // ✅ Verificar rate limiting
@@ -105,11 +108,12 @@ Hola,
 
 Has solicitado un enlace de acceso para tu cuenta en App de Tareas.
 
-Inicia sesión aquí: ${magicLinkUrl}
+🔐 Inicia sesión aquí: ${magicLinkUrl}
+
+⚠️ Este enlace es de UN SOLO USO y expirará en 15 minutos.
+Si ya lo has utilizado, solicita uno nuevo desde la página de inicio.
 
 Si el enlace no funciona, cópialo y pégalo en tu navegador.
-
-Este enlace expirará en 15 minutos.
 
 Si no solicitaste este enlace, ignora este correo.
 
@@ -152,6 +156,16 @@ Si no solicitaste este enlace, ignora este correo.
       font-size: 0.9rem;
       color: #856404;
     }
+    .single-use {
+      background: #e8f5e9;
+      border: 1px solid #4caf50;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #2e7d32;
+    }
   </style>
 </head>
 <body>
@@ -161,17 +175,28 @@ Si no solicitaste este enlace, ignora este correo.
     </div>
     <div class="content">
       <p>Has solicitado un enlace de acceso para tu cuenta.</p>
+
       <p style="text-align: center; margin: 30px 0;">
         <a href="${magicLinkUrl}" target="_blank" rel="noopener noreferrer" class="button">Iniciar sesión</a>
       </p>
+
       <p>O copia este enlace en tu navegador:</p>
       <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
         ${magicLinkUrl}
       </p>
+
+      <div class="single-use">
+        🔒 Este enlace es de <strong>UN SOLO USO</strong>.
+        <br>
+        Si ya lo has utilizado, solicita uno nuevo desde la página de inicio.
+      </div>
+
       <div class="warning">
         ⏰ Este enlace expirará en <strong>15 minutos</strong>.
       </div>
+
       <p>Si no solicitaste este enlace, ignora este correo.</p>
+
       <p style="font-size: 13px; color: #888888; text-align: center; margin-top: 15px;">
         💡 Agrega <strong style="color: #667eea;">${FROM_EMAIL}</strong> a tus contactos para asegurar la entrega.
       </p>
