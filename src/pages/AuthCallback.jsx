@@ -10,17 +10,14 @@ function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
-  // ✅ FUNCIÓN PARA EXTRAER TOKEN - VERSIÓN MEJORADA
+  // ✅ FUNCIÓN PARA EXTRAER TOKEN
   const extractTokenFromUrl = () => {
     const currentUrl = window.location.href;
     const currentSearch = window.location.search;
-    const currentHash = window.location.hash;
 
     console.log("🔍 ===== EXTRACTANDO TOKEN =====");
     console.log("📍 URL actual:", currentUrl);
     console.log("📍 Search actual:", currentSearch);
-    console.log("📍 Hash actual:", currentHash);
-    console.log("📍 Pathname actual:", window.location.pathname);
 
     let token = null;
 
@@ -38,43 +35,26 @@ function AuthCallback() {
       }
     }
 
-    // ✅ MÉTODO 3: Buscar en hash
-    if (!token && currentHash) {
-      const hashMatch = currentHash.match(/[?&]token=([^&]+)/);
-      if (hashMatch) {
-        token = hashMatch[1];
-        console.log("🔍 Método 3 (Hash):", token);
-      }
-    }
-
-    // ✅ MÉTODO 4: Intentar con URL API
-    if (!token) {
-      try {
-        const urlObj = new URL(currentUrl);
-        token = urlObj.searchParams.get("token");
-        console.log("🔍 Método 4 (URL API):", token);
-      } catch (e) {
-        console.log("⚠️ Error usando URL API:", e);
-      }
-    }
-
-    if (token) {
-      console.log("🔍 TOKEN FINAL:", token.substring(0, 30) + "...");
-      console.log("🔍 Longitud:", token.length);
-    } else {
-      console.error("❌ NO se encontró token en la URL");
-    }
-
+    console.log("🔍 TOKEN FINAL:", token?.substring(0, 30) + "...");
     return token;
+  };
+
+  // ✅ VERIFICAR SI EL USUARIO YA TIENE SESIÓN ACTIVA
+  const hasActiveSession = () => {
+    const stored = localStorage.getItem("supabaseSession");
+    if (!stored) return false;
+    try {
+      const session = JSON.parse(stored);
+      return !!session?.user;
+    } catch (e) {
+      return false;
+    }
   };
 
   useEffect(() => {
     console.log("🔥 useEffect de AuthCallback ejecutado");
-    console.log("📌 processed:", processed);
-    console.log("📍 URL en useEffect:", window.location.href);
-    console.log("📍 Search en useEffect:", window.location.search);
 
-    // ✅ VERIFICAR TOKEN EN LA URL - AHORA DENTRO DEL useEffect
+    // ✅ Si no hay token en la URL, forzar recarga
     if (!window.location.search.includes('token')) {
       console.warn("⚠️ No hay token en la URL, forzando recarga...");
       window.location.reload();
@@ -94,13 +74,10 @@ function AuthCallback() {
       try {
         const token = extractTokenFromUrl();
 
-        console.log("📤 Token extraído:", token ? token.substring(0, 30) + "..." : "null");
+        console.log("📤 Token extraído:", token);
 
         if (!token) {
           console.error("❌ TOKEN NO ENCONTRADO");
-          console.log("📝 URL completa:", window.location.href);
-          console.log("📝 Search:", window.location.search);
-
           setStatus("❌ Token no encontrado en la URL");
           setTimeout(() => {
             window.location.replace("/");
@@ -130,11 +107,6 @@ function AuthCallback() {
           data = { success: true, session };
           responseOk = true;
           localStorage.setItem("supabaseSession", JSON.stringify(session));
-
-          await supabase.auth.setSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          });
         } else {
           console.log("🚀 Modo producción: verificando con Netlify Function");
           console.log("📤 Enviando token:", token.substring(0, 30) + "...");
@@ -177,7 +149,6 @@ function AuthCallback() {
             data = JSON.parse(responseText);
           } catch (parseError) {
             console.error("❌ Error parseando respuesta:", parseError);
-            console.log("📝 Respuesta raw:", responseText);
             throw new Error("El servidor no respondió correctamente");
           }
 
@@ -201,19 +172,6 @@ function AuthCallback() {
             );
             console.log("✅ Sesión guardada en localStorage");
 
-            const { data: sessionData } = await supabase.auth.getSession();
-
-            if (sessionData?.session) {
-              console.log(
-                "✅ Sesión activa en Supabase:",
-                sessionData.session.user.email
-              );
-            } else {
-              console.log(
-                "⏳ La sesión se activará automáticamente con el evento SIGNED_IN"
-              );
-            }
-
             await new Promise((resolve) => setTimeout(resolve, 1500));
           }
         }
@@ -231,8 +189,17 @@ function AuthCallback() {
         }
       } catch (error) {
         console.error("❌ Error en AuthCallback:", error);
-        console.error("📝 Stack:", error.stack);
 
+        // ============================================
+        // ✅ ✅ ✅ NUEVA LÓGICA: Verificar sesión activa
+        // ============================================
+        if (hasActiveSession()) {
+          console.log("✅ Usuario ya tiene sesión activa, redirigiendo a dashboard");
+          window.location.replace("/dashboard");
+          return;
+        }
+
+        // ❌ Solo redirigir a login si NO hay sesión
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => {
           window.location.replace("/");
