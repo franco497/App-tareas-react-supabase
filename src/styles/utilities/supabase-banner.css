@@ -12,15 +12,29 @@
   width: 100%;
   box-sizing: border-box;
   animation: slideDown 0.5s ease;
-  backdrop-filter: blur(10px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all var(--transition-base);
+  
+  /* ✅ Forzar aceleración por hardware */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ✅ Solo aplicar backdrop-filter en desktop */
+@media (min-width: 861px) {
+  .supabase-info-banner {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 .supabase-info-banner:hover {
   background: rgba(45, 106, 79, 0.18);
   border-color: rgba(45, 106, 79, 0.4);
-  transform: translateY(-2px);
+  transform: translateY(-2px) translateZ(0);
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -53,11 +67,11 @@
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-15px);
+    transform: translateY(-15px) translateZ(0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
   }
 }
 
