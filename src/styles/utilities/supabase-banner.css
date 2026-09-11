@@ -9,12 +9,12 @@
   padding: 1.2rem 1.5rem;
   margin: 1.5rem auto;
   max-width: 800px;
+  width: 100%;
+  box-sizing: border-box;
   animation: slideDown 0.5s ease;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all var(--transition-base);
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .supabase-info-banner:hover {
@@ -139,13 +139,4 @@
   .info-icon {
     font-size: 1.4rem;
   }
-}
-
-/* ============================================
-   📌 CORRECCIÓN: Asegurar que el banner no se desborde
-   ============================================ */
-
-.dashboard-container .supabase-info-banner {
-  margin-left: auto;
-  margin-right: auto;
 }
