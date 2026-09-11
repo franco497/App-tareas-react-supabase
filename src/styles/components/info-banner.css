@@ -1,8 +1,8 @@
 /* ============================================
-   SUPABASE INFO BANNER - ACUARELA MODE
+   INFO BANNER - ACUARELA MODE
    ============================================ */
 
-.supabase-info-banner {
+.info-banner {
   background: rgba(45, 106, 79, 0.12);
   border: 1px solid rgba(45, 106, 79, 0.25);
   border-radius: 16px;
@@ -15,7 +15,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all var(--transition-base);
   
-  /* ✅ Forzar aceleración por hardware */
+  /*  Forzar aceleración por hardware */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
@@ -23,22 +23,22 @@
   -webkit-backface-visibility: hidden;
 }
 
-/* ✅ Solo aplicar backdrop-filter en desktop */
+/*  Solo aplicar backdrop-filter en desktop */
 @media (min-width: 861px) {
-  .supabase-info-banner {
+  .info-banner {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
 }
 
-.supabase-info-banner:hover {
+.info-banner:hover {
   background: rgba(45, 106, 79, 0.18);
   border-color: rgba(45, 106, 79, 0.4);
   transform: translateY(-2px) translateZ(0);
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
 }
 
-.supabase-info-content {
+.info-banner-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,7 +46,7 @@
   width: 100%;
 }
 
-.supabase-info-text {
+.info-banner-text {
   color: var(--text-light);
   font-size: 0.95rem;
   line-height: 1.7;
@@ -58,7 +58,7 @@
   width: 100%;
 }
 
-.info-icon {
+.info-banner-icon {
   font-size: 1.4rem;
   flex-shrink: 0;
   line-height: 1.5;
@@ -80,21 +80,21 @@
    ============================================ */
 
 @media (max-width: 599px) {
-  .supabase-info-banner {
+  .info-banner {
     padding: 1rem;
     margin: 1rem 0.75rem;
     border-radius: 12px;
     max-width: calc(100% - 1.5rem);
   }
 
-  .supabase-info-text {
+  .info-banner-text {
     font-size: 0.95rem;
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
-  .info-icon {
+  .info-banner-icon {
     font-size: 1.8rem;
   }
 }
@@ -104,25 +104,25 @@
    ============================================ */
 
 @media (min-width: 600px) and (max-width: 860px) {
-  .supabase-info-banner {
+  .info-banner {
     max-width: 800px;
     padding: 1.2rem 1.5rem;
     margin: 1.5rem auto;
     width: calc(100% - 2rem);
   }
 
-  .supabase-info-content {
+  .info-banner-content {
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
   }
 
-  .supabase-info-text {
+  .info-banner-text {
     text-align: center;
     font-size: 0.95rem;
   }
 
-  .info-icon {
+  .info-banner-icon {
     font-size: 1.4rem;
   }
 }
@@ -132,25 +132,25 @@
    ============================================ */
 
 @media (min-width: 861px) {
-  .supabase-info-banner {
+  .info-banner {
     max-width: 800px;
     padding: 1.2rem 1.5rem;
     margin: 1.5rem auto;
     width: 100%;
   }
 
-  .supabase-info-content {
+  .info-banner-content {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
   }
 
-  .supabase-info-text {
+  .info-banner-text {
     text-align: center;
     flex: 1;
   }
 
-  .info-icon {
+  .info-banner-icon {
     font-size: 1.4rem;
   }
 }

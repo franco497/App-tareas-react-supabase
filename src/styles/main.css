@@ -14,6 +14,7 @@
 @import './components/task-card.css';
 @import './components/task-list.css';
 @import './components/notification-form.css';
+@import './components/info-banner.css';  
 
 /* 3. PAGES */
 @import './pages/dashboard.css';
@@ -23,6 +24,6 @@
 @import './pages/auth-callback.css';
 
 /* 4. UTILITIES */
-/* @import './utilities/animations.css';
-@import './utilities/responsive.css'; */
-@import './utilities/supabase-banner.css';
+/* @import './utilities/animations.css'; */
+/* @import './utilities/responsive.css'; */
+/* @import './utilities/supabase-banner.css'; 
