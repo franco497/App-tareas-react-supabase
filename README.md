@@ -73,6 +73,8 @@ Envía el correo mediante Gmail API
 Actualiza el estado del recordatorio
 ```
 
+> ⚠️ **Nota:** La funcionalidad de **tareas programadas** está configurada actualmente para la zona horaria de **Argentina (UTC-3)**. Si accedes desde otra región, los recordatorios se enviarán según la hora argentina. La internacionalización de zonas horarias está planificada para futuras versiones.
+
 ### 🔐 Autenticación mediante Magic Links
 
 ```Usuario ingresa su email
