@@ -14,8 +14,8 @@
   animation: slideDown 0.5s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all var(--transition-base);
-  
-  /*  Forzar aceleración por hardware */
+
+  /* ✅ Forzar aceleración por hardware */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
@@ -23,7 +23,7 @@
   -webkit-backface-visibility: hidden;
 }
 
-/*  Solo aplicar backdrop-filter en desktop */
+/* ✅ Solo aplicar backdrop-filter en desktop */
 @media (min-width: 861px) {
   .info-banner {
     backdrop-filter: blur(10px);
@@ -73,6 +73,16 @@
     opacity: 1;
     transform: translateY(0) translateZ(0);
   }
+}
+
+/* ============================================
+   ✅ SOLUCIÓN 1 + 3: Altura dinámica y cascada
+   ============================================ */
+
+/* El banner se adapta al viewport dinámico */
+.info-banner {
+  min-height: 0; /* ✅ Permite que se encoja si es necesario */
+  flex-shrink: 0; /* ✅ No se encoge en flexbox */
 }
 
 /* ============================================
@@ -152,5 +162,38 @@
 
   .info-banner-icon {
     font-size: 1.4rem;
+  }
+}
+
+/* ============================================
+   ✅ SOLUCIÓN 5: Prevenir problemas de orientación
+   ============================================ */
+
+/* En móviles, el banner se adapta mejor sin backdrop-filter */
+@media (max-width: 860px) {
+  .info-banner {
+    /* Sin backdrop-filter en móviles para mejor rendimiento */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    /* ✅ Forzar un layout estable */
+    contain: layout style paint;
+  }
+}
+
+/* ✅ Cuando el teclado está activo (viewport pequeño) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .info-banner {
+    margin: 0.5rem auto;
+    padding: 0.75rem 1rem;
+  }
+
+  .info-banner-text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .info-banner-icon {
+    font-size: 1.2rem;
   }
 }

@@ -19,7 +19,7 @@
 .task-input {
   width: 100%;
   padding: 1rem;
-  font-size: 1rem;
+  font-size: 16px; /* ✅ SOLUCIÓN 4: Previene zoom automático en móviles */
   font-family: inherit;
   color: var(--input-text);
   background: var(--input-bg);
@@ -153,6 +153,44 @@
 }
 
 /* ============================================
+   ✅ SOLUCIÓN 4: PREVENIR ZOOM AUTOMÁTICO EN MÓVILES
+   ============================================ */
+
+/* Todos los inputs del sistema con font-size >= 16px */
+.task-input,
+.login-input,
+.task-edit-input,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  font-size: 16px; /* ✅ Previene zoom automático en iOS/Android */
+}
+
+/* En desktop volvemos a usar rem */
+@media (min-width: 600px) {
+  .task-input,
+  .login-input,
+  .task-edit-input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
    QUERIES
    ============================================ */
 
@@ -160,7 +198,7 @@
   .task-form {
     flex-direction: column;
     max-width: 500px;
-    width: calc(100% - 2rem); 
+    width: calc(100% - 2rem);
     margin: 1rem auto;
     padding: 1.5rem;
   }
@@ -179,7 +217,7 @@
 @media (min-width: 900px) {
   .task-form {
     max-width: 500px;
-    width: calc(100% - 4rem); 
+    width: calc(100% - 4rem);
     margin: 1.5rem auto;
     margin-top: 3rem;
     padding: 1.5rem 2rem;

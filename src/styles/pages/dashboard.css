@@ -3,7 +3,7 @@
    ============================================ */
 
 /* ============================================
-   LAYOUT PRINCIPAL - Elimina espacio vacío
+   LAYOUT PRINCIPAL - CORREGIDO
    ============================================ */
 
 /* 1. Wrapper principal */
@@ -11,6 +11,9 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh; /* ✅ SOLUCIÓN 1: dvh */
+  min-height: 100%; /* ✅ SOLUCIÓN 3: Fallback */
+  flex: 1 0 auto;
   background: var(--primary-gradient);
   width: 100%;
   box-sizing: border-box;
@@ -24,9 +27,10 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* ✅ SOLUCIÓN 3: Importante para flexbox */
 }
 
-/* 3. Dashboard container - CORREGIDO */
+/* 3. Dashboard container */
 .dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -34,8 +38,7 @@
   width: 100%;
   box-sizing: border-box;
   flex: 1 0 auto;
-  /* ⚠️ ELIMINAMOS min-height: 80vh que causaba el problema */
-  /* min-height: auto; */
+  min-height: 0; /* ✅ SOLUCIÓN 3: Importante para flexbox */
 }
 
 /* 4. Título del dashboard */
@@ -62,7 +65,6 @@
    RESPONSIVE - SOLUCIÓN PARA TABLETS
    ============================================ */
 
-/* Tablets verticales (820px - 1024px de ancho) */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
   .main-content {
     padding-top: 65px;
@@ -71,16 +73,15 @@
   .dashboard-container {
     padding: 16px 24px;
     flex: 1 0 auto;
-    min-height: auto; /* ← Forzamos que se adapte al contenido */
+    min-height: 0;
   }
 
-  /* Forzar que el contenido ocupe todo el espacio disponible */
   .app-wrapper {
     min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 
-/* Tablets grandes y laptops (1025px - 1400px) */
 @media (min-width: 1025px) and (max-width: 1400px) and (orientation: portrait) {
   .main-content {
     padding-top: 70px;
@@ -89,28 +90,30 @@
   .dashboard-container {
     padding: 20px 32px;
     flex: 1 0 auto;
-    min-height: auto; /* ← Forzamos que se adapte al contenido */
+    min-height: 0;
   }
 
   .app-wrapper {
     min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 
-/* Pantallas con altura > 1100px en tablets (iPad Pro, Surface Pro) */
 @media (min-height: 1100px) and (max-width: 1200px) {
   .dashboard-container {
-    min-height: auto;
+    min-height: 0;
     flex: 1 0 auto;
     padding: 24px 32px;
   }
 
   .main-content {
     flex: 1 0 auto;
+    min-height: 0;
   }
 
   .app-wrapper {
     min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 
@@ -118,7 +121,6 @@
    RESPONSIVE - MÓVILES Y DESKTOP
    ============================================ */
 
-/* Móviles pequeños */
 @media (max-width: 600px) {
   .main-content {
     padding-top: 60px;
@@ -127,29 +129,26 @@
   .dashboard-container {
     padding: 12px;
     flex: 1 0 auto;
-    min-height: auto;
+    min-height: 0;
   }
 }
 
-/* Móviles grandes y tablets pequeñas */
 @media (min-width: 601px) and (max-width: 767px) {
   .dashboard-container {
     padding: 16px;
     flex: 1 0 auto;
-    min-height: auto;
+    min-height: 0;
   }
 }
 
-/* Desktop */
 @media (min-width: 961px) {
   .dashboard-container {
     padding: 24px;
     flex: 1 0 auto;
-    min-height: auto;
+    min-height: 0;
   }
 }
 
-/* Pantallas landscape en móvil */
 @media (max-height: 600px) and (orientation: landscape) {
   .main-content {
     padding-top: 50px;
@@ -158,10 +157,9 @@
   .dashboard-container {
     padding: 8px 16px;
     flex: 1 0 auto;
-    min-height: auto;
+    min-height: 0;
   }
 }
-
 /* ============================================
    FIX FINAL - Para tablets con hueco
    ============================================ */

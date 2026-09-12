@@ -5,12 +5,16 @@ import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import InfoBanner from "../components/InfoBanner"; // ← NUEVO
+import InfoBanner from "../components/InfoBanner";
+import { useOrientation } from "../hooks/useOrientation"; // ✅ NUEVO
 
 function Dashboard() {
   const [showTaskDone, setShowTaskDone] = useState(false);
   const { user, loading, updateCounter, tasks } = useTasks();
   const [isPending, startTransition] = useTransition();
+
+  // ✅ SOLUCIÓN 5: Detectar cambio de orientación y cerrar teclado
+  useOrientation();
 
   const handleToggleView = () => {
     setShowTaskDone(!showTaskDone);
@@ -40,7 +44,7 @@ function Dashboard() {
                 Bienvenido {user?.email || "Usuario"}
               </p>
               <TaskForm />
-              <InfoBanner /> {/* ← COMPONENTE SEPARADO */}
+              <InfoBanner />
             </>
           )}
 
