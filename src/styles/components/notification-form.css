@@ -17,6 +17,11 @@
   justify-content: center;
   z-index: 9999;
   padding: 1rem;
+
+  /* ✅ Scroll en el overlay si el modal es muy alto */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
   animation: modalFadeIn 0.3s ease;
 }
 
@@ -36,16 +41,37 @@
   animation: modalSlideUp 0.3s ease;
   position: relative;
   overflow: hidden;
+
+  /* ✅ Altura máxima del modal */
+  max-height: 90vh;
+  max-height: 90dvh; /* Dynamic viewport height */
+
+  /* ✅ Scroll interno */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* ✅ Forzar aceleración por hardware */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  /* ✅ Aislar del resto del layout */
+  contain: layout style paint;
+
+  /* ✅ Scroll suave en móviles */
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes modalSlideUp {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(30px) scale(0.95) translateZ(0);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) translateZ(0);
   }
 }
 
@@ -155,7 +181,7 @@
   padding: 0.6rem 0.8rem;
   border: 2px solid var(--border-color);
   border-radius: 10px;
-  font-size: 0.95rem;
+  font-size: 16px; /* ✅ Previene zoom en móviles */
   background: rgba(255, 255, 255, 0.05);
   color: var(--white);
   transition: all var(--transition-base);
@@ -249,6 +275,128 @@
 
 body.modal-open {
   overflow: hidden;
+}
+
+/* ============================================
+   ✅ SCROLL PERSONALIZADO PARA MODALES
+   ============================================ */
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.5);
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.8);
+}
+
+/* ============================================
+   ✅ RESPONSIVE - HORIZONTAL (TECLADO ACTIVO)
+   ============================================ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+
+  .modal-content {
+    max-height: 85vh;
+    max-height: 85dvh;
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .modal-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .modal-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .send-type-selector {
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .send-type-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  .form-group {
+    gap: 0.2rem;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .form-input {
+    padding: 0.4rem 0.6rem;
+    font-size: 16px;
+    min-height: 36px;
+  }
+
+  .send-now-container {
+    gap: 0.5rem;
+  }
+
+  .send-now-info {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .send-now-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+
+  .submit-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+
+  .details-content {
+    gap: 0.5rem;
+  }
+
+  .detail-item {
+    font-size: 0.85rem;
+  }
+
+  .details-close-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+}
+
+/* ============================================
+   ✅ SOLUCIÓN: SIN BACKDROP-FILTER EN MÓVILES
+   ============================================ */
+
+@media (max-width: 860px) {
+  .modal-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.85);
+  }
 }
 
 /* Notification Form Responsive */
