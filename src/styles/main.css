@@ -13,10 +13,15 @@
 @import './components/task-form.css';
 @import './components/task-card.css';
 @import './components/task-list.css';
-@import './components/notification-form.css';
-@import './components/info-banner.css';  
+@import './components/info-banner.css';
 
-/* 3. PAGES */
+/* 3. MODALES */
+@import './components/modal-base.css';
+@import './components/notification-form.css';
+@import './components/reschedule-modal.css';
+@import './components/scheduled-details-modal.css';
+
+/* 4. PAGES */
 @import './pages/dashboard.css';
 @import './pages/login.css';
 @import './pages/scheduled-tasks.css';

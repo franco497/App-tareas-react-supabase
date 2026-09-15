@@ -1,8 +1,9 @@
 // src/components/NotificationForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { useTasks } from "../context"; // ← IMPORTAR EL CONTEXTO
+import { useTasks } from "../context";
 import Swal from "sweetalert2";
+import Modal from "./Modal"; // ✅ IMPORTAR MODAL
 
 function NotificationForm({ task, onClose }) {
   const [scheduledDate, setScheduledDate] = useState("");
@@ -12,7 +13,6 @@ function NotificationForm({ task, onClose }) {
   const [sendType, setSendType] = useState("now");
   const [userEmail, setUserEmail] = useState("");
 
-  //  USAR EL CONTEXTO
   const { scheduleTaskLater } = useTasks();
 
   const getArgentinaDate = () => {
@@ -40,7 +40,6 @@ function NotificationForm({ task, onClose }) {
     getUserEmail();
   }, []);
 
-  // Enviar ahora - VERSIÓN CON FETCH DIRECTO
   const handleSendNow = async () => {
     setLoading(true);
 
@@ -57,7 +56,6 @@ function NotificationForm({ task, onClose }) {
       const currentDate = now.toISOString().split("T")[0];
       const currentTime = now.toTimeString().slice(0, 5);
 
-      //  USAR FETCH DIRECTO (como probaste en PowerShell)
       const response = await fetch(
         "https://vjywpkrncmsijpggdfwf.supabase.co/functions/v1/send-email-gmail",
         {
@@ -83,7 +81,6 @@ function NotificationForm({ task, onClose }) {
         throw new Error(data.error || "Error al enviar el correo");
       }
 
-      //  CERRAR MODAL Y MOSTRAR SWEETALERT
       onClose();
       await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -122,14 +119,12 @@ function NotificationForm({ task, onClose }) {
     }
   };
 
-  //  Programar para más tarde - AHORA USA EL CONTEXTO
   const handleScheduleLater = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage({ text: "", type: "" });
 
     try {
-      // ✅ LLAMAR A LA FUNCIÓN DEL CONTEXTO
       await scheduleTaskLater(task, scheduledDate, scheduledTime);
 
       setScheduledDate("");
@@ -188,107 +183,105 @@ function NotificationForm({ task, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>📧 Enviar recordatorio: "{task.name}"</h3>
-          <button className="modal-close" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
-        <div className="send-type-selector">
-          <button
-            type="button"
-            className={`send-type-btn ${sendType === "now" ? "active" : ""}`}
-            onClick={() => handleTypeChange("now")}
-          >
-            🚀 Envío instantáneo
-          </button>
-          <button
-            type="button"
-            className={`send-type-btn ${sendType === "later" ? "active" : ""}`}
-            onClick={() => handleTypeChange("later")}
-          >
-            📅 Programar para más tarde
-          </button>
-        </div>
-
-        {sendType === "later" && (
-          <form onSubmit={handleScheduleLater}>
-            <div className="form-group">
-              <label htmlFor="date">📅 Fecha (hora Argentina UTC-3):</label>
-              <input
-                type="date"
-                id="date"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                required
-                min={getArgentinaDateString()}
-                className="form-input"
-              />
-              <br />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="time">⏰ Hora (UTC-3):</label>
-              <input
-                type="time"
-                id="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                required
-                className="form-input"
-              />
-              <br />
-            </div>
-
-            {message.text && (
-              <div className={`notification-message ${message.type}`}>
-                {message.text}
-              </div>
-            )}
-
-            <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? "⏳ Programando..." : "📅 Programar recordatorio"}
-            </button>
-          </form>
-        )}
-
-        {sendType === "now" && (
-          <div className="send-now-container">
-            <p className="send-now-info">
-              📧 El recordatorio se enviará a tu email:{" "}
-              <strong>{userEmail || "Cargando..."}</strong>
-            </p>
-            {message.text && (
-              <div className={`notification-message ${message.type}`}>
-                {message.text}
-              </div>
-            )}
-            {/* ✅ Mensaje adicional */}
-            <p
-              style={{
-                fontSize: "1rem",
-                color: "rgba(255, 255, 255, 0.5)",
-                textAlign: "center",
-                margin: "0 0 8px 0",
-              }}
-            >
-              💡 Revisa tu carpeta de "Spam" si no lo recibes
-            </p>
-            <button
-              type="button"
-              className="send-now-button"
-              onClick={handleSendNow}
-              disabled={loading}
-            >
-              {loading ? "⏳ Enviando..." : "🚀 Enviar ahora"}
-            </button>
-          </div>
-        )}
+    // ✅ USAR EL COMPONENTE MODAL
+    <Modal onClose={onClose}>
+      <div className="modal-header">
+        <h3>📧 Enviar recordatorio: "{task.name}"</h3>
+        <button className="modal-close" onClick={onClose}>
+          ✕
+        </button>
       </div>
-    </div>
+
+      <div className="send-type-selector">
+        <button
+          type="button"
+          className={`send-type-btn ${sendType === "now" ? "active" : ""}`}
+          onClick={() => handleTypeChange("now")}
+        >
+          🚀 Envío instantáneo
+        </button>
+        <button
+          type="button"
+          className={`send-type-btn ${sendType === "later" ? "active" : ""}`}
+          onClick={() => handleTypeChange("later")}
+        >
+          📅 Programar para más tarde
+        </button>
+      </div>
+
+      {sendType === "later" && (
+        <form onSubmit={handleScheduleLater}>
+          <div className="form-group">
+            <label htmlFor="date">📅 Fecha (hora Argentina UTC-3):</label>
+            <input
+              type="date"
+              id="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              required
+              min={getArgentinaDateString()}
+              className="form-input"
+            />
+            <br />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="time">⏰ Hora (UTC-3):</label>
+            <input
+              type="time"
+              id="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              required
+              className="form-input"
+            />
+            <br />
+          </div>
+
+          {message.text && (
+            <div className={`notification-message ${message.type}`}>
+              {message.text}
+            </div>
+          )}
+
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? "⏳ Programando..." : "📅 Programar recordatorio"}
+          </button>
+        </form>
+      )}
+
+      {sendType === "now" && (
+        <div className="send-now-container">
+          <p className="send-now-info">
+            📧 El recordatorio se enviará a tu email:{" "}
+            <strong>{userEmail || "Cargando..."}</strong>
+          </p>
+          {message.text && (
+            <div className={`notification-message ${message.type}`}>
+              {message.text}
+            </div>
+          )}
+          <p
+            style={{
+              fontSize: "1rem",
+              color: "rgba(255, 255, 255, 0.5)",
+              textAlign: "center",
+              margin: "0 0 8px 0",
+            }}
+          >
+            💡 Revisa tu carpeta de "Spam" si no lo recibes
+          </p>
+          <button
+            type="button"
+            className="send-now-button"
+            onClick={handleSendNow}
+            disabled={loading}
+          >
+            {loading ? "⏳ Enviando..." : "🚀 Enviar ahora"}
+          </button>
+        </div>
+      )}
+    </Modal>
   );
 }
 

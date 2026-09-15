@@ -1,0 +1,236 @@
+/* src/styles/components/modal-base.css */
+/* ============================================
+   MODAL BASE - ESTILOS COMPARTIDOS
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: var(--primary-gradient);
+  border-radius: 20px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: modalSlideUp 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  /* ✅ Altura automática, solo scroll si es necesario */
+  max-height: 90vh;
+  max-height: 90dvh;
+
+  /* ✅ Forzar aceleración por hardware */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  /* ✅ Aislar del resto del layout */
+  contain: layout style paint;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  color: var(--white);
+  font-size: 1rem;
+  margin: 0;
+  flex: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+.modal-close:hover {
+  background: rgba(231, 111, 81, 0.2);
+  border-color: var(--danger-color);
+  transform: rotate(90deg);
+}
+
+.modal-content::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.modal-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ============================================
+   ✅ SCROLL INTELIGENTE
+   ============================================ */
+
+/* Solo mostrar scroll si el contenido excede la altura */
+.modal-content.has-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll personalizado */
+.modal-content.has-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.5);
+  border-radius: 10px;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.8);
+}
+
+/* ============================================
+   ✅ RESPONSIVE - HORIZONTAL (TECLADO ACTIVO)
+   ============================================ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: center;
+    padding-top: 0.5rem;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+    max-height: 95dvh;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+  }
+
+  .modal-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .modal-header h3 {
+    font-size: 0.85rem;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    min-width: 28px;
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
+   ✅ SIN BACKDROP-FILTER EN MÓVILES
+   ============================================ */
+
+@media (max-width: 860px) {
+  .modal-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.85);
+  }
+}
+
+/* ============================================
+   ✅ SCROLL INTELIGENTE (solo cuando es necesario)
+   ============================================ */
+
+.modal-content.has-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.5);
+  border-radius: 10px;
+}
+
+.modal-content.has-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.8);
+}

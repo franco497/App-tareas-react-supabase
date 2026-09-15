@@ -1,132 +1,13 @@
+/* src/styles/components/notification-form.css */
 /* ============================================
    NOTIFICATION FORM - MODAL
-   Acuarela Nocturna - Mobile-First
    ============================================ */
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
+/* Hereda estilos de modal-base.css */
 
-  /* ✅ Scroll en el overlay si el modal es muy alto */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-
-  animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-content {
-  background: var(--primary-gradient);
-  border-radius: 20px;
-  padding: 1.5rem;
-  max-width: 500px;
-  width: 100%;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-lg);
-  animation: modalSlideUp 0.3s ease;
-  position: relative;
-  overflow: hidden;
-
-  /* ✅ Altura máxima del modal */
-  max-height: 90vh;
-  max-height: 90dvh; /* Dynamic viewport height */
-
-  /* ✅ Scroll interno */
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  /* ✅ Forzar aceleración por hardware */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-
-  /* ✅ Aislar del resto del layout */
-  contain: layout style paint;
-
-  /* ✅ Scroll suave en móviles */
-  -webkit-overflow-scrolling: touch;
-}
-
-@keyframes modalSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1) translateZ(0);
-  }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h3 {
-  color: var(--white);
-  font-size: 1rem;
-  margin: 0;
-  flex: 1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  word-break: break-word;
-  line-height: 1.4;
-}
-
-.modal-header h3 span {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 400;
-  opacity: 0.6;
-  margin-top: 0.2rem;
-}
-
-.modal-close {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  color: var(--white);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  min-height: 32px;
-  min-width: 32px;
-  padding: 0;
-}
-
-.modal-close:hover {
-  background: rgba(231, 111, 81, 0.2);
-  border-color: var(--danger-color);
-  transform: rotate(90deg);
-}
+/* ============================================
+   SELECTOR DE TIPO DE ENVÍO
+   ============================================ */
 
 .send-type-selector {
   display: flex;
@@ -165,6 +46,10 @@
   box-shadow: 0 0 20px rgba(233, 196, 106, 0.05);
 }
 
+/* ============================================
+   FORMULARIO
+   ============================================ */
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -181,7 +66,7 @@
   padding: 0.6rem 0.8rem;
   border: 2px solid var(--border-color);
   border-radius: 10px;
-  font-size: 16px; /* ✅ Previene zoom en móviles */
+  font-size: 16px;
   background: rgba(255, 255, 255, 0.05);
   color: var(--white);
   transition: all var(--transition-base);
@@ -201,6 +86,10 @@
   filter: invert(1);
   cursor: pointer;
 }
+
+/* ============================================
+   ENVÍO INSTANTÁNEO
+   ============================================ */
 
 .send-now-container {
   display: flex;
@@ -256,85 +145,20 @@
   transform: none;
 }
 
-.modal-content::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.modal-content > * {
-  position: relative;
-  z-index: 1;
-}
-
-body.modal-open {
-  overflow: hidden;
-}
-
 /* ============================================
-   ✅ SCROLL PERSONALIZADO PARA MODALES
-   ============================================ */
-
-.modal-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.modal-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-  background: rgba(233, 196, 106, 0.5);
-  border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(233, 196, 106, 0.8);
-}
-
-/* ============================================
-   ✅ RESPONSIVE - HORIZONTAL (TECLADO ACTIVO)
+   RESPONSIVE
    ============================================ */
 
 @media (max-height: 500px) and (orientation: landscape) {
-  .modal-overlay {
-    padding: 0.5rem;
-    align-items: flex-start;
-    padding-top: 1rem;
-  }
-
-  .modal-content {
-    max-height: 85vh;
-    max-height: 85dvh;
-    padding: 1rem;
-    border-radius: 16px;
-  }
-
-  .modal-header {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-  }
-
-  .modal-header h3 {
-    font-size: 0.9rem;
-  }
-
   .send-type-selector {
-    gap: 0.35rem;
-    margin-bottom: 0.75rem;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
   }
 
   .send-type-btn {
-    padding: 0.4rem 0.75rem;
+    padding: 0.35rem 0.6rem;
     font-size: 0.8rem;
-    min-height: 36px;
+    min-height: 34px;
   }
 
   .form-group {
@@ -342,70 +166,32 @@ body.modal-open {
   }
 
   .form-group label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .form-input {
-    padding: 0.4rem 0.6rem;
+    padding: 0.35rem 0.5rem;
     font-size: 16px;
-    min-height: 36px;
+    min-height: 34px;
   }
 
   .send-now-container {
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .send-now-info {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
   }
 
   .send-now-button {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
-    min-height: 36px;
-  }
-
-  .submit-button {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
-    min-height: 36px;
-  }
-
-  .details-content {
-    gap: 0.5rem;
-  }
-
-  .detail-item {
-    font-size: 0.85rem;
-  }
-
-  .details-close-btn {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
-    min-height: 36px;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+    min-height: 34px;
   }
 }
 
-/* ============================================
-   ✅ SOLUCIÓN: SIN BACKDROP-FILTER EN MÓVILES
-   ============================================ */
-
-@media (max-width: 860px) {
-  .modal-overlay {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: rgba(0, 0, 0, 0.85);
-  }
-}
-
-/* Notification Form Responsive */
 @media (min-width: 36rem) {
-  .modal-content {
-    padding: 1.75rem 2rem;
-    max-width: 520px;
-  }
-
   .send-type-selector {
     flex-direction: row;
   }
@@ -415,29 +201,5 @@ body.modal-open {
     padding: 0.6rem 1rem;
     font-size: 0.85rem;
     min-height: 40px;
-  }
-}
-
-@media (min-width: 48rem) {
-  .modal-content {
-    padding: 2rem 2.5rem;
-    max-width: 540px;
-    border-radius: 24px;
-  }
-
-  .modal-header h3 {
-    font-size: 1.2rem;
-  }
-}
-
-@media (min-width: 64rem) {
-  .modal-content {
-    padding: 2.5rem 3rem;
-    max-width: 580px;
-    border-radius: 28px;
-  }
-
-  .modal-header h3 {
-    font-size: 1.3rem;
   }
 }
