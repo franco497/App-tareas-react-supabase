@@ -2,11 +2,12 @@
 import { useState } from "react";
 import { useTasks } from "../context";
 import Swal from "sweetalert2";
-import Modal from "./Modal"; // ✅ IMPORTAR MODAL
 
 function RescheduleModal({ task, onClose }) {
+  //  USAR EL CONTEXTO (igual que NotificationForm)
   const { rescheduleScheduledTask } = useTasks();
 
+  //  ESTADOS IGUALES QUE NotificationForm
   const [scheduledDate, setScheduledDate] = useState(
     task.scheduled_for ? task.scheduled_for.split(" ")[0] : ""
   );
@@ -15,6 +16,7 @@ function RescheduleModal({ task, onClose }) {
   );
   const [loading, setLoading] = useState(false);
 
+  //  FUNCIÓN PARA FECHA ACTUAL (igual que NotificationForm)
   const getArgentinaDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -23,11 +25,13 @@ function RescheduleModal({ task, onClose }) {
     return `${year}-${month}-${day}`;
   };
 
+  //  handleSubmit (igual que NotificationForm)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      //  LLAMAR AL CONTEXTO (igual que NotificationForm)
       await rescheduleScheduledTask(task.id, scheduledDate, scheduledTime);
 
       setScheduledDate("");
@@ -72,51 +76,52 @@ function RescheduleModal({ task, onClose }) {
   };
 
   return (
-    // ✅ USAR EL COMPONENTE MODAL
-    <Modal onClose={onClose}>
-      <div className="modal-header">
-        <h3>🔄 Reprogramar: "{task.task_name}"</h3>
-        <button className="modal-close" onClick={onClose}>
-          ✕
-        </button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>🔄 Reprogramar: "{task.task_name}"</h3>
+          <button className="modal-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="date">📅 Nueva fecha (Argentina UTC-3):</label>
+            <input
+              type="date"
+              id="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              required
+              min={getArgentinaDateString()}
+              className="form-input"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="time">⏰ Nueva hora (UTC-3):</label>
+            <input
+              type="time"
+              id="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={loading}
+            style={{ marginTop: "1rem" }}
+          >
+            {loading ? "⏳ Reprogramando..." : "🔄 Reprogramar"}
+          </button>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="reschedule-form">
-        <div className="form-group">
-          <label htmlFor="date">📅 Nueva fecha (Argentina UTC-3):</label>
-          <input
-            type="date"
-            id="date"
-            value={scheduledDate}
-            onChange={(e) => setScheduledDate(e.target.value)}
-            required
-            min={getArgentinaDateString()}
-            className="form-input"
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="time">⏰ Nueva hora (UTC-3):</label>
-          <input
-            type="time"
-            id="time"
-            value={scheduledTime}
-            onChange={(e) => setScheduledTime(e.target.value)}
-            required
-            className="form-input"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="submit-button"
-          disabled={loading}
-          style={{ marginTop: "1rem" }}
-        >
-          {loading ? "⏳ Reprogramando..." : "🔄 Reprogramar"}
-        </button>
-      </form>
-    </Modal>
+    </div>
   );
 }
 
