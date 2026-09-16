@@ -1,4 +1,3 @@
-/* src/styles/components/modal-base.css */
 /* ============================================
    MODAL BASE - ESTILOS COMPARTIDOS
    ============================================ */
@@ -17,6 +16,8 @@
   justify-content: center;
   z-index: 9999;
   padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   animation: modalFadeIn 0.3s ease;
 }
 
@@ -37,18 +38,15 @@
   position: relative;
   overflow: hidden;
 
-  /* ✅ Altura automática, solo scroll si es necesario */
   max-height: 90vh;
   max-height: 90dvh;
 
-  /* ✅ Forzar aceleración por hardware */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 
-  /* ✅ Aislar del resto del layout */
   contain: layout style paint;
 }
 
@@ -108,6 +106,77 @@
   transform: rotate(90deg);
 }
 
+/* ============================================
+   ✅ ESTILOS COMPARTIDOS POR TODOS LOS MODALES
+   ============================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white);
+  transition: all var(--transition-base);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--warning-color);
+  box-shadow: 0 0 0 3px rgba(233, 196, 106, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: var(--success-color);
+  color: var(--white);
+  border: 2px solid var(--success-color);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #1e5a3e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(45, 106, 79, 0.3);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .modal-content::before {
   content: "";
   position: absolute;
@@ -133,14 +202,12 @@ body.modal-open {
    ✅ SCROLL INTELIGENTE
    ============================================ */
 
-/* Solo mostrar scroll si el contenido excede la altura */
 .modal-content.has-scroll {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Scroll personalizado */
 .modal-content.has-scroll::-webkit-scrollbar {
   width: 6px;
 }
@@ -166,32 +233,44 @@ body.modal-open {
 @media (max-height: 500px) and (orientation: landscape) {
   .modal-overlay {
     padding: 0.5rem;
-    align-items: center;
-    padding-top: 0.5rem;
+    align-items: flex-start;
+    padding-top: 1rem;
   }
 
   .modal-content {
-    max-height: 95vh;
-    max-height: 95dvh;
-    padding: 0.75rem 1rem;
-    border-radius: 14px;
+    max-height: 85vh;
+    max-height: 85dvh;
+    padding: 1rem;
+    border-radius: 16px;
   }
 
   .modal-header {
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.4rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
   }
 
   .modal-header h3 {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
-  .modal-close {
-    width: 28px;
-    height: 28px;
-    min-height: 28px;
-    min-width: 28px;
-    font-size: 1rem;
+  .form-group {
+    gap: 0.2rem;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .form-input {
+    padding: 0.4rem 0.6rem;
+    font-size: 16px;
+    min-height: 36px;
+  }
+
+  .submit-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 36px;
   }
 }
 
@@ -208,29 +287,36 @@ body.modal-open {
 }
 
 /* ============================================
-   ✅ SCROLL INTELIGENTE (solo cuando es necesario)
+   RESPONSIVE - TABLET Y DESKTOP
    ============================================ */
 
-.modal-content.has-scroll {
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+@media (min-width: 36rem) {
+  .modal-content {
+    padding: 1.75rem 2rem;
+    max-width: 520px;
+  }
 }
 
-.modal-content.has-scroll::-webkit-scrollbar {
-  width: 6px;
+@media (min-width: 48rem) {
+  .modal-content {
+    padding: 2rem 2.5rem;
+    max-width: 540px;
+    border-radius: 24px;
+  }
+
+  .modal-header h3 {
+    font-size: 1.2rem;
+  }
 }
 
-.modal-content.has-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-}
+@media (min-width: 64rem) {
+  .modal-content {
+    padding: 2.5rem 3rem;
+    max-width: 580px;
+    border-radius: 28px;
+  }
 
-.modal-content.has-scroll::-webkit-scrollbar-thumb {
-  background: rgba(233, 196, 106, 0.5);
-  border-radius: 10px;
-}
-
-.modal-content.has-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(233, 196, 106, 0.8);
+  .modal-header h3 {
+    font-size: 1.3rem;
+  }
 }
