@@ -186,28 +186,31 @@ function NotificationForm({ task, onClose }) {
     setScheduledDate("");
     setScheduledTime("");
   };
-
+  
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="notification-modal-overlay" onClick={onClose}>
+      <div
+        className="notification-modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="notification-modal-header">
           <h3>📧 Enviar recordatorio: "{task.name}"</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="notification-modal-close" onClick={onClose}>
             ✕
           </button>
         </div>
 
-        <div className="send-type-selector">
+        <div className="notification-send-type-selector">
           <button
             type="button"
-            className={`send-type-btn ${sendType === "now" ? "active" : ""}`}
+            className={`notification-send-type-btn ${sendType === "now" ? "active" : ""}`}
             onClick={() => handleTypeChange("now")}
           >
             🚀 Envío instantáneo
           </button>
           <button
             type="button"
-            className={`send-type-btn ${sendType === "later" ? "active" : ""}`}
+            className={`notification-send-type-btn ${sendType === "later" ? "active" : ""}`}
             onClick={() => handleTypeChange("later")}
           >
             📅 Programar para más tarde
@@ -216,7 +219,7 @@ function NotificationForm({ task, onClose }) {
 
         {sendType === "later" && (
           <form onSubmit={handleScheduleLater}>
-            <div className="form-group">
+            <div className="notification-form-group">
               <label htmlFor="date">📅 Fecha (hora Argentina UTC-3):</label>
               <input
                 type="date"
@@ -225,12 +228,11 @@ function NotificationForm({ task, onClose }) {
                 onChange={(e) => setScheduledDate(e.target.value)}
                 required
                 min={getArgentinaDateString()}
-                className="form-input"
+                className="notification-form-input"
               />
-              <br />
             </div>
 
-            <div className="form-group">
+            <div className="notification-form-group">
               <label htmlFor="time">⏰ Hora (UTC-3):</label>
               <input
                 type="time"
@@ -238,9 +240,8 @@ function NotificationForm({ task, onClose }) {
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
                 required
-                className="form-input"
+                className="notification-form-input"
               />
-              <br />
             </div>
 
             {message.text && (
@@ -249,15 +250,19 @@ function NotificationForm({ task, onClose }) {
               </div>
             )}
 
-            <button type="submit" className="submit-button" disabled={loading}>
+            <button
+              type="submit"
+              className="notification-submit-button"
+              disabled={loading}
+            >
               {loading ? "⏳ Programando..." : "📅 Programar recordatorio"}
             </button>
           </form>
         )}
 
         {sendType === "now" && (
-          <div className="send-now-container">
-            <p className="send-now-info">
+          <div className="notification-send-now-container">
+            <p className="notification-send-now-info">
               📧 El recordatorio se enviará a tu email:{" "}
               <strong>{userEmail || "Cargando..."}</strong>
             </p>
@@ -266,7 +271,6 @@ function NotificationForm({ task, onClose }) {
                 {message.text}
               </div>
             )}
-            {/* ✅ Mensaje adicional */}
             <p
               style={{
                 fontSize: "1rem",
@@ -279,7 +283,7 @@ function NotificationForm({ task, onClose }) {
             </p>
             <button
               type="button"
-              className="send-now-button"
+              className="notification-send-now-button"
               onClick={handleSendNow}
               disabled={loading}
             >

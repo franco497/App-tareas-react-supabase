@@ -1,6 +1,6 @@
-/* src/styles/components/notification-form.css */
+/* src/styles/components/reschedule-modal.css */
 /* ============================================
-   NOTIFICATION FORM - MODAL
+   RESCHEDULE MODAL
    Acuarela Nocturna - Mobile-First
    ============================================ */
 
@@ -8,7 +8,7 @@
    OVERLAY Y CONTENEDOR PRINCIPAL
    ============================================ */
 
-.notification-modal-overlay {
+.reschedule-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -24,15 +24,15 @@
   padding: 1rem;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  animation: notificationModalFadeIn 0.3s ease;
+  animation: rescheduleModalFadeIn 0.3s ease;
 }
 
-@keyframes notificationModalFadeIn {
+@keyframes rescheduleModalFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.notification-modal-content {
+.reschedule-modal-content {
   background: var(--primary-gradient);
   border-radius: 20px;
   padding: 1.5rem;
@@ -40,7 +40,7 @@
   width: 100%;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
-  animation: notificationModalSlideUp 0.3s ease;
+  animation: rescheduleModalSlideUp 0.3s ease;
   position: relative;
   overflow: hidden;
   max-height: 90vh;
@@ -53,7 +53,7 @@
   contain: layout style paint;
 }
 
-@keyframes notificationModalSlideUp {
+@keyframes rescheduleModalSlideUp {
   from {
     opacity: 0;
     transform: translateY(30px) scale(0.95) translateZ(0);
@@ -68,7 +68,7 @@
    HEADER
    ============================================ */
 
-.notification-modal-header {
+.reschedule-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -78,7 +78,7 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.notification-modal-header h3 {
+.reschedule-modal-header h3 {
   color: var(--white);
   font-size: 1rem;
   margin: 0;
@@ -88,7 +88,7 @@
   line-height: 1.4;
 }
 
-.notification-modal-close {
+.reschedule-modal-close {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   color: var(--white);
@@ -107,70 +107,35 @@
   padding: 0;
 }
 
-.notification-modal-close:hover {
+.reschedule-modal-close:hover {
   background: rgba(231, 111, 81, 0.2);
   border-color: var(--danger-color);
   transform: rotate(90deg);
 }
 
 /* ============================================
-   SELECTOR DE TIPO DE ENVÍO
-   ============================================ */
-
-.notification-send-type-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.notification-send-type-btn {
-  padding: 0.6rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-light);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 44px;
-  width: 100%;
-}
-
-.notification-send-type-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border-color-hover);
-}
-
-.notification-send-type-btn.active {
-  background: rgba(233, 196, 106, 0.15);
-  border-color: var(--warning-color);
-  color: var(--white);
-  box-shadow: 0 0 20px rgba(233, 196, 106, 0.05);
-}
-
-/* ============================================
    FORMULARIO
    ============================================ */
 
-.notification-form-group {
+.reschedule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reschedule-form-group {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 
-.notification-form-group label {
+.reschedule-form-group label {
   color: var(--text-light);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
-.notification-form-input {
+.reschedule-form-input {
   padding: 0.6rem 0.8rem;
   border: 2px solid var(--border-color);
   border-radius: 10px;
@@ -183,14 +148,14 @@
   min-height: 42px;
 }
 
-.notification-form-input:focus {
+.reschedule-form-input:focus {
   outline: none;
   border-color: var(--warning-color);
   box-shadow: 0 0 0 3px rgba(233, 196, 106, 0.1);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.notification-form-input::-webkit-calendar-picker-indicator {
+.reschedule-form-input::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
 }
@@ -199,7 +164,7 @@
    BOTÓN SUBMIT
    ============================================ */
 
-.notification-submit-button {
+.reschedule-submit-button {
   width: 100%;
   padding: 0.6rem 1rem;
   background: var(--success-color);
@@ -215,74 +180,16 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 1rem;
 }
 
-.notification-submit-button:hover:not(:disabled) {
+.reschedule-submit-button:hover:not(:disabled) {
   background: #1e5a3e;
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(45, 106, 79, 0.3);
 }
 
-.notification-submit-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ============================================
-   ENVÍO INSTANTÁNEO
-   ============================================ */
-
-.notification-send-now-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.25rem;
-}
-
-.notification-send-now-info {
-  color: var(--text-light);
-  font-size: 0.9rem;
-  text-align: center;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  line-height: 1.5;
-}
-
-.notification-send-now-info strong {
-  color: var(--white);
-  word-break: break-all;
-}
-
-.notification-send-now-button {
-  padding: 0.6rem 1rem;
-  background: rgba(233, 196, 106, 0.2);
-  color: var(--white);
-  border: 2px solid rgba(233, 196, 106, 0.3);
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  min-height: 44px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.notification-send-now-button:hover:not(:disabled) {
-  background: rgba(233, 196, 106, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(233, 196, 106, 0.2);
-  border-color: var(--warning-color);
-}
-
-.notification-send-now-button:disabled {
+.reschedule-submit-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -292,7 +199,7 @@
    DECORACIÓN
    ============================================ */
 
-.notification-modal-content::before {
+.reschedule-modal-content::before {
   content: "";
   position: absolute;
   top: -50%;
@@ -304,7 +211,7 @@
   z-index: 0;
 }
 
-.notification-modal-content > * {
+.reschedule-modal-content > * {
   position: relative;
   z-index: 1;
 }
@@ -313,21 +220,21 @@
    SCROLL PERSONALIZADO
    ============================================ */
 
-.notification-modal-content::-webkit-scrollbar {
+.reschedule-modal-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.notification-modal-content::-webkit-scrollbar-track {
+.reschedule-modal-content::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
 
-.notification-modal-content::-webkit-scrollbar-thumb {
+.reschedule-modal-content::-webkit-scrollbar-thumb {
   background: rgba(233, 196, 106, 0.5);
   border-radius: 10px;
 }
 
-.notification-modal-content::-webkit-scrollbar-thumb:hover {
+.reschedule-modal-content::-webkit-scrollbar-thumb:hover {
   background: rgba(233, 196, 106, 0.8);
 }
 
@@ -336,72 +243,51 @@
    ============================================ */
 
 @media (max-height: 500px) and (orientation: landscape) {
-  .notification-modal-overlay {
+  .reschedule-modal-overlay {
     padding: 0.5rem;
     align-items: flex-start;
     padding-top: 1rem;
   }
 
-  .notification-modal-content {
+  .reschedule-modal-content {
     max-height: 85vh;
     max-height: 85dvh;
     padding: 1rem;
     border-radius: 16px;
   }
 
-  .notification-modal-header {
+  .reschedule-modal-header {
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
   }
 
-  .notification-modal-header h3 {
+  .reschedule-modal-header h3 {
     font-size: 0.9rem;
   }
 
-  .notification-send-type-selector {
-    gap: 0.35rem;
-    margin-bottom: 0.75rem;
+  .reschedule-form {
+    gap: 0.5rem;
   }
 
-  .notification-send-type-btn {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-    min-height: 36px;
-  }
-
-  .notification-form-group {
+  .reschedule-form-group {
     gap: 0.2rem;
   }
 
-  .notification-form-group label {
+  .reschedule-form-group label {
     font-size: 0.8rem;
   }
 
-  .notification-form-input {
+  .reschedule-form-input {
     padding: 0.4rem 0.6rem;
     font-size: 16px;
     min-height: 36px;
   }
 
-  .notification-send-now-container {
-    gap: 0.5rem;
-  }
-
-  .notification-send-now-info {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-  }
-
-  .notification-send-now-button {
+  .reschedule-submit-button {
     padding: 0.4rem 0.75rem;
     font-size: 0.85rem;
     min-height: 36px;
-  }
-
-  .notification-submit-button {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
-    min-height: 36px;
+    margin-top: 0.5rem;
   }
 }
 
@@ -410,7 +296,7 @@
    ============================================ */
 
 @media (max-width: 860px) {
-  .notification-modal-overlay {
+  .reschedule-modal-overlay {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background: rgba(0, 0, 0, 0.85);
@@ -422,43 +308,32 @@
    ============================================ */
 
 @media (min-width: 36rem) {
-  .notification-modal-content {
+  .reschedule-modal-content {
     padding: 1.75rem 2rem;
     max-width: 520px;
-  }
-
-  .notification-send-type-selector {
-    flex-direction: row;
-  }
-
-  .notification-send-type-btn {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
-    min-height: 40px;
   }
 }
 
 @media (min-width: 48rem) {
-  .notification-modal-content {
+  .reschedule-modal-content {
     padding: 2rem 2.5rem;
     max-width: 540px;
     border-radius: 24px;
   }
 
-  .notification-modal-header h3 {
+  .reschedule-modal-header h3 {
     font-size: 1.2rem;
   }
 }
 
 @media (min-width: 64rem) {
-  .notification-modal-content {
+  .reschedule-modal-content {
     padding: 2.5rem 3rem;
     max-width: 580px;
     border-radius: 28px;
   }
 
-  .notification-modal-header h3 {
+  .reschedule-modal-header h3 {
     font-size: 1.3rem;
   }
 }

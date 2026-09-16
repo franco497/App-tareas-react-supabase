@@ -1,0 +1,323 @@
+/* src/styles/components/scheduled-details-modal.css */
+/* ============================================
+   SCHEDULED DETAILS MODAL
+   Acuarela Nocturna - Mobile-First
+   ============================================ */
+
+/* ============================================
+   OVERLAY Y CONTENEDOR PRINCIPAL
+   ============================================ */
+
+.details-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: detailsModalFadeIn 0.3s ease;
+}
+
+@keyframes detailsModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.details-modal-content {
+  background: var(--primary-gradient);
+  border-radius: 20px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: detailsModalSlideUp 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  max-height: 90vh;
+  max-height: 90dvh;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+@keyframes detailsModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.details-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.details-modal-header h3 {
+  color: var(--white);
+  font-size: 1rem;
+  margin: 0;
+  flex: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.details-modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+.details-modal-close:hover {
+  background: rgba(231, 111, 81, 0.2);
+  border-color: var(--danger-color);
+  transform: rotate(90deg);
+}
+
+/* ============================================
+   CONTENIDO DE DETALLES
+   ============================================ */
+
+.details-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.detail-value {
+  color: var(--white);
+  font-size: 0.95rem;
+  word-break: break-word;
+  line-height: 1.4;
+  padding-left: 1.5rem;
+}
+
+/* ============================================
+   BOTÓN CERRAR
+   ============================================ */
+
+.details-close-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  background: rgba(45, 106, 79, 0.3);
+  color: var(--white);
+  border: 2px solid rgba(45, 106, 79, 0.3);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-close-btn:hover {
+  background: rgba(45, 106, 79, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+  border-color: var(--success-color);
+}
+
+/* ============================================
+   DECORACIÓN
+   ============================================ */
+
+.details-modal-content::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.details-modal-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   SCROLL PERSONALIZADO
+   ============================================ */
+
+.details-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.details-modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.details-modal-content::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.5);
+  border-radius: 10px;
+}
+
+.details-modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.8);
+}
+
+/* ============================================
+   RESPONSIVE - HORIZONTAL (TECLADO ACTIVO)
+   ============================================ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .details-modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+
+  .details-modal-content {
+    max-height: 85vh;
+    max-height: 85dvh;
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .details-modal-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .details-modal-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .details-content {
+    gap: 0.4rem;
+  }
+
+  .detail-item {
+    padding: 0.35rem 0;
+  }
+
+  .detail-label {
+    font-size: 0.75rem;
+  }
+
+  .detail-value {
+    font-size: 0.8rem;
+    padding-left: 1rem;
+  }
+
+  .details-close-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 34px;
+    margin-top: 0.5rem;
+  }
+}
+
+/* ============================================
+   SIN BACKDROP-FILTER EN MÓVILES
+   ============================================ */
+
+@media (max-width: 860px) {
+  .details-modal-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.85);
+  }
+}
+
+/* ============================================
+   RESPONSIVE - TABLET Y DESKTOP
+   ============================================ */
+
+@media (min-width: 36rem) {
+  .details-modal-content {
+    padding: 1.75rem 2rem;
+    max-width: 520px;
+  }
+}
+
+@media (min-width: 48rem) {
+  .details-modal-content {
+    padding: 2rem 2.5rem;
+    max-width: 540px;
+    border-radius: 24px;
+  }
+
+  .details-modal-header h3 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .details-modal-content {
+    padding: 2.5rem 3rem;
+    max-width: 580px;
+    border-radius: 28px;
+  }
+
+  .details-modal-header h3 {
+    font-size: 1.3rem;
+  }
+}

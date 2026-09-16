@@ -43,13 +43,16 @@ function ScheduledDetailsModal({ task, onClose }) {
         return status;
     }
   };
-
+  
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="details-modal-overlay" onClick={onClose}>
+      <div
+        className="details-modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="details-modal-header">
           <h3>📋 Detalles de la notificación</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="details-modal-close" onClick={onClose}>
             ✕
           </button>
         </div>
@@ -62,7 +65,9 @@ function ScheduledDetailsModal({ task, onClose }) {
 
           <div className="detail-item">
             <span className="detail-label">📅 Programada para:</span>
-            <span className="detail-value">{formatDate(task.scheduled_for)}</span>
+            <span className="detail-value">
+              {formatDate(task.scheduled_for)}
+            </span>
           </div>
 
           <div className="detail-item">
@@ -77,7 +82,10 @@ function ScheduledDetailsModal({ task, onClose }) {
 
           <div className="detail-item">
             <span className="detail-label">🆔 ID:</span>
-            <span className="detail-value" style={{ fontSize: "0.8rem", wordBreak: "break-all" }}>
+            <span
+              className="detail-value"
+              style={{ fontSize: "0.8rem", wordBreak: "break-all" }}
+            >
               {task.id}
             </span>
           </div>
@@ -90,7 +98,9 @@ function ScheduledDetailsModal({ task, onClose }) {
           {task.sent_at && (
             <div className="detail-item">
               <span className="detail-label">📨 Enviado el:</span>
-              <span className="detail-value">{formatSentDate(task.sent_at)}</span>
+              <span className="detail-value">
+                {formatSentDate(task.sent_at)}
+              </span>
             </div>
           )}
         </div>

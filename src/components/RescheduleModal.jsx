@@ -9,10 +9,10 @@ function RescheduleModal({ task, onClose }) {
 
   //  ESTADOS IGUALES QUE NotificationForm
   const [scheduledDate, setScheduledDate] = useState(
-    task.scheduled_for ? task.scheduled_for.split(" ")[0] : ""
+    task.scheduled_for ? task.scheduled_for.split(" ")[0] : "",
   );
   const [scheduledTime, setScheduledTime] = useState(
-    task.scheduled_for ? task.scheduled_for.split(" ")[1]?.slice(0, 5) : ""
+    task.scheduled_for ? task.scheduled_for.split(" ")[1]?.slice(0, 5) : "",
   );
   const [loading, setLoading] = useState(false);
 
@@ -76,17 +76,20 @@ function RescheduleModal({ task, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="reschedule-modal-overlay" onClick={onClose}>
+      <div
+        className="reschedule-modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="reschedule-modal-header">
           <h3>🔄 Reprogramar: "{task.task_name}"</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="reschedule-modal-close" onClick={onClose}>
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
+        <form onSubmit={handleSubmit} className="reschedule-form">
+          <div className="reschedule-form-group">
             <label htmlFor="date">📅 Nueva fecha (Argentina UTC-3):</label>
             <input
               type="date"
@@ -95,11 +98,11 @@ function RescheduleModal({ task, onClose }) {
               onChange={(e) => setScheduledDate(e.target.value)}
               required
               min={getArgentinaDateString()}
-              className="form-input"
+              className="reschedule-form-input"
             />
           </div>
 
-          <div className="form-group">
+          <div className="reschedule-form-group">
             <label htmlFor="time">⏰ Nueva hora (UTC-3):</label>
             <input
               type="time"
@@ -107,15 +110,14 @@ function RescheduleModal({ task, onClose }) {
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
               required
-              className="form-input"
+              className="reschedule-form-input"
             />
           </div>
 
           <button
             type="submit"
-            className="submit-button"
+            className="reschedule-submit-button"
             disabled={loading}
-            style={{ marginTop: "1rem" }}
           >
             {loading ? "⏳ Reprogramando..." : "🔄 Reprogramar"}
           </button>
