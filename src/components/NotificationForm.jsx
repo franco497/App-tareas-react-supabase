@@ -1,8 +1,9 @@
 // src/components/NotificationForm.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { useTasks } from "../context"; // ← IMPORTAR EL CONTEXTO
+import { useTasks } from "../context";
 import Swal from "sweetalert2";
+import { useModalScroll } from "../hooks/useModalScroll";
 
 function NotificationForm({ task, onClose }) {
   const [scheduledDate, setScheduledDate] = useState("");
@@ -14,6 +15,9 @@ function NotificationForm({ task, onClose }) {
 
   //  USAR EL CONTEXTO
   const { scheduleTaskLater } = useTasks();
+
+  //  USAR EL HOOK
+  const { contentRef, hasScroll } = useModalScroll();
 
   const getArgentinaDate = () => {
     const now = new Date();
@@ -186,11 +190,11 @@ function NotificationForm({ task, onClose }) {
     setScheduledDate("");
     setScheduledTime("");
   };
-  
   return (
     <div className="notification-modal-overlay" onClick={onClose}>
       <div
-        className="notification-modal-content"
+        ref={contentRef} // ✅ REFERENCIA AL MODAL CONTENT
+        className={`notification-modal-content ${hasScroll ? "has-scroll" : ""}`} // ✅ CLASE DINÁMICA
         onClick={(e) => e.stopPropagation()}
       >
         <div className="notification-modal-header">

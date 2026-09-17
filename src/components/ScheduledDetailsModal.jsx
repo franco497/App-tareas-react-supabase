@@ -1,5 +1,11 @@
 // src/components/ScheduledDetailsModal.jsx
+
+import { useModalScroll } from "../hooks/useModalScroll";
+
 function ScheduledDetailsModal({ task, onClose }) {
+  // USAR EL HOOK
+  const { contentRef, hasScroll } = useModalScroll();
+
   const formatDate = (dateString) => {
     if (!dateString) return "No especificada";
     const date = new Date(dateString);
@@ -43,11 +49,12 @@ function ScheduledDetailsModal({ task, onClose }) {
         return status;
     }
   };
-  
+
   return (
     <div className="details-modal-overlay" onClick={onClose}>
       <div
-        className="details-modal-content"
+        ref={contentRef} // ✅ REFERENCIA AL MODAL CONTENT
+        className={`details-modal-content ${hasScroll ? "has-scroll" : ""}`} // ✅ CLASE DINÁMICA
         onClick={(e) => e.stopPropagation()}
       >
         <div className="details-modal-header">

@@ -43,14 +43,48 @@
   animation: notificationModalSlideUp 0.3s ease;
   position: relative;
   overflow: hidden;
+
+  /* ✅ Altura máxima */
   max-height: 90vh;
   max-height: 90dvh;
+
+  /* ✅ Por defecto SIN scroll */
+  overflow-y: hidden;
+
+  /* ✅ Aceleración por hardware */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+
+  /* ✅ Aislar del resto del layout */
   contain: layout style paint;
+}
+
+/* ✅ Solo aplicar scroll cuando sea necesario */
+.notification-modal-content.has-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ✅ Scroll personalizado (solo cuando has-scroll está activo) */
+.notification-modal-content.has-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-modal-content.has-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.notification-modal-content.has-scroll::-webkit-scrollbar-thumb {
+  background: rgba(233, 196, 106, 0.5);
+  border-radius: 10px;
+}
+
+.notification-modal-content.has-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 196, 106, 0.8);
 }
 
 @keyframes notificationModalSlideUp {
@@ -307,28 +341,6 @@
 .notification-modal-content > * {
   position: relative;
   z-index: 1;
-}
-
-/* ============================================
-   SCROLL PERSONALIZADO
-   ============================================ */
-
-.notification-modal-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.notification-modal-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-}
-
-.notification-modal-content::-webkit-scrollbar-thumb {
-  background: rgba(233, 196, 106, 0.5);
-  border-radius: 10px;
-}
-
-.notification-modal-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(233, 196, 106, 0.8);
 }
 
 /* ============================================

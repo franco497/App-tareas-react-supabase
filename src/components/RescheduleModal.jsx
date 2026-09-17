@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useTasks } from "../context";
 import Swal from "sweetalert2";
+import { useModalScroll } from "../hooks/useModalScroll";
 
 function RescheduleModal({ task, onClose }) {
   //  USAR EL CONTEXTO (igual que NotificationForm)
@@ -15,6 +16,9 @@ function RescheduleModal({ task, onClose }) {
     task.scheduled_for ? task.scheduled_for.split(" ")[1]?.slice(0, 5) : "",
   );
   const [loading, setLoading] = useState(false);
+
+  //  USAR EL HOOK
+  const { contentRef, hasScroll } = useModalScroll();
 
   //  FUNCIÓN PARA FECHA ACTUAL (igual que NotificationForm)
   const getArgentinaDateString = () => {
@@ -74,11 +78,11 @@ function RescheduleModal({ task, onClose }) {
       setLoading(false);
     }
   };
-
   return (
     <div className="reschedule-modal-overlay" onClick={onClose}>
       <div
-        className="reschedule-modal-content"
+        ref={contentRef} // ✅ REFERENCIA AL MODAL CONTENT
+        className={`reschedule-modal-content ${hasScroll ? "has-scroll" : ""}`} // ✅ CLASE DINÁMICA
         onClick={(e) => e.stopPropagation()}
       >
         <div className="reschedule-modal-header">
