@@ -3,11 +3,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase, getRedirectUrl } from "../lib/supabase";
 import Swal from "sweetalert2";
+import { useOrientation } from "../hooks/useOrientation"; 
 
 function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+    // USAR EL HOOK
+  useOrientation();
 
   const {
     register,
