@@ -283,3 +283,45 @@
     min-height: 44px;
   }
 }
+
+/* ============================================
+   ✅ HORIZONTAL CON POCA ALTURA
+   ============================================ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-container {
+    min-height: auto;
+    padding: 0.75rem;
+    justify-content: flex-start;
+    padding-top: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .login-form {
+    border-radius: 16px;
+  }
+
+  .login-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 18px;
+    min-height: 38px;
+  }
+
+  .login-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    min-height: 38px;
+  }
+
+  .login-message {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .login-container > div:last-child {
+    margin-top: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.75rem !important;
+  }
+}
