@@ -16,6 +16,7 @@ Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** q
 * 🛡️ **Protección anti-spam** – Límite de 15 solicitudes de acceso por hora para cada usuario.
 * 📋 **Seguimiento de recordatorios** – Visualización del estado de todas las notificaciones programadas.
 * 📱 **Mobile First** – Diseño optimizado para móviles, tablets y escritorio.
+* 🔍 **Scroll inteligente en modales** – La barra de scroll solo aparece cuando el contenido excede la altura de la pantalla.
 * 🎨 **Arquitectura CSS escalable** – Organización basada en ITCSS y Atomic Design.
 * ⚡ **Enrutamiento completo** – Navegación fluida con React Router DOM.
 
