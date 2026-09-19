@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import Swal from "sweetalert2"; 
+import Swal from "sweetalert2";
 
 function Navbar({ showTaskDone, onToggleView, userEmail }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +55,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     setIsOpen(false);
   };
 
-  //  HANDLE LOGOUT CON SWEETALERT 
+  //  HANDLE LOGOUT CON SWEETALERT
   const handleLogout = async () => {
     //  Mostrar confirmación antes de cerrar sesión
     const result = await Swal.fire({
@@ -67,8 +67,8 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, cerrar sesión",
       cancelButtonText: "Cancelar",
-      background: "#ffffff", 
-      color: "#1a1a2e", 
+      background: "#ffffff",
+      color: "#1a1a2e",
       iconColor: "#e9c46a",
     });
 
@@ -76,7 +76,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     if (result.isConfirmed) {
       try {
         await supabase.auth.signOut();
-        
+
         //  Mostrar mensaje de éxito
         await Swal.fire({
           title: "✅ Sesión cerrada",
@@ -85,15 +85,15 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
           timer: 2000,
           timerProgressBar: true,
           showConfirmButton: false,
-          background: "#ffffff", 
-          color: "#1a1a2e", 
+          background: "#ffffff",
+          color: "#1a1a2e",
           iconColor: "#2d6a4f",
         });
-        
+
         navigate("/");
       } catch (error) {
         console.error("❌ Error al cerrar sesión:", error);
-        
+
         //  Mostrar mensaje de error
         await Swal.fire({
           title: "❌ Error",
@@ -101,8 +101,8 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
           icon: "error",
           confirmButtonColor: "#e76f51",
           confirmButtonText: "Entendido",
-          background: "#ffffff", 
-          color: "#1a1a2e", 
+          background: "#ffffff",
+          color: "#1a1a2e",
           iconColor: "#e76f51",
         });
       }
@@ -117,7 +117,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     <>
       <nav className="navbar">
         <div className="nav-container">
-          {/* Botón Hamburguesa - solo visible en móvil */}
+          {/* ✅ HEADER FIJO con la X */}
           {!isDesktop && (
             <button
               className={`nav-toggle ${isOpen ? "active" : ""}`}
@@ -130,7 +130,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
             </button>
           )}
 
-          {/* Menú de navegación - siempre visible en desktop, condicional en móvil */}
+          {/* ✅ MENÚ SCROLLEABLE */}
           <ul
             ref={menuRef}
             className={`nav-menu ${!isDesktop && isOpen ? "active" : ""}`}
