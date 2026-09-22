@@ -11,8 +11,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  min-height: 100dvh; /* ✅ SOLUCIÓN 1: dvh */
-  min-height: 100%; /* ✅ SOLUCIÓN 3: Fallback */
+  min-height: 100dvh; 
+  min-height: 100%; 
   flex: 1 0 auto;
   background: var(--primary-gradient);
   width: 100%;
@@ -27,7 +27,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* ✅ SOLUCIÓN 3: Importante para flexbox */
+  min-height: 0; 
 }
 
 /* 3. Dashboard container */
@@ -38,7 +38,7 @@
   width: 100%;
   box-sizing: border-box;
   flex: 1 0 auto;
-  min-height: 0; /* ✅ SOLUCIÓN 3: Importante para flexbox */
+  min-height: 0; 
 }
 
 /* 4. Título del dashboard */
@@ -218,7 +218,7 @@
     padding-top: 80px !important; /* ← Ajusta este valor según necesidad */
   }
 
-  /* Opcional: reducir padding del dashboard para ganar espacio */
+  /* reducir padding del dashboard para ganar espacio */
   .dashboard-container {
     padding: 12px 20px !important;
   }

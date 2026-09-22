@@ -133,7 +133,7 @@ function NotificationForm({ task, onClose }) {
     setMessage({ text: "", type: "" });
 
     try {
-      // ✅ LLAMAR A LA FUNCIÓN DEL CONTEXTO
+      //  LLAMAR A LA FUNCIÓN DEL CONTEXTO
       await scheduleTaskLater(task, scheduledDate, scheduledTime);
 
       setScheduledDate("");
@@ -193,8 +193,8 @@ function NotificationForm({ task, onClose }) {
   return (
     <div className="notification-modal-overlay" onClick={onClose}>
       <div
-        ref={contentRef} // ✅ REFERENCIA AL MODAL CONTENT
-        className={`notification-modal-content ${hasScroll ? "has-scroll" : ""}`} // ✅ CLASE DINÁMICA
+        ref={contentRef} 
+        className={`notification-modal-content ${hasScroll ? "has-scroll" : ""}`} 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="notification-modal-header">

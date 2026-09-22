@@ -24,7 +24,7 @@ function App() {
           try {
             const parsed = JSON.parse(stored);
 
-            // ✅ Verificar si la sesión es válida
+            //  Verificar si la sesión es válida
             const { data, error } = await supabase.auth.setSession({
               access_token: parsed.session?.access_token || parsed.access_token,
               refresh_token:
@@ -36,7 +36,7 @@ function App() {
               localStorage.removeItem("supabaseSession");
               setSession(null);
             } else {
-              // ✅ Usar la sesión de data.session que devuelve Supabase
+              //  Usar la sesión de data.session que devuelve Supabase
               setSession(data.session || parsed);
               console.log(
                 `✅ App - Sesión restaurada: ${data.session?.user?.email || parsed?.user?.email}`,

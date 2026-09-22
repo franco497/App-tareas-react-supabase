@@ -212,7 +212,7 @@
    QUERIES
    ============================================ */
 
-/* ✅ Desktop / Tablet grande */
+/*  Desktop / Tablet grande */
 @media (min-width: 768px) {
 /*   .login-container {
     padding: 2.5rem;
@@ -242,7 +242,7 @@
   }
 }
 
-/* ✅ Móvil horizontal con poca altura */
+/*  Móvil horizontal con poca altura */
 @media (max-height: 500px) and (orientation: landscape) {
   .login-container {
     min-height: auto;

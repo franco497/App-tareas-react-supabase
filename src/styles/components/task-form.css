@@ -19,7 +19,7 @@
 .task-input {
   width: 100%;
   padding: 1rem;
-  font-size: 16px; /* ✅ SOLUCIÓN 4: Previene zoom automático en móviles */
+  font-size: 16px; 
   font-family: inherit;
   color: var(--input-text);
   background: var(--input-bg);
@@ -153,7 +153,7 @@
 }
 
 /* ============================================
-   ✅ SOLUCIÓN 4: PREVENIR ZOOM AUTOMÁTICO EN MÓVILES
+    PREVENIR ZOOM AUTOMÁTICO EN MÓVILES
    ============================================ */
 
 /* Todos los inputs del sistema con font-size >= 16px */
@@ -169,7 +169,7 @@ input[type="tel"],
 input[type="url"],
 textarea,
 select {
-  font-size: 16px; /* ✅ Previene zoom automático en iOS/Android */
+  font-size: 16px; 
 }
 
 /* En desktop volvemos a usar rem */

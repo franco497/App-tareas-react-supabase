@@ -4,12 +4,15 @@
 
 .scheduled-tasks-container {
   padding: 1rem;
+  padding-bottom: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
-  min-height: 80vh;
   color: var(--white);
+  flex: 1 0 auto;  
+  display: flex;
+  flex-direction: column;
 }
 
 .scheduled-header {
@@ -167,8 +170,17 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 50%, rgba(233, 196, 106, 0.05) 0%, transparent 70%),
-               radial-gradient(circle at 70% 80%, rgba(45, 106, 79, 0.03) 0%, transparent 60%);
+  background:
+    radial-gradient(
+      circle at 30% 50%,
+      rgba(233, 196, 106, 0.05) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      circle at 70% 80%,
+      rgba(45, 106, 79, 0.03) 0%,
+      transparent 60%
+    );
   opacity: 0;
   transition: opacity var(--transition-base);
   pointer-events: none;
@@ -185,7 +197,11 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 70%
+  );
   opacity: 0;
   transition: opacity var(--transition-slow);
   pointer-events: none;
@@ -499,4 +515,29 @@
     font-size: 0.9rem;
     min-height: 40px;
   }
+}
+
+/* ============================================
+    LAYOUT CON FOOTER (app-wrapper)
+   ============================================ */
+
+/* El contenedor de tareas programadas debe ocupar el espacio disponible */
+.scheduled-tasks-container {
+  flex: 1 0 auto;  
+  display: flex;
+  flex-direction: column;
+}
+
+/* La lista debe ocupar el espacio disponible */
+.scheduled-list {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* El footer se pega al fondo */
+footer.footer-component {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
 }

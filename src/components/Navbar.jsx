@@ -117,7 +117,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
     <>
       <nav className="navbar">
         <div className="nav-container">
-          {/* ✅ HEADER FIJO con la X */}
+          {/*  HEADER FIJO con la X */}
           {!isDesktop && (
             <button
               className={`nav-toggle ${isOpen ? "active" : ""}`}
@@ -130,7 +130,7 @@ function Navbar({ showTaskDone, onToggleView, userEmail }) {
             </button>
           )}
 
-          {/* ✅ MENÚ SCROLLEABLE */}
+          {/*  MENÚ SCROLLEABLE */}
           <ul
             ref={menuRef}
             className={`nav-menu ${!isDesktop && isOpen ? "active" : ""}`}

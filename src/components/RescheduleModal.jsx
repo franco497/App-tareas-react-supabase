@@ -81,8 +81,8 @@ function RescheduleModal({ task, onClose }) {
   return (
     <div className="reschedule-modal-overlay" onClick={onClose}>
       <div
-        ref={contentRef} // ✅ REFERENCIA AL MODAL CONTENT
-        className={`reschedule-modal-content ${hasScroll ? "has-scroll" : ""}`} // ✅ CLASE DINÁMICA
+        ref={contentRef} 
+        className={`reschedule-modal-content ${hasScroll ? "has-scroll" : ""}`} 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="reschedule-modal-header">

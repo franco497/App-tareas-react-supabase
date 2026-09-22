@@ -6,11 +6,12 @@ import TaskCard from "./TaskCard";
 function TaskList({ done = false }) {
   const { tasks, getTasks, loading } = useTasks();
   const [currentPage, setCurrentPage] = useState(1);
-  const tasksPerPage = 5; // ← Tareas por página
+  const tasksPerPage = 5;
 
+  //  Cargar tareas cuando cambia el filtro
   useEffect(() => {
     getTasks(done);
-    setCurrentPage(1); // Resetear página al cambiar filtro
+    setCurrentPage(1);
   }, [done, getTasks]);
 
   // Calcular paginación
@@ -21,10 +22,9 @@ function TaskList({ done = false }) {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    // Scroll al inicio de la lista
-    const taskList = document.querySelector('.task-list');
+    const taskList = document.querySelector(".task-list");
     if (taskList) {
-      taskList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      taskList.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -54,7 +54,6 @@ function TaskList({ done = false }) {
         ))}
       </div>
 
-      {/*  PAGINACIÓN - Solo visible si hay más de 1 página */}
       {totalPages > 1 && (
         <div className="pagination">
           <button
@@ -64,11 +63,11 @@ function TaskList({ done = false }) {
           >
             Anterior
           </button>
-          
+
           <span className="pagination-info">
             Página {currentPage} de {totalPages}
           </span>
-          
+
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}

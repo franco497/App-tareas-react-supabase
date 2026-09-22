@@ -1,5 +1,4 @@
 // src/components/ScheduledDetailsModal.jsx
-
 import { useModalScroll } from "../hooks/useModalScroll";
 
 function ScheduledDetailsModal({ task, onClose }) {
@@ -53,8 +52,8 @@ function ScheduledDetailsModal({ task, onClose }) {
   return (
     <div className="details-modal-overlay" onClick={onClose}>
       <div
-        ref={contentRef} // ✅ REFERENCIA AL MODAL CONTENT
-        className={`details-modal-content ${hasScroll ? "has-scroll" : ""}`} // ✅ CLASE DINÁMICA
+        ref={contentRef} 
+        className={`details-modal-content ${hasScroll ? "has-scroll" : ""}`} 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="details-modal-header">

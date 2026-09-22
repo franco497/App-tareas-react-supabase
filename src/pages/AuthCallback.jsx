@@ -10,7 +10,7 @@ function AuthCallback() {
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
-  // ✅ FUNCIÓN PARA EXTRAER TOKEN
+  //  FUNCIÓN PARA EXTRAER TOKEN
   const extractTokenFromUrl = () => {
     const currentUrl = window.location.href;
     const currentSearch = window.location.search;
@@ -21,12 +21,12 @@ function AuthCallback() {
 
     let token = null;
 
-    // ✅ MÉTODO 1: URLSearchParams
+    //  MÉTODO 1: URLSearchParams
     const params = new URLSearchParams(currentSearch);
     token = params.get("token");
     console.log("🔍 Método 1 (URLSearchParams):", token);
 
-    // ✅ MÉTODO 2: Regex en URL completa
+    //  MÉTODO 2: Regex en URL completa
     if (!token) {
       const match = currentUrl.match(/[?&]token=([^&]+)/);
       if (match) {
@@ -39,7 +39,7 @@ function AuthCallback() {
     return token;
   };
 
-  // ✅ VERIFICAR SI EL USUARIO YA TIENE SESIÓN ACTIVA
+  //  VERIFICAR SI EL USUARIO YA TIENE SESIÓN ACTIVA
   const hasActiveSession = () => {
     const stored = localStorage.getItem("supabaseSession");
     if (!stored) return false;
@@ -54,7 +54,7 @@ function AuthCallback() {
   useEffect(() => {
     console.log("🔥 useEffect de AuthCallback ejecutado");
 
-    // ✅ Si no hay token en la URL, forzar recarga
+    //  Si no hay token en la URL, forzar recarga
     if (!window.location.search.includes('token')) {
       console.warn("⚠️ No hay token en la URL, forzando recarga...");
       window.location.reload();
@@ -191,7 +191,7 @@ function AuthCallback() {
         console.error("❌ Error en AuthCallback:", error);
 
         // ============================================
-        // ✅ ✅ ✅ NUEVA LÓGICA: Verificar sesión activa
+        // Verificar sesión activa
         // ============================================
         if (hasActiveSession()) {
           console.log("✅ Usuario ya tiene sesión activa, redirigiendo a dashboard");

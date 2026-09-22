@@ -14,21 +14,21 @@ footer.footer-component {
   flex-shrink: 0;
   width: 100%;
 
-  /* ✅ Forzar aceleración por hardware */
+  /*  Forzar aceleración por hardware */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 
-  /* ✅ Aislar del resto del layout */
+  /*  Aislar del resto del layout */
   contain: layout style paint;
 
-  /* ✅ Sin backdrop-filter en móviles (se aplica en desktop) */
-  /* ✅ Sin animation en móviles (se aplica en desktop) */
+  /*  Sin backdrop-filter en móviles (se aplica en desktop) */
+  /*  Sin animation en móviles (se aplica en desktop) */
 }
 
-/* ✅ Solo aplicar backdrop-filter y animation en desktop */
+/*  Solo aplicar backdrop-filter y animation en desktop */
 @media (min-width: 861px) {
   footer.footer-component {
     backdrop-filter: blur(10px);
@@ -76,7 +76,7 @@ footer.footer-component .footer-avatar {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   transition: all var(--transition-base);
 
-  /* ✅ Forzar aceleración por hardware */
+  /*  Forzar aceleración por hardware */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   backface-visibility: hidden;
@@ -205,7 +205,7 @@ footer.footer-component .footer-copyright {
   }
 }
 
-/* ✅ Solo mostrar el ::before en desktop (para evitar repintados en móviles) */
+/*  Solo mostrar el ::before en desktop (para evitar repintados en móviles) */
 @media (min-width: 861px) {
   footer.footer-component::before {
     content: "";
@@ -329,23 +329,23 @@ footer.footer-component h3 {
 }
 
 /* ============================================
-   ✅ SOLUCIÓN EXTRA: Forzar repintado en móviles
+    SOLUCIÓN EXTRA: Forzar repintado en móviles
    ============================================ */
 
 /* Cuando el footer entra en el viewport, forzar repintado */
 @media (max-width: 860px) {
   footer.footer-component {
-    /* ✅ Sin backdrop-filter ni animation en móviles */
+    /*  Sin backdrop-filter ni animation en móviles */
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     animation: none;
 
-    /* ✅ Forzar repintado con transform */
+    /*  Forzar repintado con transform */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
 
-  /* ✅ Reducir la complejidad visual en móviles */
+  /*  Reducir la complejidad visual en móviles */
   footer.footer-component::before {
     display: none;
   }

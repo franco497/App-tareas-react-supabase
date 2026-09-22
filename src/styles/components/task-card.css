@@ -181,7 +181,7 @@
   border-color: var(--danger-color);
 }
 
-/* ✅ Estilos para botones deshabilitados */
+/*  Estilos para botones deshabilitados */
 .task-card .notify-button:disabled,
 .task-card .edit-button:disabled,
 .task-card .delete-button:disabled {
@@ -191,7 +191,7 @@
   box-shadow: none !important;
 }
 
-/* ✅ Estilo específico para cuando están deshabilitados en modo edición */
+/*  Estilo específico para cuando están deshabilitados en modo edición */
 .task-card .notify-button.disabled,
 .task-card .delete-button.disabled {
   opacity: 0.4;

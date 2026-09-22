@@ -13,17 +13,17 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET es requerido");
 }
 
-// ✅ LISTA NEGRA EN MEMORIA (se reinicia al reiniciar la función)
-// ⚠️ En Netlify Functions, esto se mantiene mientras la función está activa
+//  LISTA NEGRA EN MEMORIA (se reinicia al reiniciar la función)
+//  En Netlify Functions, esto se mantiene mientras la función está activa
 const usedTokens = new Set();
 
-// ✅ Limpiar tokens expirados cada hora
+//  Limpiar tokens expirados cada hora
 setInterval(() => {
   console.log(`🧹 Limpiando lista negra: ${usedTokens.size} tokens`);
   usedTokens.clear();
 }, 60 * 60 * 1000); // 1 hora
 
-// ✅ VERIFICAR JWT
+//  VERIFICAR JWT
 function verifyJWT(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -36,7 +36,7 @@ function verifyJWT(token) {
   }
 }
 
-// ✅ FUNCIÓN PARA INICIAR SESIÓN CON REINTENTOS
+//  FUNCIÓN PARA INICIAR SESIÓN CON REINTENTOS
 const loginWithRetry = async (email, password, maxRetries = 5, delay = 2000) => {
   console.log(`🔐 Intentando iniciar sesión para: ${email}`);
   
@@ -106,7 +106,7 @@ export const handler = async (event) => {
       };
     }
 
-    // ✅ VERIFICAR JWT
+    //  VERIFICAR JWT
     console.log("🔍 Verificando JWT...");
     const { valid, email, decoded, jti, error } = verifyJWT(token);
 
@@ -122,7 +122,7 @@ export const handler = async (event) => {
       };
     }
 
-    // ✅ VERIFICAR SI EL TOKEN YA FUE USADO (lista negra en memoria)
+    //  VERIFICAR SI EL TOKEN YA FUE USADO (lista negra en memoria)
     if (jti && usedTokens.has(jti)) {
       console.error(`❌ Token ya usado (jti: ${jti})`);
       return {
@@ -138,18 +138,18 @@ export const handler = async (event) => {
     console.log(`✅ JWT válido para: ${email}`);
     console.log(`📝 JTI: ${jti}`);
 
-    // ✅ MARCAR EL TOKEN COMO USADO (guardar en lista negra)
+    //  MARCAR EL TOKEN COMO USADO (guardar en lista negra)
     if (jti) {
       usedTokens.add(jti);
       console.log(`✅ Token marcado como usado (jti: ${jti})`);
       console.log(`📊 Tokens usados en memoria: ${usedTokens.size}`);
     }
 
-    // ✅ GENERAR CONTRASEÑA TEMPORAL CORTA
+    //  GENERAR CONTRASEÑA TEMPORAL CORTA
     const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
     console.log(`🔐 Contraseña temporal (${temporaryPassword.length} caracteres)`);
 
-    // ✅ VERIFICAR SI EL USUARIO YA EXISTE
+    //  VERIFICAR SI EL USUARIO YA EXISTE
     const { data: users, error: listError } = await supabase.auth.admin.listUsers();
 
     if (listError) {
@@ -166,7 +166,7 @@ export const handler = async (event) => {
 
     const existingUser = users?.users?.find((user) => user.email === email);
 
-    // ✅ SI EL USUARIO NO EXISTE, CREARLO
+    //  SI EL USUARIO NO EXISTE, CREARLO
     if (!existingUser) {
       console.log("🆕 Usuario no existe, creando...");
       const { error: signUpError } = await supabase.auth.admin.createUser({
@@ -210,7 +210,7 @@ export const handler = async (event) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
-    // ✅ INICIAR SESIÓN CON REINTENTOS
+    //  INICIAR SESIÓN CON REINTENTOS
     const { data: session, error: loginError } = await loginWithRetry(
       email,
       temporaryPassword,
