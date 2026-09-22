@@ -214,10 +214,6 @@
 
 /*  Desktop / Tablet grande */
 @media (min-width: 768px) {
-/*   .login-container {
-    padding: 2.5rem;
-  }
- */
   .login-title {
     font-size: 1.7rem;
     max-width: 450px;
@@ -246,15 +242,18 @@
 @media (max-height: 500px) and (orientation: landscape) {
   .login-container {
     min-height: auto;
+    height: 100vh;
+    height: 100dvh;
     padding: 12px;
-    justify-content: flex-start;
     padding-top: 16px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
   }
 
   .login-form {
     border-radius: 16px;
+    overflow: visible; 
   }
 
   .login-input {
@@ -278,7 +277,6 @@
     font-size: 1.3rem;
     max-width: 450px;
   }
-
 
   .login-container > div:last-child {
     margin-top: 12px !important;
