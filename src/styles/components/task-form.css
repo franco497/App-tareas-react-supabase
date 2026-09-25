@@ -19,7 +19,7 @@
 .task-input {
   width: 100%;
   padding: 1rem;
-  font-size: 16px; 
+  font-size: 16px;
   font-family: inherit;
   color: var(--input-text);
   background: var(--input-bg);
@@ -27,6 +27,7 @@
   border-radius: 12px;
   outline: none;
   box-sizing: border-box;
+  touch-action: manipulation; /*  Mejora el tap en iOS */
 }
 
 .task-input::placeholder {
@@ -69,6 +70,10 @@
   cursor: not-allowed;
 }
 
+/* ============================================
+   BOTÓN SUBMIT - SOLUCIÓN PREVENTIVA iOS
+   ============================================ */
+
 .submit-button {
   width: 100%;
   padding: 1rem;
@@ -81,6 +86,9 @@
   border-radius: 12px;
   cursor: pointer;
   box-sizing: border-box;
+  touch-action: manipulation; /* Mejora el tap en iOS */
+  position: relative;
+  z-index: 1;
 }
 
 .submit-button:hover {
@@ -95,6 +103,19 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/*  Estilo para el botón cuando el formulario no es válido */
+/*  El botón se ve opaco pero SIGUE SIENDO CLICKEABLE */
+.submit-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-button.disabled:hover {
+  background: var(--success-color);
+  transform: none;
+  box-shadow: none;
 }
 
 /* ============================================
@@ -153,7 +174,7 @@
 }
 
 /* ============================================
-    PREVENIR ZOOM AUTOMÁTICO EN MÓVILES
+   PREVENIR ZOOM AUTOMÁTICO EN MÓVILES
    ============================================ */
 
 /* Todos los inputs del sistema con font-size >= 16px */
@@ -169,7 +190,7 @@ input[type="tel"],
 input[type="url"],
 textarea,
 select {
-  font-size: 16px; 
+  font-size: 16px;
 }
 
 /* En desktop volvemos a usar rem */
