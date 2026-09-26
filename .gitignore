@@ -23,7 +23,6 @@ dist-ssr
 .env.*
 *.env
 *.local
-backend-worker/.env
 
 # ============================================
 # EDITOR DIRECTORIES AND FILES
