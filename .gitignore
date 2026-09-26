@@ -1,4 +1,6 @@
-# Logs
+# ============================================
+# LOGS
+# ============================================
 logs
 *.log
 npm-debug.log*
@@ -7,19 +9,25 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
+# ============================================
+# DEPENDENCIAS
+# ============================================
 node_modules
 dist
 dist-ssr
 
-# Environment variables
+# ============================================
+# VARIABLES DE ENTORNO (CRÍTICO)
+# ============================================
 .env
 .env.*
 *.env
 *.local
 backend-worker/.env
 
-# Editor directories and files
+# ============================================
+# EDITOR DIRECTORIES AND FILES
+# ============================================
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -29,3 +37,35 @@ backend-worker/.env
 *.njsproj
 *.sln
 *.sw?
+
+# ============================================
+# TESTING (Playwright)
+# ============================================
+test-ios.mjs
+test-ios.cjs
+test-ios-screenshot.png
+playwright-report/
+test-results/
+coverage/
+.nyc_output/
+
+# ============================================
+# NETLIFY
+# ============================================
+.netlify/
+.netlify/state.json
+
+# ============================================
+# SUPABASE
+# ============================================
+supabase/.temp/
+supabase/.branches/
+
+# ============================================
+# MISC
+# ============================================
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.cache/
+.parcel-cache/
