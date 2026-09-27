@@ -10,31 +10,31 @@ export function useModalScroll() {
 
     const element = contentRef.current;
 
-    // ✅ 1. Medir la altura NATURAL del contenido
+    //  Medir la altura NATURAL del contenido
     // Guardar el max-height actual
     const computedStyle = window.getComputedStyle(element);
     const currentMaxHeight = computedStyle.maxHeight;
     const currentHeight = computedStyle.height;
 
-    // ✅ 2. Calcular la altura natural del contenido
+    //  Calcular la altura natural del contenido
     // scrollHeight es la altura total del contenido (sin límites)
     const contentHeight = element.scrollHeight;
 
-    // ✅ 3. Medir el espacio DISPONIBLE
+    //  Medir el espacio DISPONIBLE
     // La altura máxima que puede tener el modal
     const availableHeight = window.innerHeight;
     
-    // ✅ 4. Descontar el padding
+    //  Descontar el padding
     const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
     const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
     const totalPadding = paddingTop + paddingBottom;
 
-    // ✅ 5. Calcular si el contenido cabe en la pantalla
+    //  Calcular si el contenido cabe en la pantalla
     // El contenido necesita: contentHeight + padding
     // El espacio disponible es: availableHeight
     const needsScroll = (contentHeight + totalPadding) > availableHeight;
 
-    // ✅ LOGS DE DEBUG
+    //  LOGS DE DEBUG
     console.log("🔍 ===== VERIFICANDO SCROLL =====");
     console.log("📏 window.innerHeight:", window.innerHeight);
     console.log("📏 window.outerHeight:", window.outerHeight);

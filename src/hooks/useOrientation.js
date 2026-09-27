@@ -14,25 +14,25 @@ export function useOrientation() {
     const handleOrientationChange = () => {
       console.log("🔄 Cambio de orientación detectado");
 
-      // ✅ SOLUCIÓN 5: Cerrar el teclado virtual al cambiar de orientación
+      //  Cerrar el teclado virtual al cambiar de orientación
       if (document.activeElement && document.activeElement.blur) {
         document.activeElement.blur();
         console.log("🔄 Teclado cerrado por cambio de orientación");
       }
 
-      // ✅ Pequeño delay para que el navegador recalcule el layout
+      //  Pequeño delay para que el navegador recalcule el layout
       setTimeout(() => {
         const newOrientation =
           window.screen.orientation?.type || "portrait-primary";
         setOrientation(newOrientation);
         console.log("🔄 Nueva orientación:", newOrientation);
 
-        // ✅ Forzar un repintado del layout
+        //  Forzar un repintado del layout
         window.dispatchEvent(new Event("resize"));
       }, 150);
     };
 
-    // ✅ Escuchar ambos eventos (compatibilidad)
+    //  Escuchar ambos eventos (compatibilidad)
     window.addEventListener("orientationchange", handleOrientationChange);
     window.screen.orientation?.addEventListener(
       "change",
