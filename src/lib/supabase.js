@@ -11,15 +11,15 @@ export const getRedirectUrl = () => {
   const port = window.location.port;
   const protocol = window.location.protocol;
 
-  // ✅ DETECTAR LOCALHOST (cualquier puerto)
+  //  DETECTAR LOCALHOST (cualquier puerto)
   const isLocal = hostname === "localhost" || 
                   hostname === "127.0.0.1";
 
-  // ✅ Si es local, usar la URL con el puerto actual
+  //  Si es local, usar la URL con el puerto actual
   if (isLocal) {
     return `${protocol}//${hostname}:${port}/auth/callback`;
   }
 
-  // ✅ Para producción (Netlify)
+  //  Para producción (Netlify)
   return "https://sistema-tareas-recordatorios.netlify.app/auth/callback";
 };
