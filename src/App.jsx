@@ -24,7 +24,7 @@ function App() {
           try {
             const parsed = JSON.parse(stored);
 
-            //  Verificar si la sesión es válida
+            // Verificar si la sesión es válida
             const { data, error } = await supabase.auth.setSession({
               access_token: parsed.session?.access_token || parsed.access_token,
               refresh_token:
@@ -36,11 +36,8 @@ function App() {
               localStorage.removeItem("supabaseSession");
               setSession(null);
             } else {
-              //  Usar la sesión de data.session que devuelve Supabase
+              // Usar la sesión de data.session que devuelve Supabase
               setSession(data.session || parsed);
-              console.log(
-                `✅ App - Sesión restaurada: ${data.session?.user?.email || parsed?.user?.email}`,
-              );
             }
           } catch (e) {
             console.error("❌ Error parseando sesión:", e);
@@ -63,14 +60,10 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`🔄 App - Evento: ${event}`);
-
       if (session) {
-        console.log(`✅ App - Sesión activa: ${session.user.email}`);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
         setSession(session);
       } else if (event === "SIGNED_OUT") {
-        console.log("👋 App - Sesión cerrada");
         localStorage.removeItem("supabaseSession");
         setSession(null);
       }
@@ -105,15 +98,7 @@ function App() {
           path="/"
           element={!session ? <Login /> : <Navigate to="/dashboard" />}
         />
-        <Route
-          path="/auth/callback"
-          element={
-            <>
-              {console.log("🔥 Ruta /auth/callback renderizada")}
-              <AuthCallback />
-            </>
-          }
-        />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route
           path="/dashboard"
           element={session ? <Dashboard /> : <Navigate to="/" />}
