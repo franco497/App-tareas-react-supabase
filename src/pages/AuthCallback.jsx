@@ -2,44 +2,33 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-console.log("🔥 AuthCallback.jsx se ha cargado (archivo)");
-
 function AuthCallback() {
-  console.log("🔥 AuthCallback componente renderizado");
-
   const [status, setStatus] = useState("Verificando tu enlace...");
   const [processed, setProcessed] = useState(false);
 
-  //  FUNCIÓN PARA EXTRAER TOKEN
+  // FUNCIÓN PARA EXTRAER TOKEN
   const extractTokenFromUrl = () => {
     const currentUrl = window.location.href;
     const currentSearch = window.location.search;
 
-    console.log("🔍 ===== EXTRACTANDO TOKEN =====");
-    console.log("📍 URL actual:", currentUrl);
-    console.log("📍 Search actual:", currentSearch);
-
     let token = null;
 
-    //  MÉTODO 1: URLSearchParams
+    // MÉTODO 1: URLSearchParams
     const params = new URLSearchParams(currentSearch);
     token = params.get("token");
-    console.log("🔍 Método 1 (URLSearchParams):", token);
 
-    //  MÉTODO 2: Regex en URL completa
+    // MÉTODO 2: Regex en URL completa
     if (!token) {
       const match = currentUrl.match(/[?&]token=([^&]+)/);
       if (match) {
         token = match[1];
-        console.log("🔍 Método 2 (Regex URL):", token);
       }
     }
 
-    console.log("🔍 TOKEN FINAL:", token?.substring(0, 30) + "...");
     return token;
   };
 
-  //  VERIFICAR SI EL USUARIO YA TIENE SESIÓN ACTIVA
+  // VERIFICAR SI EL USUARIO YA TIENE SESIÓN ACTIVA
   const hasActiveSession = () => {
     const stored = localStorage.getItem("supabaseSession");
     if (!stored) return false;
@@ -52,29 +41,21 @@ function AuthCallback() {
   };
 
   useEffect(() => {
-    console.log("🔥 useEffect de AuthCallback ejecutado");
-
-    //  Si no hay token en la URL, forzar recarga
-    if (!window.location.search.includes('token')) {
+    // Si no hay token en la URL, forzar recarga
+    if (!window.location.search.includes("token")) {
       console.warn("⚠️ No hay token en la URL, forzando recarga...");
       window.location.reload();
       return;
     }
 
     const verifyToken = async () => {
-      console.log("🚀 verifyToken() iniciado");
-
       if (processed) {
-        console.log("⏳ Ya procesado, saliendo...");
         return;
       }
       setProcessed(true);
-      console.log("✅ processed seteado a true");
 
       try {
         const token = extractTokenFromUrl();
-
-        console.log("📤 Token extraído:", token);
 
         if (!token) {
           console.error("❌ TOKEN NO ENCONTRADO");
@@ -90,13 +71,10 @@ function AuthCallback() {
           window.location.hostname === "127.0.0.1" ||
           window.location.port === "5175";
 
-        console.log("🔧 Modo:", isLocal ? "LOCAL" : "PRODUCCIÓN");
-
         let data;
         let responseOk;
 
         if (isLocal) {
-          console.log("🔧 Modo local: usando Supabase directamente");
           const {
             data: { session },
             error,
@@ -108,9 +86,6 @@ function AuthCallback() {
           responseOk = true;
           localStorage.setItem("supabaseSession", JSON.stringify(session));
         } else {
-          console.log("🚀 Modo producción: verificando con Netlify Function");
-          console.log("📤 Enviando token:", token.substring(0, 30) + "...");
-
           let response;
           let retryCount = 0;
           const maxRetries = 2;
@@ -126,15 +101,15 @@ function AuthCallback() {
                     Accept: "application/json",
                   },
                   body: JSON.stringify({ token }),
-                }
+                },
               );
               break;
             } catch (err) {
               retryCount++;
-              console.log(`⚠️ Intento ${retryCount} falló:`, err);
+              console.warn(`⚠️ Intento ${retryCount} falló:`, err);
               if (retryCount <= maxRetries) {
                 await new Promise((resolve) =>
-                  setTimeout(resolve, 1000 * retryCount)
+                  setTimeout(resolve, 1000 * retryCount),
                 );
               } else {
                 throw err;
@@ -143,7 +118,6 @@ function AuthCallback() {
           }
 
           const responseText = await response.text();
-          console.log("📨 Respuesta raw:", responseText.substring(0, 200) + "...");
 
           try {
             data = JSON.parse(responseText);
@@ -154,23 +128,11 @@ function AuthCallback() {
 
           responseOk = response.ok;
 
-          console.log("📨 Respuesta de verify-magic-link:", {
-            status: response.status,
-            ok: responseOk,
-            success: data.success,
-            hasSession: !!data.session,
-            error: data.error,
-          });
-
           if (responseOk && data.session) {
-            console.log("✅ Sesión recibida correctamente");
-            console.log("👤 Usuario:", data.session.user.email);
-
             localStorage.setItem(
               "supabaseSession",
-              JSON.stringify(data.session)
+              JSON.stringify(data.session),
             );
-            console.log("✅ Sesión guardada en localStorage");
 
             await new Promise((resolve) => setTimeout(resolve, 1500));
           }
@@ -182,7 +144,6 @@ function AuthCallback() {
         }
 
         if (data.session) {
-          console.log("🚀 Redirigiendo a dashboard...");
           window.location.replace("/dashboard");
         } else {
           throw new Error("No se recibió sesión del servidor");
@@ -190,16 +151,13 @@ function AuthCallback() {
       } catch (error) {
         console.error("❌ Error en AuthCallback:", error);
 
-        // ============================================
         // Verificar sesión activa
-        // ============================================
         if (hasActiveSession()) {
-          console.log("✅ Usuario ya tiene sesión activa, redirigiendo a dashboard");
           window.location.replace("/dashboard");
           return;
         }
 
-        // ❌ Solo redirigir a login si NO hay sesión
+        // Solo redirigir a login si NO hay sesión
         setStatus(`❌ ${error.message || "Error de autenticación"}`);
         setTimeout(() => {
           window.location.replace("/");
@@ -213,7 +171,6 @@ function AuthCallback() {
 
     return () => {
       clearTimeout(timer);
-      console.log("🧹 Limpiando AuthCallback");
     };
   }, [processed]);
 
