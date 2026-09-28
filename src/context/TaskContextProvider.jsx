@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { TaskContext } from "./TaskContext";
 
 export const TaskContextProvider = ({ children, initialSession }) => {
-  //  REF para controlar suscripciones
+  // REF para controlar suscripciones
   const channelRef = useRef(null);
   const subscriptionAttempts = useRef(0);
   const maxSubscriptionAttempts = 3;
@@ -13,7 +13,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const authInitialized = useRef(false);
   const initializedRef = useRef(false);
 
-  //  ESTADO DEL USUARIO
+  // ESTADO DEL USUARIO
   const [user, setUser] = useState(initialSession?.user || null);
   const [loading, setLoading] = useState(!initialSession?.user);
 
@@ -33,7 +33,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   const getUser = useCallback(async () => {
     try {
       if (user) {
-        console.log(`👤 Usuario ya existe: ${user.email}`);
         setLoading(false);
         return user;
       }
@@ -45,7 +44,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         try {
           const parsed = JSON.parse(stored);
           if (parsed?.user) {
-            console.log(`👤 Usuario desde localStorage: ${parsed.user.email}`);
             setUser(parsed.user);
             setLoading(false);
             return parsed.user;
@@ -62,9 +60,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
       if (error) {
         if (initialSession?.user) {
-          console.log(
-            `👤 Usuario desde initialSession: ${initialSession.user.email}`,
-          );
           setUser(initialSession.user);
           setLoading(false);
           return initialSession.user;
@@ -73,7 +68,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       }
 
       if (supabaseUser) {
-        console.log(`👤 Usuario desde Supabase: ${supabaseUser.email}`);
         setUser(supabaseUser);
       }
 
@@ -101,10 +95,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
           return;
         }
 
-        console.log(
-          `📋 Cargando tareas para: ${currentUser.email} (done: ${done})`,
-        );
-
         const { error, data } = await supabase
           .from("tasks")
           .select()
@@ -115,7 +105,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
         if (error) {
           if (error.message?.includes("AuthSessionMissingError")) {
-            console.log("⚠️ Error de sesión, reintentando...");
+            console.warn("⚠️ Error de sesión, reintentando...");
             await new Promise((resolve) => setTimeout(resolve, 500));
             const retry = await supabase
               .from("tasks")
@@ -127,9 +117,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
             if (!retry.error) {
               setTasks(retry.data || []);
-              console.log(
-                `✅ ${retry.data?.length || 0} tareas cargadas (reintento)`,
-              );
               return;
             }
           }
@@ -137,7 +124,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         }
 
         setTasks(data || []);
-        console.log(`✅ ${data?.length || 0} tareas cargadas`);
       } catch (error) {
         console.error("Error fetching tasks:", error);
         setTasks([]);
@@ -147,31 +133,25 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   );
 
   // ============================================
-  //  EFECTO: INICIALIZACIÓN ÚNICA
+  // EFECTO: INICIALIZACIÓN ÚNICA
   // ============================================
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    console.log("🚀 Inicializando contexto...");
-
-    //  Si hay initialSession, usarlo directamente
+    // Si hay initialSession, usarlo directamente
     if (initialSession?.user) {
-      console.log(`📌 Usando initialSession: ${initialSession.user.email}`);
       setUser(initialSession.user);
       setLoading(false);
       return;
     }
 
-    //  Si no hay initialSession, intentar recuperar de localStorage
+    // Si no hay initialSession, intentar recuperar de localStorage
     const stored = localStorage.getItem("supabaseSession");
     if (stored) {
       try {
         const session = JSON.parse(stored);
         if (session?.user) {
-          console.log(
-            `📌 Sesión recuperada de localStorage: ${session.user.email}`,
-          );
           setUser(session.user);
           setLoading(false);
           return;
@@ -181,16 +161,14 @@ export const TaskContextProvider = ({ children, initialSession }) => {
       }
     }
 
-    //  Si no hay sesión en localStorage, intentar con Supabase
+    // Si no hay sesión en localStorage, intentar con Supabase
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
         if (session?.user) {
-          console.log(`📌 Sesión desde Supabase: ${session.user.email}`);
           setUser(session.user);
           setLoading(false);
         } else {
-          console.log("⏳ No hay sesión activa, usuario no autenticado");
           setLoading(false);
         }
       })
@@ -201,42 +179,31 @@ export const TaskContextProvider = ({ children, initialSession }) => {
   }, [initialSession]);
 
   // ============================================
-  //  EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
+  // EFECTO: CARGAR TAREAS CUANDO HAY USUARIO
   // ============================================
   useEffect(() => {
     if (user) {
-      console.log(`✅ Usuario disponible, cargando tareas para: ${user.email}`);
       getTasks(currentDoneFilter);
-    } else {
-      console.log("⏳ Esperando usuario para cargar tareas...");
     }
   }, [user, getTasks, currentDoneFilter]);
 
   // ============================================
-  //  EFECTO: ESCUCHAR CAMBIOS EN localStorage
+  // EFECTO: ESCUCHAR CAMBIOS EN localStorage
   // ============================================
   useEffect(() => {
     const handleStorageChange = (event) => {
       if (event.key === "supabaseSession") {
-        console.log("🔄 Cambio detectado en localStorage:", event.key);
-
         if (event.newValue) {
           try {
             const session = JSON.parse(event.newValue);
             if (session?.user) {
-              console.log(
-                "✅ Usuario detectado desde localStorage:",
-                session.user.email,
-              );
               setUser(session.user);
               setLoading(false);
-              //  getTasks se ejecutará automáticamente cuando user cambie
             }
           } catch (e) {
             console.error("❌ Error parseando session:", e);
           }
         } else {
-          console.log("👋 Sesión eliminada de localStorage");
           setUser(null);
           setTasks([]);
         }
@@ -248,7 +215,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []); // ← Sin dependencias
+  }, []);
 
   // ============================================
   // EFECTO: ESCUCHAR CAMBIOS DE AUTENTICACIÓN DE SUPABASE
@@ -257,31 +224,22 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`🔄 Contexto - Evento: ${event}`);
-
-      //  Ignorar INITIAL_SESSION
+      // Ignorar INITIAL_SESSION
       if (event === "INITIAL_SESSION") {
-        console.log("⏳ Ignorando INITIAL_SESSION (evento inicial)");
         return;
       }
 
       if (event === "SIGNED_IN") {
         if (!session?.user) return;
 
-        //  Verificar si el usuario ya está seteado
+        // Verificar si el usuario ya está seteado
         if (user?.email === session.user.email) {
-          console.log(
-            "👤 Usuario ya autenticado, ignorando SIGNED_IN duplicado",
-          );
           return;
         }
 
-        console.log(`✅ Contexto - Usuario autenticado: ${session.user.email}`);
         setUser(session.user);
         localStorage.setItem("supabaseSession", JSON.stringify(session));
-        //  getTasks se ejecutará automáticamente cuando user cambie
       } else if (event === "SIGNED_OUT") {
-        console.log("👋 Contexto - Sesión cerrada");
         setUser(null);
         setTasks([]);
         localStorage.removeItem("supabaseSession");
@@ -289,7 +247,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         authInitialized.current = false;
       } else if (event === "TOKEN_REFRESHED") {
         if (session?.user) {
-          console.log(`🔄 Token refrescado: ${session.user.email}`);
           localStorage.setItem("supabaseSession", JSON.stringify(session));
         }
       }
@@ -304,25 +261,20 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const setupRealtimeSubscription = useCallback(() => {
     if (isSubscribing.current) {
-      console.log("⏳ Ya estamos suscribiendo, esperando...");
       return;
     }
 
     if (channelRef.current) {
-      console.log("✅ Canal ya activo, no es necesario recrearlo");
       return;
     }
 
     if (!isMounted.current) {
-      console.log("⏳ Componente desmontado, cancelando suscripción");
       return;
     }
 
     isSubscribing.current = true;
 
     try {
-      console.log("🔌 Creando nueva suscripción...");
-
       const channel = supabase.channel("scheduled_notifications_changes").on(
         "postgres_changes",
         {
@@ -334,11 +286,9 @@ export const TaskContextProvider = ({ children, initialSession }) => {
           if (payload.eventType === "UPDATE") {
             const updatedTask = payload.new;
             setScheduledTasks((prevTasks) => {
-              //  Actualizar la tarea
               const updated = prevTasks.map((task) =>
                 task.id === updatedTask.id ? updatedTask : task,
               );
-              //  ORDENAR DESCENDENTE por scheduled_for
               return updated.sort((a, b) => {
                 return new Date(b.scheduled_for) - new Date(a.scheduled_for);
               });
@@ -351,7 +301,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
         isSubscribing.current = false;
 
         if (status === "SUBSCRIBED") {
-          console.log("✅ Suscripción a scheduled_notifications ACTIVA!");
           subscriptionAttempts.current = 0;
           if (!channelRef.current && isMounted.current) {
             channelRef.current = channel;
@@ -371,7 +320,7 @@ export const TaskContextProvider = ({ children, initialSession }) => {
               1000 * Math.pow(2, subscriptionAttempts.current),
               10000,
             );
-            console.log(
+            console.warn(
               `🔄 Reintentando en ${delay}ms (intento ${subscriptionAttempts.current})`,
             );
 
@@ -403,11 +352,10 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   const cleanupChannel = useCallback(() => {
     if (channelRef.current) {
-      console.log("🧹 Limpiando canal...");
       try {
         supabase.removeChannel(channelRef.current);
       } catch (e) {
-        console.log("Error limpiando canal:", e);
+        console.error("Error limpiando canal:", e);
       }
       channelRef.current = null;
     }
@@ -420,12 +368,10 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
   useEffect(() => {
     if (!user && !initialSession?.user) {
-      console.log("⏳ Esperando usuario para iniciar suscripción...");
       return;
     }
 
     if (!channelRef.current && !isSubscribing.current && isMounted.current) {
-      console.log("🔌 Iniciando suscripción a cambios en tiempo real...");
       const timer = setTimeout(() => {
         if (isMounted.current) {
           setupRealtimeSubscription();
@@ -594,21 +540,13 @@ export const TaskContextProvider = ({ children, initialSession }) => {
     }
   };
 
-  //  SIMPLIFICAR toggleTaskDone
   const toggleTaskDone = async (id, currentDone) => {
     const newDoneState = !currentDone;
 
     try {
-      //  Actualizar el estado local INMEDIATAMENTE
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-
-      //  Actualizar en Supabase
       await updateTask(id, { done: newDoneState });
-
-      //  NO recargar todas las tareas
-      //  NO cambiar updateCounter
     } catch (error) {
-      // ❌ Si hay error, revertir el cambio
       await getTasks(currentDoneFilter);
       console.error("Error toggling task:", error);
     }
@@ -820,7 +758,6 @@ export const TaskContextProvider = ({ children, initialSession }) => {
 
         if (error) throw error;
 
-        //  ORDENAR DESCENDENTE antes de setear
         const sortedData = data.sort((a, b) => {
           return new Date(b.scheduled_for) - new Date(a.scheduled_for);
         });
