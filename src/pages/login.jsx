@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase, getRedirectUrl } from "../lib/supabase";
 import Swal from "sweetalert2";
-import { useOrientation } from "../hooks/useOrientation"; 
+import { useOrientation } from "../hooks/useOrientation";
 
 function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-    // USAR EL HOOK
+  // USAR EL HOOK
   useOrientation();
 
   const {
@@ -25,7 +25,7 @@ function Login() {
     mode: "onChange",
   });
 
-  //  DETECTAR SI ESTÁ EN LOCAL
+  // DETECTAR SI ESTÁ EN LOCAL
   const isLocal =
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1" ||
@@ -56,11 +56,10 @@ function Login() {
           body: JSON.stringify({ email: data.email }),
         });
 
-        //  INTENTAR LEER EL JSON, PERO CON MANEJO DE ERRORES
+        // INTENTAR LEER EL JSON, PERO CON MANEJO DE ERRORES
         let responseData;
         try {
           const text = await response.text();
-          console.log("📨 Respuesta texto:", text);
           responseData = text ? JSON.parse(text) : {};
         } catch (parseError) {
           console.error("❌ Error parseando respuesta:", parseError);
@@ -74,8 +73,7 @@ function Login() {
         result = responseData;
       }
 
-      //  SI TODO ESTÁ BIEN, MOSTRAR SWEETALERT
-
+      // SI TODO ESTÁ BIEN, MOSTRAR SWEETALERT
       await Swal.fire({
         title: "📧 ¡Correo enviado!",
         html: `
@@ -107,7 +105,7 @@ function Login() {
       console.error("❌ Error:", err);
       setError(err.message || "Error al enviar el magic link");
 
-      //  MOSTRAR ERROR CON SWEETALERT
+      // MOSTRAR ERROR CON SWEETALERT
       await Swal.fire({
         title: "❌ Error",
         text: err.message || "No se pudo enviar el enlace. Intenta nuevamente.",
@@ -162,7 +160,7 @@ function Login() {
         {error && <div className="login-message error">❌ {error}</div>}
       </form>
 
-      {/*  Mensaje informativo fijo en la pantalla */}
+      {/* Mensaje informativo fijo en la pantalla */}
       <div
         style={{
           marginTop: "20px",
