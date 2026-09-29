@@ -13,17 +13,20 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET es requerido");
 }
 
-//  LISTA NEGRA EN MEMORIA (se reinicia al reiniciar la función)
-//  En Netlify Functions, esto se mantiene mientras la función está activa
+// LISTA NEGRA EN MEMORIA (se reinicia al reiniciar la función)
+// En Netlify Functions, esto se mantiene mientras la función está activa
 const usedTokens = new Set();
 
-//  Limpiar tokens expirados cada hora
-setInterval(() => {
-  console.log(`🧹 Limpiando lista negra: ${usedTokens.size} tokens`);
-  usedTokens.clear();
-}, 60 * 60 * 1000); // 1 hora
+// Limpiar tokens expirados cada hora
+setInterval(
+  () => {
+    console.log(`🧹 Limpiando lista negra: ${usedTokens.size} tokens`);
+    usedTokens.clear();
+  },
+  60 * 60 * 1000,
+); // 1 hora
 
-//  VERIFICAR JWT
+// VERIFICAR JWT
 function verifyJWT(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -36,13 +39,16 @@ function verifyJWT(token) {
   }
 }
 
-//  FUNCIÓN PARA INICIAR SESIÓN CON REINTENTOS
-const loginWithRetry = async (email, password, maxRetries = 5, delay = 2000) => {
+// FUNCIÓN PARA INICIAR SESIÓN CON REINTENTOS
+const loginWithRetry = async (
+  email,
+  password,
+  maxRetries = 5,
+  delay = 2000,
+) => {
   console.log(`🔐 Intentando iniciar sesión para: ${email}`);
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    console.log(`🔐 Intento ${attempt} de ${maxRetries}...`);
-    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -55,18 +61,20 @@ const loginWithRetry = async (email, password, maxRetries = 5, delay = 2000) => 
       }
 
       if (error) {
-        console.log(`⚠️ Intento ${attempt} falló: ${error.message}`);
-        if (error.message?.includes("Invalid login credentials") && attempt < maxRetries) {
-          console.log(`⏳ Esperando ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+        console.warn(`⚠️ Intento ${attempt} falló: ${error.message}`);
+        if (
+          error.message?.includes("Invalid login credentials") &&
+          attempt < maxRetries
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
         return { data: null, error };
       }
     } catch (err) {
-      console.log(`⚠️ Intento ${attempt} falló:`, err);
+      console.warn(`⚠️ Intento ${attempt} falló:`, err);
       if (attempt < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
         return { data: null, error: err };
       }
@@ -91,9 +99,6 @@ export const handler = async (event) => {
   try {
     const { token } = JSON.parse(event.body);
 
-    console.log("🔍 ===== VERIFY-MAGIC-LINK =====");
-    console.log(`📝 Token recibido: ${token?.substring(0, 30) || 'NULL'}...`);
-
     if (!token) {
       console.error("❌ Token vacío");
       return {
@@ -106,8 +111,7 @@ export const handler = async (event) => {
       };
     }
 
-    //  VERIFICAR JWT
-    console.log("🔍 Verificando JWT...");
+    // VERIFICAR JWT
     const { valid, email, decoded, jti, error } = verifyJWT(token);
 
     if (!valid) {
@@ -122,7 +126,7 @@ export const handler = async (event) => {
       };
     }
 
-    //  VERIFICAR SI EL TOKEN YA FUE USADO (lista negra en memoria)
+    // VERIFICAR SI EL TOKEN YA FUE USADO (lista negra en memoria)
     if (jti && usedTokens.has(jti)) {
       console.error(`❌ Token ya usado (jti: ${jti})`);
       return {
@@ -136,21 +140,23 @@ export const handler = async (event) => {
     }
 
     console.log(`✅ JWT válido para: ${email}`);
-    console.log(`📝 JTI: ${jti}`);
 
-    //  MARCAR EL TOKEN COMO USADO (guardar en lista negra)
+    // MARCAR EL TOKEN COMO USADO (guardar en lista negra)
     if (jti) {
       usedTokens.add(jti);
       console.log(`✅ Token marcado como usado (jti: ${jti})`);
-      console.log(`📊 Tokens usados en memoria: ${usedTokens.size}`);
     }
 
-    //  GENERAR CONTRASEÑA TEMPORAL CORTA
-    const temporaryPassword = "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
-    console.log(`🔐 Contraseña temporal (${temporaryPassword.length} caracteres)`);
+    // GENERAR CONTRASEÑA TEMPORAL CORTA
+    const temporaryPassword =
+      "Temp_" + token.substring(0, 20) + "_" + Date.now().toString().slice(-6);
+    console.warn(
+      `🔐 Contraseña temporal generada (${temporaryPassword.length} caracteres)`,
+    );
 
-    //  VERIFICAR SI EL USUARIO YA EXISTE
-    const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+    // VERIFICAR SI EL USUARIO YA EXISTE
+    const { data: users, error: listError } =
+      await supabase.auth.admin.listUsers();
 
     if (listError) {
       console.error("❌ Error listando usuarios:", listError);
@@ -166,7 +172,7 @@ export const handler = async (event) => {
 
     const existingUser = users?.users?.find((user) => user.email === email);
 
-    //  SI EL USUARIO NO EXISTE, CREARLO
+    // SI EL USUARIO NO EXISTE, CREARLO
     if (!existingUser) {
       console.log("🆕 Usuario no existe, creando...");
       const { error: signUpError } = await supabase.auth.admin.createUser({
@@ -187,12 +193,12 @@ export const handler = async (event) => {
         };
       }
       console.log(`✅ Usuario creado: ${email}`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     } else {
       console.log("👤 Usuario ya existe, actualizando contraseña...");
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         existingUser.id,
-        { password: temporaryPassword }
+        { password: temporaryPassword },
       );
 
       if (updateError) {
@@ -207,15 +213,15 @@ export const handler = async (event) => {
         };
       }
       console.log("✅ Contraseña actualizada");
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    //  INICIAR SESIÓN CON REINTENTOS
+    // INICIAR SESIÓN CON REINTENTOS
     const { data: session, error: loginError } = await loginWithRetry(
       email,
       temporaryPassword,
       5,
-      2000
+      2000,
     );
 
     if (loginError || !session?.session) {
