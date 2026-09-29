@@ -23,15 +23,12 @@ if (!JWT_SECRET) {
   console.error("❌ ERROR: JWT_SECRET no configurado");
   throw new Error("JWT_SECRET es requerido");
 }
-console.log(
-  `🔐 JWT_SECRET ${JWT_SECRET ? "✅ configurado" : "❌ NO configurado"}`,
-);
 
-//  Rate limiting - 15 intentos por hora
+// Rate limiting - 15 intentos por hora
 const RATE_LIMIT = 15;
 const TIME_WINDOW = 60 * 60 * 1000;
 
-//  Generar JWT con jti (JWT ID) único
+// Generar JWT con jti (JWT ID) único
 function generateJWT(email) {
   const jti = crypto.randomBytes(16).toString("hex"); // ID único
   const payload = {
@@ -43,7 +40,7 @@ function generateJWT(email) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
 }
 
-//  Verificar rate limiting
+// Verificar rate limiting
 async function checkRateLimit(email) {
   const timeAgo = new Date(Date.now() - TIME_WINDOW);
   const { count, error } = await supabase
@@ -60,7 +57,7 @@ async function checkRateLimit(email) {
   return count < RATE_LIMIT;
 }
 
-//  Registrar intento (solo para rate limiting)
+// Registrar intento (solo para rate limiting)
 async function logRateLimit(email) {
   const { error } = await supabase.from("magic_links").insert({
     email,
@@ -75,7 +72,7 @@ async function logRateLimit(email) {
   }
 }
 
-//  Enviar email
+// Enviar email
 async function sendMagicLinkEmail(email, token) {
   try {
     const oAuth2Client = new google.auth.OAuth2(
@@ -99,7 +96,7 @@ async function sendMagicLinkEmail(email, token) {
       tls: { rejectUnauthorized: false },
     });
 
-    //  URL con timestamp para evitar caché
+    // URL con timestamp para evitar caché
     const timestamp = Date.now();
     const magicLinkUrl = `${SITE_URL}/auth/callback?token=${token}&_t=${timestamp}`;
 
@@ -251,7 +248,7 @@ export const handler = async (event) => {
       };
     }
 
-    //  VERIFICAR RATE LIMITING
+    // VERIFICAR RATE LIMITING
     const canSend = await checkRateLimit(email);
     if (!canSend) {
       return {
@@ -266,14 +263,13 @@ export const handler = async (event) => {
       };
     }
 
-    //  GENERAR JWT CON JTI
+    // GENERAR JWT CON JTI
     const token = generateJWT(email);
-    console.log(`🆕 JWT generado con jti: ${token.substring(0, 30)}...`);
 
-    //  GUARDAR PARA RATE LIMITING
+    // GUARDAR PARA RATE LIMITING
     await logRateLimit(email);
 
-    //  Enviar email
+    // Enviar email
     const emailSent = await sendMagicLinkEmail(email, token);
 
     if (!emailSent) {
