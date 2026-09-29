@@ -10,46 +10,26 @@ export function useModalScroll() {
 
     const element = contentRef.current;
 
-    //  Medir la altura NATURAL del contenido
-    // Guardar el max-height actual
+    // Medir la altura NATURAL del contenido
     const computedStyle = window.getComputedStyle(element);
-    const currentMaxHeight = computedStyle.maxHeight;
-    const currentHeight = computedStyle.height;
 
-    //  Calcular la altura natural del contenido
+    // Calcular la altura natural del contenido
     // scrollHeight es la altura total del contenido (sin límites)
     const contentHeight = element.scrollHeight;
 
-    //  Medir el espacio DISPONIBLE
+    // Medir el espacio DISPONIBLE
     // La altura máxima que puede tener el modal
     const availableHeight = window.innerHeight;
-    
-    //  Descontar el padding
+
+    // Descontar el padding
     const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
     const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
     const totalPadding = paddingTop + paddingBottom;
 
-    //  Calcular si el contenido cabe en la pantalla
+    // Calcular si el contenido cabe en la pantalla
     // El contenido necesita: contentHeight + padding
     // El espacio disponible es: availableHeight
-    const needsScroll = (contentHeight + totalPadding) > availableHeight;
-
-    //  LOGS DE DEBUG
-    console.log("🔍 ===== VERIFICANDO SCROLL =====");
-    console.log("📏 window.innerHeight:", window.innerHeight);
-    console.log("📏 window.outerHeight:", window.outerHeight);
-    console.log("📦 modal.scrollHeight (contenido):", element.scrollHeight);
-    console.log("📦 modal.clientHeight (visible):", element.clientHeight);
-    console.log("🎨 maxHeight:", computedStyle.maxHeight);
-    console.log("🎨 height:", computedStyle.height);
-    console.log("🎨 padding:", computedStyle.padding);
-    console.log("🎨 totalPadding:", totalPadding);
-    console.log("📐 Altura NATURAL del contenido:", contentHeight + totalPadding);
-    console.log("📐 Espacio DISPONIBLE:", availableHeight);
-    console.log("📐 ¿Cabe?:", (contentHeight + totalPadding) <= availableHeight);
-    console.log("✅ needsScroll:", needsScroll);
-    console.log("🏷️ clases:", element.className);
-    console.log("=============================");
+    const needsScroll = contentHeight + totalPadding > availableHeight;
 
     setHasScroll(needsScroll);
   }, []);
