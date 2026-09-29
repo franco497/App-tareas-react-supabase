@@ -29,7 +29,6 @@ function parseLocalDate(dateString) {
 }
 
 async function processEmails() {
-
   try {
     // USAR HORA ARGENTINA PARA LA COMPARACIÓN
     const now = getNowInArgentina();
@@ -48,16 +47,11 @@ async function processEmails() {
     const toSend = pending.filter((notif) => {
       const scheduledDate = parseLocalDate(notif.scheduled_for);
       if (!scheduledDate) {
-        console.log(`⚠️ Fecha inválida: ${notif.scheduled_for}`);
+        console.warn(`⚠️ Fecha inválida: ${notif.scheduled_for}`);
         return false;
       }
 
-      const diffMs = scheduledDate.getTime() - now.getTime();
-      const diffMinutes = diffMs / 60000;
-
       const shouldSend = scheduledDate <= now;
-      console.log(`   ¿Enviar ahora?: ${shouldSend ? "✅ SI" : "❌ NO"}`);
-
       return shouldSend;
     });
 
@@ -143,14 +137,12 @@ async function processEmails() {
         failed++;
       }
     }
-
   } catch (error) {
     console.error("❌ Error en cron:", error);
   }
 }
 
 serve(async (req) => {
-
   try {
     await processEmails();
 
