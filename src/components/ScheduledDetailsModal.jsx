@@ -18,7 +18,7 @@ function ScheduledDetailsModal({ task, onClose }) {
     });
   };
 
-  //  NUEVA FUNCIÓN: Restar 3 horas a la fecha
+  // NUEVA FUNCIÓN: Restar 3 horas a la fecha
   const formatSentDate = (dateString) => {
     if (!dateString) return "No especificada";
     const date = new Date(dateString);
@@ -52,8 +52,8 @@ function ScheduledDetailsModal({ task, onClose }) {
   return (
     <div className="details-modal-overlay" onClick={onClose}>
       <div
-        ref={contentRef} 
-        className={`details-modal-content ${hasScroll ? "has-scroll" : ""}`} 
+        ref={contentRef}
+        className={`details-modal-content ${hasScroll ? "has-scroll" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="details-modal-header">
@@ -84,16 +84,6 @@ function ScheduledDetailsModal({ task, onClose }) {
           <div className="detail-item">
             <span className="detail-label">📧 Email:</span>
             <span className="detail-value">{task.user_email}</span>
-          </div>
-
-          <div className="detail-item">
-            <span className="detail-label">🆔 ID:</span>
-            <span
-              className="detail-value"
-              style={{ fontSize: "0.8rem", wordBreak: "break-all" }}
-            >
-              {task.id}
-            </span>
           </div>
 
           <div className="detail-item">
