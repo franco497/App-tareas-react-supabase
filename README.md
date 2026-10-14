@@ -110,7 +110,9 @@ Se inicia sesión automáticamente
 ├── netlify/
 │   └── functions/       # Magic Links
 ├── supabase/
-│   └── functions/       # Edge Functions
+│   ├── functions/       # Edge Functions
+│   ├── schema.sql       # Schema de la base de datos (estructura)
+│   └── README.md        # Documentación del schema
 ├── package.json
 └── netlify.toml
 ```
