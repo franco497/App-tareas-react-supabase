@@ -8,16 +8,46 @@ Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** q
 
 ## ✨ Características principales
 
-* 📝 **Gestión completa de tareas** – Crear, editar, eliminar y marcar tareas como completadas o pendientes.
-* 📧 **Recordatorios automáticos por email** – Envío inmediato o programado mediante Gmail API y procesamiento automático con un cron job.
-* 🔒 **Tokens de un solo uso** – Cada enlace mágico generado es de un solo uso, invalidándose automáticamente después de ser utilizado.
-* 🗑️ **Papelera de reciclaje** – Restauración de tareas eliminadas o eliminación permanente.
-* 🔐 **Autenticación con Magic Links** – Inicio de sesión sin contraseñas mediante Netlify Functions.
-* 🛡️ **Protección anti-spam** – Límite de 15 solicitudes de acceso por hora para cada usuario.
-* 📋 **Seguimiento de recordatorios** – Visualización del estado de todas las notificaciones programadas.
-* 📱 **Mobile First** – Diseño optimizado para móviles, tablets y escritorio.
-* 🎨 **Arquitectura CSS escalable** – Organización basada en ITCSS y Atomic Design.
-* ⚡ **Enrutamiento completo** – Navegación fluida con React Router DOM.
+- 📝 **Gestión completa de tareas** – Crear, editar, eliminar y marcar tareas como completadas o pendientes.
+- 📧 **Recordatorios automáticos por email** – Envío inmediato o programado mediante Gmail API y procesamiento automático con un cron job.
+- 🔒 **Tokens de un solo uso** – Cada enlace mágico generado es de un solo uso, invalidándose automáticamente después de ser utilizado.
+- 🗑️ **Papelera de reciclaje** – Restauración de tareas eliminadas o eliminación permanente.
+- 🔐 **Autenticación con Magic Links** – Inicio de sesión sin contraseñas mediante Netlify Functions.
+- 🛡️ **Protección anti-spam** – Límite de 15 solicitudes de acceso por hora para cada usuario.
+- 📋 **Seguimiento de recordatorios** – Visualización del estado de todas las notificaciones programadas.
+- 📱 **Mobile First** – Diseño optimizado para móviles, tablets y escritorio.
+- 🎨 **Arquitectura CSS escalable** – Organización basada en ITCSS y Atomic Design.
+- ⚡ **Enrutamiento completo** – Navegación fluida con React Router DOM.
+
+---
+
+## 📸 Capturas de pantalla
+
+### 🔐 Login
+
+![Pantalla de login](./screenshots/01-login.png)
+
+### 📊 Dashboard – Tareas pendientes
+
+![Dashboard con tareas pendientes (1)](./screenshots/03-dashboard-pendientes-1.png)
+
+![Dashboard con tareas pendientes (2)](./screenshots/04-dashboard-pendientes-2.png)
+
+### ✅ Tareas realizadas
+
+![Vista de tareas realizadas](./screenshots/05-tareas-realizadas.png)
+
+### ⏰ Tareas programadas
+
+![Tareas programadas (1)](./screenshots/06-tareas-programadas-1.png)
+
+![Tareas programadas (2)](./screenshots/07-tareas-programadas-2.png)
+
+![Tareas programadas (3)](./screenshots/08-tareas-programadas-3.png)
+
+### 🗑️ Papelera de reciclaje
+
+![Papelera de reciclaje](./screenshots/09-papelera.png)
 
 ---
 
@@ -44,12 +74,12 @@ Sistema web de gestión de tareas desarrollado con **React + Vite + Supabase** q
 
 PostgreSQL mediante **Supabase**, utilizando **4 tablas relacionales** y **Row Level Security (RLS)** para garantizar que cada usuario solo pueda acceder a su propia información.
 
-| Tabla                   | Propósito                                                       |
-| ----------------------- | --------------------------------------------------------------- |
-| tasks                   | Almacenamiento de tareas                                        |
-| scheduled_notifications | Recordatorios programados                                       |
+| Tabla                   | Propósito                                                         |
+| ----------------------- | ----------------------------------------------------------------- |
+| tasks                   | Almacenamiento de tareas                                          |
+| scheduled_notifications | Recordatorios programados                                         |
 | magic_links             | Registro de auditoría de tokens generados (sin uso en validación) |
-| users                   | Información de usuarios                                         |
+| users                   | Información de usuarios                                           |
 
 > 📌 **Nota:** La tabla `magic_links` se utiliza únicamente para auditoría y control de rate limiting. La verificación de tokens se realiza mediante **JWT con firma digital**, sin depender de consultas a la base de datos.
 
