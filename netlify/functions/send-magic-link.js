@@ -16,7 +16,7 @@ const REDIRECT_URI = process.env.GMAIL_REDIRECT_URI;
 const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL;
 const SITE_URL =
-  process.env.SITE_URL || "https://sistema-tareas-recordatorios.netlify.app";
+  process.env.SITE_URL;
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
