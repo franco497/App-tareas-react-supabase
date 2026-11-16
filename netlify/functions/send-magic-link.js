@@ -14,7 +14,7 @@ const CLIENT_ID = process.env.GMAIL_CLIENT_ID;
 const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GMAIL_REDIRECT_URI;
 const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
-const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL || "devincentisf35@gmail.com";
+const FROM_EMAIL = process.env.GMAIL_FROM_EMAIL;
 const SITE_URL =
   process.env.SITE_URL || "https://sistema-tareas-recordatorios.netlify.app";
 
